@@ -57,7 +57,7 @@ media = [
     # all run on the pip-bundled imageio-ffmpeg binary — no system ffmpeg.
     # Floor 0.0.39: make_gif, crop_box= and path-accepting
     # get_video_dimensions ship there.
-    "mixing>=0.0.39",
+    "mixing[media]>=0.0.39",
 ]
 # The pointable subject_locator (issue #15, ADR-0005 §3): rtmlib pose boxes,
 # reached through `paces.pose:rtmlib_pose`. rtmlib is Apache-2.0 (a pure-Python
