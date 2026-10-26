@@ -216,3 +216,40 @@ def test_missing_mixing_names_the_install(monkeypatch):
 def test_cli_timed_text_only_parses_real_json():
     assert tools._timed_text("[draft].srt") == "[draft].srt"
     assert tools._timed_text('[{"start": 0, "end": 1, "text": "x"}]')[0]["text"] == "x"
+
+
+# ── second-review regressions ───────────────────────────────────────────────
+
+
+def test_unusable_subtitles_do_not_break_the_chapters_path():
+    chapters = [{"start": 0, "end": 10, "title": "A"}]
+    seg = segment(metadata={"chapters": chapters, "subtitles": "en"})
+    assert seg.method == "chapters"
+    assert any(flag.startswith("subtitles-unusable") for flag in seg.flags)
+
+
+def test_custom_pattern_without_a_group_works():
+    rows = [{"start": 0, "end": 5, "text": "Right, go."}]
+    (hit,) = detect_cues(rows, patterns=[r"right[,\s]+"])
+    assert hit["cue"] == "Right," and hit["name"] == "go"
+
+
+def test_first_of_all_is_one_marker():
+    (hit,) = detect_cues([{"start": 0, "end": 5, "text": "First of all, the stance."}])
+    assert hit["name"] == "the stance"
+
+
+def test_null_text_and_bool_times_are_refused():
+    with pytest.raises(ValueError):
+        normalize_timed_text([{"start": 0, "end": 1, "text": None}])
+    with pytest.raises(ValueError):
+        normalize_timed_text([{"start": True, "end": 1, "text": "x"}])
+
+
+def test_cli_segment_end_to_end_on_a_transcript(tmp_path):
+    from paces import tools
+
+    path = tmp_path / "talk.srt"
+    path.write_text(SRT, encoding="utf-8")
+    out = tools.segment(transcript=str(path))
+    assert out["method"] == "transcript-cues" and len(out["steps"]) == 3

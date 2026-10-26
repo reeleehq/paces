@@ -61,7 +61,7 @@ DFLT_MAX_NAME_CHARS = 60
 #: "then", "and then", "let's" and leading numerals ("2.") were dropped as
 #: too false-positive-prone in running speech.
 DFLT_CUE_PATTERNS: tuple[str, ...] = (
-    r"(?:(?:and|so|ok(?:ay)?|alright)[,\s]+)?(now|next|first(?:ly)?|second(?:ly)?"
+    r"(?:(?:and|so|ok(?:ay)?|alright)[,\s]+)?(now|next|first\s+of\s+all|first(?:ly)?|second(?:ly)?"
     r"|third(?:ly)?|finally|lastly)\b[,\s]*",
     r"((?:step|number|part)\s+(?:\d+|one|two|three|four|five|six|seven|eight"
     r"|nine|ten))\b[\s:.,)-]*",
@@ -119,7 +119,7 @@ def detect_cues(
             {
                 "start": float(cue["start"]),
                 "name": name,
-                "cue": (match.group(1) or match.group(0)).strip(),
+                "cue": (match.group(1) if match.re.groups else match.group(0)).strip(),
             }
         )
     return found
@@ -136,7 +136,8 @@ def _segment_cue_source(cues: list[dict], *, source: str) -> Segmentation:
         return Segmentation(
             flags=(
                 "no-signal",
-                "try: chapters in metadata, boundaries=[...], or an LLM pass",
+                "try: the other cue source via segmenter=, chapters in metadata, "
+                "boundaries=[...], or an LLM pass",
                 *flags,
             ),
         )

@@ -280,8 +280,15 @@ def _normalize_chapters(metadata: Mapping | Sequence | None) -> list[dict]:
     return rows
 
 
-def _subtitle_cues(metadata: Mapping | Sequence | None) -> list[dict]:
-    """Usable subtitle cues from ``metadata["subtitles"]``, else ``[]``.
+def _subtitle_cues(
+    metadata: Mapping | Sequence | None,
+) -> tuple[list[dict], str | None]:
+    """``(cues, problem)`` from ``metadata["subtitles"]``; cues ``[]`` if none.
+
+    Metadata is a bag of things the caller did not curate, so an unusable
+    ``subtitles`` value must not abort a segmentation another key could serve
+    (e.g. chapters): it is no fact, and *problem* names why (surfaced as a
+    flag).
 
     Usable means timed text itself (SRT/VTT text, a file path, cue rows, a
     Whisper ``{"segments": ...}`` result). A yt-dlp info dict's ``subtitles``
@@ -294,8 +301,11 @@ def _subtitle_cues(metadata: Mapping | Sequence | None) -> list[dict]:
         or (isinstance(value, Mapping) and "segments" in value)
         or (isinstance(value, Sequence) and not isinstance(value, bytes))
     ):
-        return normalize_timed_text(value)
-    return []
+        try:
+            return normalize_timed_text(value), None
+        except (ValueError, TypeError, ImportError) as error:
+            return [], f"subtitles-unusable: {error}"
+    return [], None
 
 
 def _facts(
@@ -374,7 +384,8 @@ def segment(
     step_rows = _normalize_steps(steps)
     grid = _normalize_grid(grid)
     chapters = _normalize_chapters(metadata)
-    subtitles = _subtitle_cues(metadata)
+    subtitles, subtitles_problem = _subtitle_cues(metadata)
+    problem_flags = (subtitles_problem,) if subtitles_problem else ()
     transcript_cues = normalize_timed_text(transcript)
     facts = _facts(
         media=media,
@@ -423,7 +434,8 @@ def segment(
         if not candidates:
             return Segmentation(
                 confidence=0.0,
-                flags=(
+                flags=problem_flags
+                + (
                     "no-signal",
                     "try: steps=[(name, duration), ...] with grid=, "
                     "boundaries=[t0, t1, ...], metadata= with chapters or subtitles, "
@@ -463,6 +475,7 @@ def segment(
         label for fact, label in ignorable.items() if fact in facts and fact not in used
     )
     extra_flags = (f"ignored: {', '.join(ignored)}",) if ignored else ()
+    extra_flags += problem_flags
 
     # A grid describes the media's own clock; any segmentation over that
     # media may carry it (and its unit) even when placement didn't use it —

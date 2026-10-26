@@ -95,6 +95,8 @@ def _cue_row(i: int, item: Any) -> dict:
             f"cues[{i}]: expected a mapping or (start, end, text) — "
             f"got {type(item).__name__}"
         )
+    if item.get("text") is None or isinstance(item.get("start"), bool):
+        raise ValueError(f"cues[{i}]: needs numeric start and text; got {dict(item)!r}")
     try:
         start = float(item["start"])
         end = float(item.get("end", start))
