@@ -120,7 +120,7 @@ dev = [
     # synthesized audio; mirrored with [audio] so they run rather than skip.
     # The derivation tests do the same on synthetic video — mirrored with
     # [media] (the >=0.0.39 floor wins over [audio]'s >=0.0.36).
-    "mixing[beats,audio]>=0.0.39",
+    "mixing[beats,audio,media]>=0.0.39",
     "numba>=0.59",
     # The evidence-layer tests run against real, dict-backed lacing stores —
     # mirrored with [lacing] so they run rather than skip.
