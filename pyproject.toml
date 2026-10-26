@@ -107,7 +107,7 @@ pose = [
 # unknown keys — both of which this layer's round trip relies on to fail loudly
 # instead of silently normalising.
 lacing = [
-    "lacing>=0.0.40",
+    "lacing>=0.0.54",
 ]
 dev = [
     "pytest>=7.0",
@@ -124,7 +124,7 @@ dev = [
     "numba>=0.59",
     # The evidence-layer tests run against real, dict-backed lacing stores —
     # mirrored with [lacing] so they run rather than skip.
-    "lacing>=0.0.40",
+    "lacing>=0.0.54",
     # tests/test_pose.py reads pyproject.toml to guard the licence perimeter;
     # stdlib tomllib is 3.11+, and a skipped guard guards nothing.
     "tomli>=2.0; python_version < '3.11'",
