@@ -19,87 +19,57 @@ word is found the result is the refused state, never an invented step list.
 The LLM rung over a transcript is ``mixing.chapters.detect_chapters``; it is
 a different capability and is not wrapped here.
 
-Accepted timed text (``timed_text``): SRT text (or WebVTT with hour fields),
-a path to an ``.srt``/``.vtt`` file, or cue mappings ``{start, end, text}``.
+Accepted timed text: whatever :func:`paces.timed_text.normalize_timed_text`
+takes — SRT/WebVTT text or file, cue mappings, ``(start, end, text)`` triples,
+a Whisper ``{"segments": ...}`` result. Parsing subtitle *text* needs the
+optional ``mixing`` package; cue rows do not.
+
+Word-level transcripts (one cue per word) mostly yield *unnamed* steps: the
+marker is found but the name that follows it lives in later cues. Pass
+phrase- or sentence-level cues when you want names.
+
+Registration: these capabilities register when this module is imported, and
+``paces/__init__.py`` imports it — so any ``paces.*`` import (including
+``from paces.segmenters import segment``) sees them. ``paces.segmenters``
+does not import this module itself, which would be circular.
 """
 
 from __future__ import annotations
 
-import math
 import re
 from collections.abc import Mapping, Sequence
-from pathlib import Path
 from typing import Any
 
-from paces.segmenters import Capability, SegStep, Segmentation, _slugify, register
+from paces.segmenters import (
+    Capability,
+    SegStep,
+    Segmentation,
+    register,
+    unique_slug_ids,
+)
+from paces.timed_text import normalize_timed_text
+
+__all__ = ["DFLT_CUE_PATTERNS", "detect_cues", "normalize_timed_text"]
 
 DFLT_CUES_CONFIDENCE = 0.5  # lexical cues are a hint, not a measurement
 DFLT_MIN_GAP_S = 8.0  # cues closer than this to the last boundary are one step
 DFLT_MAX_NAME_CHARS = 60
 
 #: Discourse markers that open a step, matched at the start of a cue (case-
-#: insensitive). Each may carry a leading "and"/"so"/"okay". Capture group 1,
-#: when present, is the lead-in to strip from the step's name.
+#: insensitive). Each may carry a leading "and"/"so"/"okay". Capture group 1
+#: is the marker, stripped from the step's name. Deliberately narrow: bare
+#: "then", "and then", "let's" and leading numerals ("2.") were dropped as
+#: too false-positive-prone in running speech.
 DFLT_CUE_PATTERNS: tuple[str, ...] = (
-    r"(?:(?:and|so|ok(?:ay)?|alright)[,\s]+)?(now|next|then|first(?:ly)?|second(?:ly)?"
+    r"(?:(?:and|so|ok(?:ay)?|alright)[,\s]+)?(now|next|first(?:ly)?|second(?:ly)?"
     r"|third(?:ly)?|finally|lastly)\b[,\s]*",
-    r"((?:step|number|part|move)\s+(?:\d+|one|two|three|four|five|six|seven|eight"
+    r"((?:step|number|part)\s+(?:\d+|one|two|three|four|five|six|seven|eight"
     r"|nine|ten))\b[\s:.,)-]*",
-    r"(let'?s|we'?ll\s+start|to\s+start|to\s+begin|moving\s+on|after\s+that"
-    r"|the\s+next)\b[,\s]*",
-    r"(\d{1,2})\s*[.):]\s+",
+    r"(to\s+start|to\s+begin|moving\s+on|after\s+that)\b[,\s]*",
 )
 
-
-# ── timed-text normalisation ────────────────────────────────────────────────
-
-
-def _cue_row(i: int, item: Any) -> dict:
-    if not isinstance(item, Mapping):
-        raise TypeError(f"cues[{i}]: expected a mapping — got {type(item).__name__}")
-    try:
-        start = float(item["start"])
-        end = float(item.get("end", start))
-        text = " ".join(str(item["text"]).split())
-    except (KeyError, TypeError, ValueError) as error:
-        raise ValueError(
-            f"cues[{i}]: needs numeric start (and end) plus text; got "
-            f"keys {sorted(item)} ({error})"
-        ) from None
-    if not (math.isfinite(start) and math.isfinite(end)) or start < 0 or end < start:
-        raise ValueError(f"cues[{i}]: unusable times start={start}, end={end}")
-    return {"start": start, "end": end, "text": text}
-
-
-def normalize_timed_text(source: str | Sequence | None) -> list[dict]:
-    """Uniform, sorted ``{start, end, text}`` rows from any accepted timed text.
-
-    >>> normalize_timed_text("1\\n00:00:01,000 --> 00:00:03,000\\nNow we turn")
-    [{'start': 1.0, 'end': 3.0, 'text': 'Now we turn'}]
-    >>> normalize_timed_text(None)
-    []
-    """
-    if source is None:
-        return []
-    if isinstance(source, str):
-        text = source
-        if "\n" not in source and len(source) < 1024:
-            try:
-                if Path(source).is_file():
-                    text = Path(source).read_text(encoding="utf-8")
-            except OSError:
-                pass
-        from mixing.srt import parse_srt  # the fleet's SRT parser, not a copy
-
-        raw = [
-            {"start": c.start, "end": c.end, "text": c.text} for c in parse_srt(text)
-        ]
-    else:
-        raw = list(source)
-    rows = [_cue_row(i, item) for i, item in enumerate(raw)]
-    rows = [row for row in rows if row["text"]]
-    rows.sort(key=lambda row: (row["start"], row["end"]))
-    return rows
+#: Speaker / sound-tag prefixes stripped before matching: "- ", ">> ", "[music] ".
+_PREFIX_RE = re.compile(r"^(?:\s*(?:-+|>>+|\[[^\]]*\])\s*)+")
 
 
 # ── the detector ────────────────────────────────────────────────────────────
@@ -114,31 +84,37 @@ def detect_cues(
 ) -> list[dict]:
     """Cue rows that open a step: ``{start, name, cue}`` (the matched marker).
 
-    A cue opens a step when its text starts with one of *patterns*; one that
-    lands within *min_gap_s* of the previous accepted step is folded into it.
-    The name is the cue's text without its lead-in marker, trimmed to
-    *max_name_chars* at a word boundary (a marker alone leaves the name empty
-    — found, not named).
+    A cue opens a step when its text — after any speaker or sound-tag prefix
+    ("- ", ">> ", "[music] ") — starts with one of *patterns*; one that lands
+    within *min_gap_s* of the previous accepted step is folded into it (and
+    lends it its name if that step had none). The name is the cue's text
+    without its lead-in marker, trimmed to *max_name_chars* at a word boundary
+    (a marker alone leaves the name empty — found, not named).
 
     >>> rows = [{"start": 0, "end": 4, "text": "Hi everyone"},
-    ...         {"start": 10, "end": 14, "text": "Now we do the turn."}]
+    ...         {"start": 10, "end": 14, "text": ">> Now we do the turn."}]
     >>> detect_cues(rows)
     [{'start': 10.0, 'name': 'we do the turn', 'cue': 'Now'}]
     """
     compiled = [re.compile(p, re.IGNORECASE) for p in patterns]
-    found: list[dict] = []
-    for cue in cues:
-        for pattern in compiled:
-            match = pattern.match(cue["text"])
-            if match:
-                break
-        else:
-            continue
-        if found and cue["start"] - found[-1]["start"] < min_gap_s:
-            continue
-        name = cue["text"][match.end() :].strip(" ,.;:!?-")
+
+    def _name(text: str) -> str:
+        name = text.strip(" ,.;:!?-")
         if len(name) > max_name_chars:
             name = name[:max_name_chars].rsplit(" ", 1)[0].rstrip(" ,.;:-")
+        return name
+
+    found: list[dict] = []
+    for cue in cues:
+        text = _PREFIX_RE.sub("", cue["text"])
+        match = next((m for m in (p.match(text) for p in compiled) if m), None)
+        if match is None:
+            continue
+        name = _name(text[match.end() :])
+        if found and cue["start"] - found[-1]["start"] < min_gap_s:
+            if not found[-1]["name"]:
+                found[-1]["name"] = name
+            continue
         found.append(
             {
                 "start": float(cue["start"]),
@@ -151,23 +127,24 @@ def detect_cues(
 
 def _segment_cue_source(cues: list[dict], *, source: str) -> Segmentation:
     openers = detect_cues(cues)
+    end = max((cue["end"] for cue in cues), default=0.0)
+    flags: tuple[str, ...] = ()
+    if openers and openers[-1]["start"] >= end:
+        openers = openers[:-1]  # a marker on the very last instant opens nothing
+        flags += ("trailing-cue-dropped",)
     if not openers:
         return Segmentation(
             flags=(
                 "no-signal",
                 "try: chapters in metadata, boundaries=[...], or an LLM pass",
+                *flags,
             ),
         )
-    end = max(cue["end"] for cue in cues)
     starts = [row["start"] for row in openers]
-    spans = list(zip(starts, starts[1:] + [end]))
-    seen: dict[str, int] = {}
-
-    def _step(i: int, row: dict, span) -> SegStep:
-        slug = _slugify(row["name"]) if row["name"] else f"cue-{i + 1}"
-        seen[slug] = seen.get(slug, 0) + 1
-        step_id = slug if seen[slug] == 1 else f"{slug}-{seen[slug]}"
-        return SegStep(
+    spans = zip(starts, starts[1:] + [end])
+    ids = unique_slug_ids([row["name"] for row in openers], fallback="cue")
+    steps = tuple(
+        SegStep(
             id=step_id,
             name=row["name"],
             spans=(span,),
@@ -175,11 +152,11 @@ def _segment_cue_source(cues: list[dict], *, source: str) -> Segmentation:
             source=source,
             evidence={"cue": row["cue"]},
         )
-
-    steps = tuple(
-        _step(i, row, span) for i, (row, span) in enumerate(zip(openers, spans))
+        for step_id, row, span in zip(ids, openers, spans)
     )
-    flags = ("proposed-uncertain",)
+    flags = ("proposed-uncertain", *flags)
+    if starts[0] > 0:
+        flags += (f"intro-before: {starts[0]:g}s",)
     if not any(step.name for step in steps):
         flags += ("naming-abstained",)
     return Segmentation(

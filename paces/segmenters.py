@@ -24,7 +24,9 @@ segmentation for ~0 cost, and most tutorial content on the web carries it.
 Plus ``subtitle-cues`` and ``transcript-cues`` (``paces/cues.py``): proposers
 that read step markers ("now", "next", "step two") out of timed text — uploader
 subtitles or any transcript — and return low-confidence, honestly flagged
-spans.
+spans. Like ``grid-measured`` (``paces/measure.py``) they register when
+``paces`` is imported — the package ``__init__`` imports their module, so
+``from paces.segmenters import segment`` sees them too.
 
 Honesty rules (``docs/alignment/07 §9.5``): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
@@ -43,6 +45,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from paces.model import MetricGrid, seconds_per_unit
+from paces.timed_text import normalize_timed_text
 
 Span = tuple[float, float]  # seconds, half-open
 
@@ -165,6 +168,21 @@ def _slugify(text: str) -> str:
     return slug or "step"
 
 
+def unique_slug_ids(names: Sequence[str], *, fallback: str = "step") -> list[str]:
+    """One unique, git-readable id per name; unnamed ones get ``{fallback}-{i}``.
+
+    >>> unique_slug_ids(["Turn", "", "Turn"], fallback="cue")
+    ['turn', 'cue-2', 'turn-2']
+    """
+    seen: dict[str, int] = {}
+    ids = []
+    for index, name in enumerate(names):
+        slug = _slugify(name) if name else f"{fallback}-{index + 1}"
+        seen[slug] = seen.get(slug, 0) + 1
+        ids.append(slug if seen[slug] == 1 else f"{slug}-{seen[slug]}")
+    return ids
+
+
 def _normalize_steps(steps: Sequence | None) -> list[dict]:
     """Accept names, (name, duration) pairs, or mappings; emit uniform dicts.
 
@@ -265,13 +283,16 @@ def _normalize_chapters(metadata: Mapping | Sequence | None) -> list[dict]:
 def _subtitle_cues(metadata: Mapping | Sequence | None) -> list[dict]:
     """Usable subtitle cues from ``metadata["subtitles"]``, else ``[]``.
 
-    Usable means timed text itself (SRT text, a file path, cue mappings). A
-    yt-dlp info dict's ``subtitles`` is a ``{lang: [{url, ext}]}`` index of
-    tracks still to be fetched — not text — and is no fact.
+    Usable means timed text itself (SRT/VTT text, a file path, cue rows, a
+    Whisper ``{"segments": ...}`` result). A yt-dlp info dict's ``subtitles``
+    is a ``{lang: [{url, ext}]}`` index of tracks still to be fetched — not
+    text — and is no fact.
     """
     value = metadata.get("subtitles") if isinstance(metadata, Mapping) else None
-    if isinstance(value, str) or (
-        isinstance(value, Sequence) and not isinstance(value, (str, bytes))
+    if (
+        isinstance(value, (str, Path))
+        or (isinstance(value, Mapping) and "segments" in value)
+        or (isinstance(value, Sequence) and not isinstance(value, bytes))
     ):
         return normalize_timed_text(value)
     return []
@@ -586,12 +607,7 @@ def _segment_chapters(inputs: Mapping[str, Any]) -> Segmentation:
             f"step-count-mismatch: {len(step_rows)} steps vs "
             f"{len(chapters)} chapters (using chapter titles)",
         )
-    seen: dict[str, int] = {}
-
-    def _unique_id(title: str, index: int) -> str:
-        slug = _slugify(title) if title else f"chapter-{index + 1}"
-        seen[slug] = seen.get(slug, 0) + 1
-        return slug if seen[slug] == 1 else f"{slug}-{seen[slug]}"
+    chapter_ids = unique_slug_ids([c["title"] for c in chapters], fallback="chapter")
 
     def _step(i: int, chapter: dict) -> SegStep:
         if user_names:
@@ -599,7 +615,7 @@ def _segment_chapters(inputs: Mapping[str, Any]) -> Segmentation:
             name, step_id = row["name"], row["id"]
             evidence = {"chapter_title": chapter["title"]}
         else:
-            name, step_id = chapter["title"], _unique_id(chapter["title"], i)
+            name, step_id = chapter["title"], chapter_ids[i]
             evidence = {}
         return SegStep(
             id=step_id,
@@ -679,9 +695,3 @@ CHAPTERS = register(
         resolution_s=0.1,
     )
 )
-
-
-# Registered capabilities that live in their own modules (ADR-0003: a new
-# file with one register(...) call). Imported last: they import from here.
-from paces import cues as _cues  # noqa: E402,F401
-from paces.cues import normalize_timed_text  # noqa: E402

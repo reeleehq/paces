@@ -40,9 +40,14 @@ def _structured(value, *, what: str = "argument"):
 
 
 def _timed_text(value):
-    """Timed text as-is (SRT text or an .srt/.vtt path); JSON cues parsed."""
-    if isinstance(value, str) and value.lstrip()[:1] in "[{":
-        return json.loads(value)
+    """JSON cues parsed when the string *is* JSON; anything else passes through
+    (SRT/VTT text, or a path — even one like ``[draft].srt``)."""
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except ValueError:
+            return value
+        return parsed if isinstance(parsed, (list, dict)) else value
     return value
 
 

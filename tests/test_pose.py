@@ -464,9 +464,7 @@ def test_check_pose_requirements_names_the_repair_when_both_cv2_providers_presen
     monkeypatch.setattr(importlib.metadata, "version", fake_version)
     report = check_pose_requirements()
     assert report["cv2_providers"] == ["opencv-python", "opencv-contrib-python"]
-    assert any(
-        "pip install --force-reinstall" in note for note in report["notes"]
-    )
+    assert any("pip install --force-reinstall" in note for note in report["notes"])
 
 
 # ── the licence perimeter (packaging facts, guarded because nothing else is) ─
