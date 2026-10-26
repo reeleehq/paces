@@ -27,6 +27,7 @@
       },
       "attrs": {
         "additionalProperties": true,
+        "default": {},
         "description": "Open bag.",
         "title": "Attrs",
         "type": "object"
@@ -146,6 +147,7 @@
     "properties": {
       "attrs": {
         "additionalProperties": true,
+        "default": {},
         "description": "Namespaced open bag, as on the document.",
         "title": "Attrs",
         "type": "object"
@@ -175,6 +177,7 @@
         "type": "string"
       },
       "flags": {
+        "default": [],
         "description": "The run's honesty flags (``Segmentation.flags``) — 'naming-abstained', 'origin-estimated: ...', and friends. Evidence about the run, never projected into the document.",
         "items": {
           "type": "string"
@@ -389,6 +392,7 @@
           "pattern": "^-?\\d+(\\.\\d+)?$",
           "type": "string"
         },
+        "default": {},
         "description": "Policy parameters the box was resolved under (aspect, pad). A change here re-locates an unlocked entry.",
         "title": "Params",
         "type": "object"
@@ -460,6 +464,7 @@
       },
       "attrs": {
         "additionalProperties": true,
+        "default": {},
         "description": "Open bag.",
         "title": "Attrs",
         "type": "object"
@@ -546,6 +551,7 @@
     "properties": {
       "attrs": {
         "additionalProperties": true,
+        "default": {},
         "description": "Namespaced open bag, as on the step.",
         "title": "Attrs",
         "type": "object"
@@ -610,6 +616,7 @@
       },
       "span_attrs": {
         "additionalProperties": true,
+        "default": {},
         "description": "Open bag on the span.",
         "title": "Span Attrs",
         "type": "object"
@@ -712,6 +719,7 @@
         "type": "string"
       },
       "tags": {
+        "default": [],
         "description": "Open tag vocabulary.",
         "items": {
           "type": "string"
