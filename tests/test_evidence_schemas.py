@@ -12,6 +12,12 @@ halves of that claim:
   migration; a *changed* one is a wire break for every already-written store,
   and this test is what makes that a decision rather than an accident.
 
+Annotation-only keywords a lacing upgrade starts exporting (``default``,
+``description``) may be re-snapshotted — they validate nothing, so no stored
+body changes meaning (lacing 0.0.54 added the ``default_factory`` defaults;
+the floor in pyproject follows). A change to a field, type or ``required`` is
+the wire break and needs ``/v2``.
+
 Regenerating the snapshot deliberately::
 
     python -m tests.test_evidence_schemas   # writes tests/data/body_schemas.json
