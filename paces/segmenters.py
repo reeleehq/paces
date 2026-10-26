@@ -21,6 +21,11 @@ Plus ``chapters`` (external, explicit): author-supplied chapter metadata — a
 yt-dlp info dict or ffprobe's ``-show_chapters`` output — is a complete named
 segmentation for ~0 cost, and most tutorial content on the web carries it.
 
+Plus ``subtitle-cues`` and ``transcript-cues`` (``paces/cues.py``): proposers
+that read step markers ("now", "next", "step two") out of timed text — uploader
+subtitles or any transcript — and return low-confidence, honestly flagged
+spans.
+
 Honesty rules (``docs/alignment/07 §9.5``): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -257,6 +262,21 @@ def _normalize_chapters(metadata: Mapping | Sequence | None) -> list[dict]:
     return rows
 
 
+def _subtitle_cues(metadata: Mapping | Sequence | None) -> list[dict]:
+    """Usable subtitle cues from ``metadata["subtitles"]``, else ``[]``.
+
+    Usable means timed text itself (SRT text, a file path, cue mappings). A
+    yt-dlp info dict's ``subtitles`` is a ``{lang: [{url, ext}]}`` index of
+    tracks still to be fetched — not text — and is no fact.
+    """
+    value = metadata.get("subtitles") if isinstance(metadata, Mapping) else None
+    if isinstance(value, str) or (
+        isinstance(value, Sequence) and not isinstance(value, (str, bytes))
+    ):
+        return normalize_timed_text(value)
+    return []
+
+
 def _facts(
     *,
     media: str | None,
@@ -265,6 +285,8 @@ def _facts(
     grid: MetricGrid | None,
     k: int | None,
     chapters: list[dict] | None = None,
+    subtitles: list[dict] | None = None,
+    transcript: list[dict] | None = None,
 ) -> frozenset[str]:
     """The free half of the fact vocabulary (docs/alignment/07 §9.3): what is
     present among the inputs. Probed (intrinsic) facts arrive with the first
@@ -291,6 +313,10 @@ def _facts(
         facts.add("k")
     if chapters:
         facts.add("meta.chapters")
+    if subtitles:
+        facts.add("meta.subtitles")
+    if transcript:
+        facts.add("transcript")
     return frozenset(facts)
 
 
@@ -305,6 +331,7 @@ def segment(
     boundaries: Sequence[float] | None = None,
     grid: MetricGrid | Mapping | None = None,
     metadata: Mapping | Sequence | None = None,
+    transcript: str | Sequence | None = None,
     k: int | None = None,
     catalog: Mapping[str, Capability] | None = None,
 ) -> Segmentation:
@@ -326,6 +353,8 @@ def segment(
     step_rows = _normalize_steps(steps)
     grid = _normalize_grid(grid)
     chapters = _normalize_chapters(metadata)
+    subtitles = _subtitle_cues(metadata)
+    transcript_cues = normalize_timed_text(transcript)
     facts = _facts(
         media=media,
         steps=step_rows,
@@ -333,6 +362,8 @@ def segment(
         grid=grid,
         k=k,
         chapters=chapters,
+        subtitles=subtitles,
+        transcript=transcript_cues,
     )
     inputs = {
         "media": media,
@@ -340,6 +371,8 @@ def segment(
         "boundaries": tuple(float(b) for b in boundaries) if boundaries else (),
         "grid": grid,
         "chapters": chapters,
+        "subtitles": subtitles,
+        "transcript": transcript_cues,
         "k": k,
     }
 
@@ -372,7 +405,8 @@ def segment(
                 flags=(
                     "no-signal",
                     "try: steps=[(name, duration), ...] with grid=, "
-                    "boundaries=[t0, t1, ...], or metadata= with chapters",
+                    "boundaries=[t0, t1, ...], metadata= with chapters or subtitles, "
+                    "or transcript=",
                 ),
                 elapsed_s=time.perf_counter() - started,
             )
@@ -399,6 +433,8 @@ def segment(
         "steps": "steps",
         "boundaries": "boundaries",
         "meta.chapters": "metadata (chapters)",
+        "meta.subtitles": "metadata (subtitles)",
+        "transcript": "transcript",
         "k": "k",
     }
     used = capability.needs | capability.reads
@@ -643,3 +679,9 @@ CHAPTERS = register(
         resolution_s=0.1,
     )
 )
+
+
+# Registered capabilities that live in their own modules (ADR-0003: a new
+# file with one register(...) call). Imported last: they import from here.
+from paces import cues as _cues  # noqa: E402,F401
+from paces.cues import normalize_timed_text  # noqa: E402

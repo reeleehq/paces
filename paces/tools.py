@@ -39,6 +39,13 @@ def _structured(value, *, what: str = "argument"):
         ) from None
 
 
+def _timed_text(value):
+    """Timed text as-is (SRT text or an .srt/.vtt path); JSON cues parsed."""
+    if isinstance(value, str) and value.lstrip()[:1] in "[{":
+        return json.loads(value)
+    return value
+
+
 def _as_document(document) -> model.StepDocument:
     if isinstance(document, model.StepDocument):
         return document
@@ -114,6 +121,7 @@ def segment(
     boundaries=None,
     grid=None,
     metadata=None,
+    transcript=None,
     segmenter: str | None = None,
     k: int | None = None,
     output: str | None = None,
@@ -122,7 +130,10 @@ def segment(
 
     ``steps``, ``boundaries``, ``grid`` and ``metadata`` accept JSON values,
     JSON strings, or paths to JSON files — ``metadata`` notably takes a
-    yt-dlp ``.info.json`` (its ``chapters`` become a named segmentation).
+    yt-dlp ``.info.json`` (its ``chapters`` become a named segmentation) or
+    ``{"subtitles": <SRT text | .srt/.vtt path | cue list>}``. ``transcript``
+    is timed text — SRT text, an ``.srt``/``.vtt`` path, or JSON cues
+    ``[{"start", "end", "text"}]`` — read for step markers ("now", "next").
     Returns the segmentation as a JSON-ready dict (also written to
     ``output=`` when given) — honest about naming
     (``flags: ['naming-abstained']``) and about refusal
@@ -135,6 +146,7 @@ def segment(
         boundaries=_structured(boundaries, what="boundaries"),
         grid=_structured(grid, what="grid"),
         metadata=_structured(metadata, what="metadata"),
+        transcript=_timed_text(transcript),
         k=k,
     )
     payload = _segmentation_to_dict(result)
