@@ -1,0 +1,22 @@
+paces.segmenters
+================
+
+.. automodule:: paces.segmenters
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      capabilities
+      register
+      segment
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Capability
+      SegStep
+      Segmentation
+   

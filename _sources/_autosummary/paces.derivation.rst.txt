@@ -1,0 +1,38 @@
+paces.derivation
+================
+
+.. automodule:: paces.derivation
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ENVELOPE_LO
+      DFLT_ROLES
+      MEDIA_PREFIX
+      Box
+      SubjectLocator
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_media_requirements
+      derive_document
+      full_frame
+      load_recipes
+      resolve_crop_box
+      save_recipes
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CropRecipe
+      DeriveResult
+      DirStore
+      LocateQuery
+      RecipesFile
+      SubjectObservation
+   

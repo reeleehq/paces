@@ -1,0 +1,41 @@
+paces.model
+===========
+
+.. automodule:: paces.model
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Slug
+      Decimal
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      decimal_str
+      dumps_document
+      loads_document
+      resolve
+      seconds_per_unit
+      validate_document
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Anchor
+      ArtifactRef
+      Cue
+      Lock
+      Measure
+      MetricGrid
+      OpenQuestion
+      Origin
+      Source
+      SourceSpan
+      Step
+      StepDocument
+   

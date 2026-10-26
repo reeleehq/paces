@@ -1,0 +1,19 @@
+paces.edits
+===========
+
+.. automodule:: paces.edits
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SUPPORTED_OPS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      apply_edits
+      merge_regenerated
+   

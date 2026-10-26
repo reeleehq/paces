@@ -1,0 +1,33 @@
+paces.measure
+=============
+
+.. automodule:: paces.measure
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_MEASURED_CONFIDENCE
+      KNOWN_ORIGIN_CONFIDENCE
+      FIT_BONUS
+      TEMPO_DISAGREEMENT_RTOL
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      measure_grid
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      GridMeasurement
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MediaDecodeError
+   

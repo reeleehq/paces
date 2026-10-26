@@ -1,4 +1,0 @@
-paces.bodies.signal
-===================
-.. automodule:: paces.bodies.signal
-   :members:

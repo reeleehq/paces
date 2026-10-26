@@ -1,0 +1,18 @@
+paces.projection
+================
+
+.. automodule:: paces.projection
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DECIMAL_PLACES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      to_document
+   

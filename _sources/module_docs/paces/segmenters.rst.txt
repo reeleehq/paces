@@ -1,4 +1,0 @@
-paces.segmenters
-================
-.. automodule:: paces.segmenters
-   :members:

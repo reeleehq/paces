@@ -1,4 +1,0 @@
-paces.tools
-===========
-.. automodule:: paces.tools
-   :members:

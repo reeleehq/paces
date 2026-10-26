@@ -1,0 +1,22 @@
+paces.tools
+===========
+
+.. automodule:: paces.tools
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      derive
+      edit
+      list_segmenters
+      measure_grid
+      merge
+      render
+      resolve
+      segment
+      suggest_excerpts
+      to_document
+      validate
+   

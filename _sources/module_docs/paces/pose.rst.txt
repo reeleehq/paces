@@ -1,4 +1,0 @@
-paces.pose
-==========
-.. automodule:: paces.pose
-   :members:

@@ -1,4 +1,0 @@
-paces.evidence
-==============
-.. automodule:: paces.evidence
-   :members:

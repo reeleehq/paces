@@ -1,4 +1,0 @@
-paces.excerpts
-==============
-.. automodule:: paces.excerpts
-   :members:

@@ -1,0 +1,33 @@
+paces.pose
+==========
+
+.. automodule:: paces.pose
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_PROBE_FPS
+      DFLT_MODE
+      DFLT_DEVICE
+      DFLT_KEYPOINT_CONFIDENCE
+      DFLT_MIN_KEYPOINTS
+      POSE_EXTRA
+      TEST_MODELS_ENVVAR
+      rtmlib_pose
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_pose_requirements
+      person_boxes
+      probe_times
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      RtmlibPoseLocator
+   

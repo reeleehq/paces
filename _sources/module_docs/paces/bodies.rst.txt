@@ -1,4 +1,0 @@
-paces.bodies
-============
-.. automodule:: paces.bodies
-   :members:

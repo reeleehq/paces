@@ -1,0 +1,73 @@
+﻿paces
+=====
+
+.. automodule:: paces
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      dumps_document
+      loads_document
+      resolve
+      seconds_per_unit
+      validate_document
+      segment
+      register
+      capabilities
+      measure_grid
+      to_document
+      suggest_excerpts
+      derive_document
+      full_frame
+      resolve_crop_box
+      check_media_requirements
+      apply_edits
+      merge_regenerated
+      render_html
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      StepDocument
+      Step
+      Measure
+      MetricGrid
+      Source
+      SourceSpan
+      ArtifactRef
+      Cue
+      Anchor
+      OpenQuestion
+      Lock
+      Origin
+      Segmentation
+      SegStep
+      Capability
+      GridMeasurement
+      ExcerptResult
+      DeriveResult
+      DirStore
+      LocateQuery
+      SubjectObservation
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   bodies
+   derivation
+   edits
+   evidence
+   excerpts
+   measure
+   model
+   pose
+   projection
+   render
+   segmenters
+   tools

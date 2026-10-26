@@ -1,0 +1,18 @@
+paces.render
+============
+
+.. automodule:: paces.render
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ROLE_LABELS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      render_html
+   

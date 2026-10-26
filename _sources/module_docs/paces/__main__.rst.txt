@@ -1,4 +1,0 @@
-paces.__main__
-==============
-.. automodule:: paces.__main__
-   :members:

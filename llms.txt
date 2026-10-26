@@ -1,0 +1,30 @@
+# paces
+
+> Turn instructional media into structured, interactive learning material
+
+
+## Pages
+
+- [paces](index.html.md): Turn instructional media into structured, interactive learning material.
+- [API reference](api.html.md): | &#96;paces&#96;   | Turn instructional media into structured, interactive learning material.   |
+- [paces](_autosummary/paces.html.md): Turn instructional media into structured, interactive learning material.
+- [paces.derivation](_autosummary/paces.derivation.html.md): Media derivation: fill
+- [paces.edits](_autosummary/paces.edits.html.md): Document-layer edit protection: typed patches write Locks; regeneration
+- [paces.excerpts](_autosummary/paces.excerpts.html.md): Excerpt suggestion: mark the loopable sub-window each step’s clip is cut
+- [paces.measure](_autosummary/paces.measure.html.md): Measure a &#96;MetricGrid&#96; from the media itself.
+- [paces.model](_autosummary/paces.model.html.md): The paces intermediate representation: the &#96;StepDocument&#96;.
+- [paces.pose](_autosummary/paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.
+- [paces.projection](_autosummary/paces.projection.html.md): The projection from analysis result to document: &#96;to_document&#96;.
+- [paces.render](_autosummary/paces.render.html.md): Render a &#96;StepDocument&#96; into learning material.
+- [paces.segmenters](_autosummary/paces.segmenters.html.md): Segmentation is a seam, not a stage (ADR-0003).
+- [paces.tools](_autosummary/paces.tools.html.md): Agent-callable tool surface over &#96;paces&#96; — plain functions with JSON-able
+- [For AI agents](ai-agents.html.md): &#96;paces&#96; ships artifacts for coding agents alongside its code. This page lists
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-26 16:59 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+
+## Optional
+
+- [paces.md](paces.md): Complete documentation in a single file.
+
+## Build
+
+- [build_info.json](build_info.json): build provenance (commit, version, tool versions, whether the docs match the package)

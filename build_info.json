@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "built_at": "2026-10-26T16:59:15Z",
+  "package": {
+    "name": "paces",
+    "version": "0.0.13",
+    "display_name": "paces",
+    "source": "pyproject.toml"
+  },
+  "git": {
+    "available": true,
+    "commit": "fff3476c58f9fd01d2922e2804d62d985b6e04cb",
+    "short_commit": "fff3476",
+    "branch": "main",
+    "tags": [
+      "0.0.13"
+    ],
+    "dirty": false,
+    "remote_url": "https://github.com/reeleehq/paces",
+    "commit_url": "https://github.com/reeleehq/paces/commit/fff3476c58f9fd01d2922e2804d62d985b6e04cb",
+    "error": null
+  },
+  "ci": {
+    "provider": "github",
+    "repository": "reeleehq/paces",
+    "sha": "e0b14522b265e2a4adb2395fda92de5196c8b16c",
+    "sha_in_history": true,
+    "ref": "refs/heads/main",
+    "ref_name": "main",
+    "run_id": "40363089617",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/40363089617",
+    "server_url": "https://github.com"
+  },
+  "tools": {
+    "epythet": "0.2.22",
+    "sphinx": "9.1.1",
+    "docutils": "0.22.4",
+    "python": "3.12.15"
+  },
+  "config": {
+    "theme": "auto",
+    "html_theme": "shibuya",
+    "accent": "#923719",
+    "mode": "auto",
+    "api_generator": "autosummary",
+    "ignore": [
+      "tests/",
+      "scrap/",
+      "examples/"
+    ],
+    "agent_outputs": true,
+    "aggregates": [
+      "md"
+    ],
+    "ai_artifacts": true,
+    "provenance": true,
+    "docs_dir": "docsrc"
+  },
+  "site": {
+    "modules_documented": 11,
+    "objects_documented": 149
+  },
+  "pypi": {
+    "checked": true,
+    "latest": "0.0.13",
+    "relation": "same",
+    "error": null
+  },
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout fff3476c58f9fd01d2922e2804d62d985b6e04cb\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "warnings": [],
+  "alignment": {
+    "aligned": true,
+    "notes": []
+  }
+}

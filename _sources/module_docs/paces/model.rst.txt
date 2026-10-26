@@ -1,4 +1,0 @@
-paces.model
-===========
-.. automodule:: paces.model
-   :members:

@@ -1,0 +1,22 @@
+# paces
+
+> Turn instructional media into structured, interactive learning material
+
+
+## Pages in this subsection
+
+- [paces](paces.html.md): Turn instructional media into structured, interactive learning material.
+- [paces.derivation](paces.derivation.html.md): Media derivation: fill
+- [paces.edits](paces.edits.html.md): Document-layer edit protection: typed patches write Locks; regeneration
+- [paces.excerpts](paces.excerpts.html.md): Excerpt suggestion: mark the loopable sub-window each step’s clip is cut
+- [paces.measure](paces.measure.html.md): Measure a &#96;MetricGrid&#96; from the media itself.
+- [paces.model](paces.model.html.md): The paces intermediate representation: the &#96;StepDocument&#96;.
+- [paces.pose](paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.
+- [paces.projection](paces.projection.html.md): The projection from analysis result to document: &#96;to_document&#96;.
+- [paces.render](paces.render.html.md): Render a &#96;StepDocument&#96; into learning material.
+- [paces.segmenters](paces.segmenters.html.md): Segmentation is a seam, not a stage (ADR-0003).
+- [paces.tools](paces.tools.html.md): Agent-callable tool surface over &#96;paces&#96; — plain functions with JSON-able
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.
