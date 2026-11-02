@@ -212,10 +212,17 @@ def _walk_rows(rows: list[dict]):
         yield from _walk_rows(row["children"])
 
 
+def _undated_ids(rows: list[dict]) -> list[str]:
+    """Ids of the (nested) normalised rows that have no duration."""
+    return [row["id"] for row in _walk_rows(rows) if row["duration"] is None]
+
+
 def check_step_durations(rows: list[dict], *, who: str = "place_on_grid") -> None:
     """Raise ``ValueError`` unless every (nested) row has a positive, finite
-    duration — the precondition for placing a step list on a grid."""
-    undated = [row["id"] for row in _walk_rows(rows) if row["duration"] is None]
+    duration — the precondition for placing a step list on a grid. ``rows``
+    are normalised step rows (what :func:`segment` hands a segmenter in
+    ``inputs["steps"]``), not the raw forms :func:`segment` accepts."""
+    undated = _undated_ids(rows)
     if undated:
         raise ValueError(f"{who} needs a duration for every step: {undated}")
     bad = [
@@ -377,7 +384,7 @@ def _facts(
             pass
     if steps:
         facts.add("steps")
-        if all(row["duration"] is not None for row in _walk_rows(steps)):
+        if not _undated_ids(steps):
             facts.add("steps.durations")  # children too: placement needs them all
         if any(row["spans"] for row in steps):
             facts.add("steps.spans")
@@ -452,7 +459,7 @@ def segment(
     chapters = _normalize_chapters(metadata)
     subtitles, subtitles_problem = _subtitle_cues(metadata)
     problem_flags = (subtitles_problem,) if subtitles_problem else ()
-    undated = [row["id"] for row in _walk_rows(step_rows) if row["duration"] is None]
+    undated = _undated_ids(step_rows)
     if undated and len(undated) < sum(1 for _ in _walk_rows(step_rows)):
         # durations were given but not for all: say which, so a refused or
         # unplaced result never just asks for what the caller supplied
@@ -498,9 +505,15 @@ def segment(
             raise ValueError(f"unknown segmenter {segmenter!r}; registered: {known}")
         missing_facts = capability.needs - facts
         if missing_facts:
+            undated_note = (
+                f"; steps without a duration: {undated}"
+                if "steps.durations" in missing_facts and undated
+                else ""
+            )
             raise ValueError(
                 f"segmenter {capability.name!r} needs inputs you did not "
-                f"provide: {sorted(missing_facts)} (facts present: {sorted(facts)})"
+                f"provide: {sorted(missing_facts)} (facts present: "
+                f"{sorted(facts)}){undated_note}"
             )
     else:
         candidates = [

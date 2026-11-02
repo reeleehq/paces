@@ -318,7 +318,9 @@ def test_an_undated_child_keeps_placement_from_being_selected(tmp_path, monkeypa
     media.write_bytes(b"")
     _forbid_measuring(monkeypatch)
     with pytest.raises(
-        ValueError, match=r"needs inputs you did not provide: \['steps\.durations'\]"
+        ValueError,
+        match=r"needs inputs you did not provide: \['steps\.durations'\]"
+        r".*steps without a duration: \['undated'\]",
     ):
         segment(str(media), steps=steps, segmenter="grid-measured")
 
