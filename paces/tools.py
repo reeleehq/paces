@@ -129,6 +129,7 @@ def segment(
     transcript=None,
     segmenter: str | None = None,
     k: int | None = None,
+    corrections=None,
     output: str | None = None,
 ) -> dict:
     """Cut media into steps using whatever else is present (ADR-0003).
@@ -139,7 +140,10 @@ def segment(
     ``{"subtitles": <SRT text | .srt/.vtt path | cue list>}``. ``transcript``
     is timed text — SRT text, an ``.srt``/``.vtt`` path, or JSON cues
     ``[{"start", "end", "text"}]`` — read for step markers ("now", "next").
-    Returns the segmentation as a JSON-ready dict (also written to
+    ``corrections`` is a human's correction log — a JSON list of
+    ``{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}``
+    (inline, or a path) — replayed as constraints; any it could not honour
+    is reported in ``flags``. Returns the segmentation as a JSON-ready dict (also written to
     ``output=`` when given) — honest about naming
     (``flags: ['naming-abstained']``) and about refusal
     (``flags: ['no-signal', 'try: ...']``); never a fabricated step list.
@@ -153,6 +157,7 @@ def segment(
         metadata=_structured(metadata, what="metadata"),
         transcript=_timed_text(transcript),
         k=k,
+        corrections=_structured(corrections, what="corrections"),
     )
     payload = _segmentation_to_dict(result)
     if output:

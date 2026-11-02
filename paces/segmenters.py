@@ -318,6 +318,7 @@ def _facts(
     chapters: list[dict] | None = None,
     subtitles: list[dict] | None = None,
     transcript: list[dict] | None = None,
+    corrections: Sequence | None = None,
 ) -> frozenset[str]:
     """The free half of the fact vocabulary (docs/alignment/07 §9.3): what is
     present among the inputs. Probed (intrinsic) facts arrive with the first
@@ -348,7 +349,17 @@ def _facts(
         facts.add("meta.subtitles")
     if transcript:
         facts.add("transcript")
+    if corrections:
+        facts.add("corrections")
     return frozenset(facts)
+
+
+def _normalize_corrections(corrections: Sequence | None) -> tuple:
+    if not corrections:
+        return ()
+    from paces.corrections import normalize_corrections  # imports this module
+
+    return normalize_corrections(corrections)
 
 
 # ── the facade ──────────────────────────────────────────────────────────────
@@ -364,6 +375,7 @@ def segment(
     metadata: Mapping | Sequence | None = None,
     transcript: str | Sequence | None = None,
     k: int | None = None,
+    corrections: Sequence | None = None,
     catalog: Mapping[str, Capability] | None = None,
 ) -> Segmentation:
     """Cut *media* into named steps, using whatever else is present.
@@ -374,6 +386,12 @@ def segment(
     exception.
 
     The seam: ``segmenter=None`` selects from what is present; a name pins it.
+
+    ``corrections`` is a human's correction log (:mod:`paces.corrections`):
+    constraints that survive re-runs. A segmenter that lists
+    ``"corrections"`` in ``reads`` receives the log and honours it itself;
+    for any other, the log is replayed over its result, and every correction
+    that could not be honoured is flagged, never dropped.
 
     >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
     >>> [(s.name, s.spans) for s in seg.steps]
@@ -387,6 +405,7 @@ def segment(
     subtitles, subtitles_problem = _subtitle_cues(metadata)
     problem_flags = (subtitles_problem,) if subtitles_problem else ()
     transcript_cues = normalize_timed_text(transcript)
+    correction_log = _normalize_corrections(corrections)
     facts = _facts(
         media=media,
         steps=step_rows,
@@ -396,6 +415,7 @@ def segment(
         chapters=chapters,
         subtitles=subtitles,
         transcript=transcript_cues,
+        corrections=correction_log,
     )
     inputs = {
         "media": media,
@@ -406,6 +426,7 @@ def segment(
         "subtitles": subtitles,
         "transcript": transcript_cues,
         "k": k,
+        "corrections": correction_log,
     }
 
     if segmenter is not None:
@@ -458,6 +479,10 @@ def segment(
             f"{', '.join(missing_modules)} — pip install them first"
         )
     result: Segmentation = _resolve_target(capability)(inputs)
+    if correction_log and "corrections" not in capability.reads:
+        from paces.corrections import replay
+
+        result = replay(result, correction_log)
 
     # Honesty: an explicitly supplied input the chosen segmenter neither
     # needs nor reads was silently discarded — say so instead of implying it
