@@ -199,3 +199,26 @@ def test_place_on_grid_names_what_is_missing(steps, grid, match):
 
     with pytest.raises(ValueError, match=match):
         place_on_grid(steps, grid)
+
+
+@pytest.mark.parametrize("origin, start", [("0", 0.0), ("0.0", 0.0), ("51.2", 51.2)])
+def test_resolve_computes_wall_clock_from_any_origin_including_zero(origin, start):
+    """An origin of 0 is a real origin, not a missing one (#46)."""
+    from paces.model import resolve
+
+    doc = to_document(
+        segment(steps=[("a", 1)], grid={**GRID, "origin": origin}),
+        doc_id="d",
+        title="t",
+    )
+    assert resolve(doc)["steps"][0]["start_s"] == pytest.approx(start)
+
+
+def test_resolve_without_an_origin_has_no_wall_clock():
+    from paces.model import resolve
+
+    doc = to_document(segment(steps=[("a", 1)], grid=GRID), doc_id="d", title="t")
+    doc = doc.model_copy(
+        update={"metric": doc.metric.model_copy(update={"origin": None})}
+    )
+    assert resolve(doc)["steps"][0]["start_s"] is None

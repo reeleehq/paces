@@ -345,7 +345,11 @@ def resolve(doc: StepDocument) -> dict:
     """
     grid = doc.metric
     spu = seconds_per_unit(grid) if grid is not None else None
-    origin = float(Fraction(grid.origin)) if grid and grid.origin else None
+    origin = (
+        float(Fraction(grid.origin))
+        if grid is not None and grid.origin is not None
+        else None
+    )
 
     def _wall(offset_units: float) -> float | None:
         if spu is None or origin is None:
