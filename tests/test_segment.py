@@ -8,7 +8,13 @@ import pytest
 
 from paces.model import MetricGrid
 from paces.projection import to_document
-from paces.segmenters import Capability, capabilities, register, segment
+from paces.segmenters import (
+    Capability,
+    Segmentation,
+    capabilities,
+    register,
+    segment,
+)
 
 GRID = {"unit": "eight", "subdivisions": 8, "tempoBpm": "129.2", "origin": "51.2"}
 #: The POC routine as (name, eights) pairs — kickoff's "common real case".
@@ -337,3 +343,26 @@ def test_grid_measured_rejects_bad_durations_before_measuring(
     steps = [("a", 1), {"name": "p", "duration": 2, "children": [("c", bad)]}]
     with pytest.raises(ValueError, match=r"positive, finite durations: \['c'\]"):
         segment(str(media), steps=steps, segmenter="grid-measured")
+
+
+def _spans_reader(inputs):
+    return Segmentation(boundaries=(0.0, 1.0))
+
+
+def test_the_spans_fact_reads_the_whole_step_tree():
+    """A span on a child counts, as a duration on a child does (#51): a
+    segmenter that needs ``steps.spans`` is selectable from a nested span."""
+    needs_spans = Capability(
+        name="needs-spans",
+        gives="segmentation",
+        summary="test double",
+        target=f"{__name__}:_spans_reader",
+        needs=frozenset({"steps", "steps.spans"}),
+    )
+    catalog = {"needs-spans": needs_spans}
+    nested = [
+        {"name": "p", "duration": 2, "children": [{"name": "c", "spans": [(1, 2)]}]}
+    ]
+    assert segment(steps=nested, catalog=catalog).method == "needs-spans"
+    refused = segment(steps=[("p", 2)], catalog=catalog)
+    assert refused.method == "" and "no-signal" in refused.flags
