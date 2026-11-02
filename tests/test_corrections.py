@@ -242,9 +242,9 @@ def _flagged(seg, prefix):
 
 
 def test_times_are_kept_to_the_millisecond_so_the_wire_is_lossless():
-    """A grid-placed boundary is an ugly float; the wire writes 3 places."""
-    grid_placed = segment(steps=GRID_ROWS, grid=GRID)
-    b1, b2 = grid_placed.boundaries[1:3]
+    """Any computed time can be an ugly float; the wire writes 3 places.
+    (Grid-placed times are already rounded since #53; these are raw.)"""
+    b1, b2 = 0.37 + 3.8803 / 7, 4.1 + 0.1 + 0.2
     assert b1 != round(b1, 3)  # the premise: an unrounded time
     for c in [pin((b1, b2)), split(0.8550444), forbid(b1, (b1, b2)), split(0.1 + 0.2)]:
         assert from_wire(json.loads(json.dumps(to_wire(c)))) == c
@@ -665,3 +665,20 @@ def test_the_overlap_check_scales_to_thousands_of_steps():
     started = time.perf_counter()
     assert inconsistencies(seg) == ()
     assert time.perf_counter() - started < 1.0  # all-pairs took ~seconds here
+
+
+def test_a_touched_cut_set_is_rebuilt_even_if_it_ends_where_it_started():
+    """The review's fuzz case: the duplicate 50 must not survive its step."""
+    seg = segment(
+        boundaries=[10, 40, 50, 50],
+        corrections=[pin((40, 42.5)), merge(42.5), merge(22.5)],
+    )
+    assert seg.boundaries == tuple(sorted(set(seg.boundaries)))
+
+
+def test_dense_overlaps_are_summarised_not_listed_by_the_hundred_thousand():
+    steps = tuple(SegStep(id=f"s{i}", spans=((0.0, 10.0),)) for i in range(30))
+    flags = inconsistencies(Segmentation(steps=steps, boundaries=(0.0, 10.0)))
+    overlap = [f for f in flags if " overlap " in f]
+    assert len(overlap) == 20
+    assert "inconsistent: 415 more overlapping pairs not listed" in flags

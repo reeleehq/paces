@@ -25,10 +25,18 @@ __all__ = [
     "SegStep",
     "Segmentation",
     "Span",
+    "TIME_PLACES",
     "edges",
     "inconsistencies",
     "overlaps",
+    "time_str",
 ]
+
+#: Decimal places every computed time keeps (spans, boundaries, corrections): milliseconds, the wire's
+#: resolution. Corrections round to it at construction, so their wire round trip
+#: is lossless (``decimal_str`` writes exactly this many).
+TIME_PLACES = 3
+
 
 Span = tuple[float, float]  # seconds, half-open
 
@@ -90,7 +98,15 @@ def overlaps(a: Span, b: Span) -> bool:
     return max(a[0], b[0]) < min(a[1], b[1])
 
 
-def inconsistencies(seg: Segmentation) -> tuple[str, ...]:
+#: Overlap flags listed one per pair before the rest are summarised: the
+#: check runs on every segmentation, and dense overlaps make pairs by the
+#: hundred thousand.
+DFLT_MAX_OVERLAP_FLAGS = 20
+
+
+def inconsistencies(
+    seg: Segmentation, *, max_overlap_flags: int = DFLT_MAX_OVERLAP_FLAGS
+) -> tuple[str, ...]:
     """What no segmentation may contain, as ``inconsistent:`` flags — never
     repaired, never raised: empty spans, spans of different steps that
     overlap, children outside their parent, and step edges missing from
@@ -104,27 +120,31 @@ def inconsistencies(seg: Segmentation) -> tuple[str, ...]:
     ("inconsistent: steps 'a' and 'b' overlap (8–10)", 'inconsistent: step edges not in boundaries: 8')
     """
 
-    def _t(t: float) -> str:
-        return decimal_str(t, places=3)
-
     spans = sorted((span, step.id) for step in seg.steps for span in step.spans)
     flags = [
-        f"inconsistent: step {step_id!r} has an empty span at {_t(span[0])}"
+        f"inconsistent: step {step_id!r} has an empty span at {time_str(span[0])}"
         for span, step_id in spans
         if span[0] >= span[1]
     ]
     # A sweep, not all pairs: it runs on every segmentation, and subtitle
     # cues can make thousands of steps. Only spans still open can overlap.
     active: list[tuple[Span, str]] = []
+    overlap_flags: list[str] = []
     for b, b_id in spans:
         active = [(a, a_id) for a, a_id in active if a[1] > b[0]]
-        flags += [
+        overlap_flags += [
             f"inconsistent: steps {a_id!r} and {b_id!r} overlap "
-            f"({_t(max(a[0], b[0]))}–{_t(min(a[1], b[1]))})"
+            f"({time_str(max(a[0], b[0]))}–{time_str(min(a[1], b[1]))})"
             for a, a_id in active
             if a_id != b_id and overlaps(a, b)
         ]
         active.append((b, b_id))
+    flags += overlap_flags[:max_overlap_flags]
+    if len(overlap_flags) > max_overlap_flags:
+        flags.append(
+            f"inconsistent: {len(overlap_flags) - max_overlap_flags} more "
+            "overlapping pairs not listed"
+        )
     flags += [
         f"inconsistent: child {child.id!r} of {step.id!r} lies outside its parent"
         for step in seg.steps
@@ -134,6 +154,16 @@ def inconsistencies(seg: Segmentation) -> tuple[str, ...]:
     ]
     missing = sorted(edges(seg.steps) - set(seg.boundaries))
     if missing:
-        listed = ", ".join(_t(t) for t in missing)
+        listed = ", ".join(time_str(t) for t in missing)
         flags.append(f"inconsistent: step edges not in boundaries: {listed}")
     return tuple(flags)
+
+
+def time_str(t: float) -> str:
+    """A time as paces' millisecond wire decimal — the one formatter every
+    time producer shares (the ask page's ``timeStr`` mirrors it).
+
+    >>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
+    ('95.8', '10.062')
+    """
+    return decimal_str(t, places=TIME_PLACES)

@@ -52,6 +52,7 @@ from paces.segmentation import (  # noqa: F401 — re-exported; their home is th
     DFLT_GRID_CONFIDENCE,
     SegStep,
     Segmentation,
+    TIME_PLACES,
     Span,
     inconsistencies,
 )
@@ -637,8 +638,11 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
         placed = []
         for row in rows:
             duration = row["duration"]
-            start = origin + at_units * spu
-            end = origin + (at_units + duration) * spu
+            # Rounded to the millisecond, like boundaries below: a child's
+            # end summed piecewise ((a+0.1)+0.2) and its parent's (a+0.3) are
+            # the same time and must compare equal.
+            start = round(origin + at_units * spu, TIME_PLACES)
+            end = round(origin + (at_units + duration) * spu, TIME_PLACES)
             placed.append(
                 SegStep(
                     id=row["id"],
@@ -653,7 +657,9 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
             at_units += duration
         return placed
 
-    boundaries = tuple(origin + units * spu for units in _cumulative(rows))
+    boundaries = tuple(
+        round(origin + units * spu, TIME_PLACES) for units in _cumulative(rows)
+    )
     return Segmentation(
         steps=tuple(_place(rows, 0.0)),
         boundaries=boundaries,

@@ -42,22 +42,19 @@ from dataclasses import dataclass
 from typing import Literal, get_args
 
 from paces.model import decimal_str
-from paces.segmentation import (
+from paces.segmentation import (  # noqa: F401 — TIME_PLACES/time_str re-exported
     DFLT_EXPLICIT_CONFIDENCE,
+    TIME_PLACES,
     SegStep,
     Segmentation,
     Span,
+    time_str,
 )
 from paces.segmentation import edges as _edges
 from paces.segmentation import overlaps as _overlaps
 
 Verb = Literal["pin", "forbid", "absent", "split", "merge"]
 VERBS: tuple[str, ...] = get_args(Verb)
-
-#: Decimal places a correction's times keep: milliseconds, the wire's
-#: resolution. Times are rounded to it at construction, so ``to_wire`` →
-#: ``from_wire`` is lossless (``decimal_str`` writes exactly this many).
-TIME_PLACES = 3
 
 #: How far a ``merge`` time may sit from the boundary it means. A human taps
 #: approximately; the machine finds the cut (``docs/alignment/07 §7.3`` step 3
@@ -193,16 +190,6 @@ _WIRE_KEYS = {
 _REQUIRED_WIRE_KEYS = ("verb", "anchorT")
 
 
-def time_str(t: float) -> str:
-    """A time as paces' millisecond wire decimal — the one formatter every
-    corrections producer shares (the ask page's ``timeStr`` mirrors it).
-
-    >>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
-    ('95.8', '10.062')
-    """
-    return decimal_str(t, places=TIME_PLACES)
-
-
 def to_wire(correction: Correction) -> dict:
     """A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted."""
     wire: dict = {"verb": correction.verb, "anchorT": time_str(correction.anchor_t)}
@@ -315,7 +302,8 @@ def replay(
     (``correction-clipped``). Checking the result is not replay's job:
     :func:`paces.segmenters.segment` runs
     :func:`~paces.segmentation.inconsistencies` on every segmentation. A log
-    that leaves the cut set as it was leaves ``boundaries`` exactly as given.
+    in which no correction edits the cut set leaves ``boundaries`` exactly as
+    given (duplicates included); once one does, they are rebuilt from it.
 
     >>> seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),
     ...                    boundaries=(0.0, 10.0))
@@ -333,11 +321,14 @@ def replay(
         seen_ids=frozenset(step.id for step in seg.steps),
     )
     outcomes: list = []
+    cuts_touched = False  # once a correction edits the cut set, it is rebuilt
     for correction in normalize_corrections(corrections):
+        before = state.boundaries
         state, outcome = _APPLY[correction.verb](state, correction, options)
+        cuts_touched = cuts_touched or state.boundaries != before
         outcomes.append(outcome)
     flags = tuple(_final_flags(state.steps, outcomes))
-    unchanged = state.boundaries == frozenset(seg.boundaries)
+    unchanged = not cuts_touched
     return dataclasses.replace(
         seg,
         steps=state.steps,
