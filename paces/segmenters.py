@@ -150,7 +150,36 @@ def _normalize_steps(steps: Sequence | None) -> list[dict]:
     """Accept names, (name, duration) pairs, or mappings; emit uniform dicts.
 
     Uniform shape: ``{id, name, duration (float units or None), spans, children}``.
+    Ids are unique across the whole tree, as a document requires: an id the
+    caller gave is kept as given; a generated one (the name's slug) gets a
+    ``-2``, ``-3``… suffix when it is already taken.
+
+    >>> [r["id"] for r in _normalize_steps(["Turn", "Turn", {"name": "x", "id": "turn-2"}])]
+    ['turn', 'turn-3', 'turn-2']
     """
+    rows = _step_rows(steps, where="steps")
+    taken = {row["id"] for row in _walk_rows(rows) if row["id"] is not None}
+    for row in _walk_rows(rows):
+        if row["id"] is None:
+            base, n = row.pop("_slug"), 1
+            candidate = base
+            while candidate in taken:
+                n += 1
+                candidate = f"{base}-{n}"
+            row["id"] = candidate
+            taken.add(candidate)
+        row.pop("_slug", None)
+    return rows
+
+
+def _walk_rows(rows: list[dict]):
+    """Every row of a normalised step tree, parents before children."""
+    for row in rows:
+        yield row
+        yield from _walk_rows(row["children"])
+
+
+def _step_rows(steps: Sequence | None, *, where: str) -> list[dict]:
     if steps is None:
         return []
     rows: list[dict] = []
@@ -159,20 +188,28 @@ def _normalize_steps(steps: Sequence | None) -> list[dict]:
             row = {"name": item}
         elif isinstance(item, Mapping):
             row = dict(item)
-        elif isinstance(item, Sequence):
+        elif isinstance(item, Sequence) and len(item) == 2:
             name, duration = item
             row = {"name": name, "duration": duration}
         else:
-            raise TypeError(
-                f"steps[{i}]: expected a name, a (name, duration) pair, or a "
-                f"mapping — got {type(item).__name__}"
+            got = (
+                f"a {len(item)}-item sequence"
+                if isinstance(item, Sequence)
+                else type(item).__name__
             )
-        row.setdefault("id", _slugify(row.get("name", "")) or f"step-{i + 1}")
+            raise TypeError(
+                f"{where}[{i}]: expected a name, a (name, duration) pair, or a "
+                f"mapping — got {got}"
+            )
+        row["id"] = row.get("id")
+        row["_slug"] = _slugify(row.get("name") or "")  # "step" when unnamed
         row["duration"] = (
             None if row.get("duration") is None else float(row["duration"])
         )
         row["spans"] = [tuple(map(float, s)) for s in row.get("spans", ())]
-        row["children"] = _normalize_steps(row.get("children") or row.get("steps"))
+        row["children"] = _step_rows(
+            row.get("children") or row.get("steps"), where=f"{where}[{i}].children"
+        )
         rows.append(row)
     return rows
 
@@ -296,8 +333,8 @@ def _facts(
             pass
     if steps:
         facts.add("steps")
-        if all(row["duration"] is not None for row in steps):
-            facts.add("steps.durations")
+        if all(row["duration"] is not None for row in _walk_rows(steps)):
+            facts.add("steps.durations")  # children too: placement needs them all
         if any(row["spans"] for row in steps):
             facts.add("steps.spans")
     if boundaries:

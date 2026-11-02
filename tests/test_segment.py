@@ -231,3 +231,43 @@ def test_resolve_treats_a_numeric_zero_origin_as_an_origin():
     doc = to_document(segment(steps=[("a", 1)], grid=GRID), doc_id="d", title="t")
     doc = doc.model_copy(update={"metric": doc.metric.model_copy(update={"origin": 0})})
     assert resolve(doc)["steps"][0]["start_s"] == 0.0
+
+
+def test_duplicate_step_names_get_unique_ids_tree_wide():
+    """Edits, locks and the evidence layer address steps by id (#47)."""
+    steps = [
+        ("Turn", 2),
+        ("Turn", 2),
+        {"name": "Kick", "duration": 4, "children": [("Turn", 2), ("Turn", 2)]},
+    ]
+    seg = segment(steps=steps, grid=GRID)
+    ids = [seg.steps[0].id, seg.steps[1].id, *(c.id for c in seg.steps[2].children)]
+    assert ids == ["turn", "turn-2", "turn-3", "turn-4"]
+    doc = to_document(seg, doc_id="d", title="t")
+    from paces.model import validate_document
+
+    assert not [i for i in validate_document(doc) if "duplicate step id" in i]
+
+
+def test_an_explicit_step_id_is_kept_and_never_reused():
+    seg = segment(
+        steps=[("Turn", 1), {"name": "x", "id": "turn", "duration": 1}], grid=GRID
+    )
+    assert [s.id for s in seg.steps] == ["turn-2", "turn"]
+
+
+def test_a_step_that_is_neither_name_pair_nor_mapping_is_named_in_the_error():
+    with pytest.raises(TypeError, match=r"steps\[1\].*3-item sequence"):
+        segment(steps=[("a", 1), ("b", 1, "extra")], grid=GRID)
+    with pytest.raises(TypeError, match=r"steps\[0\]\.children\[0\]"):
+        segment(steps=[{"name": "p", "duration": 1, "children": [3]}], grid=GRID)
+
+
+def test_an_undated_child_keeps_placement_from_being_selected():
+    """'steps.durations' covers children, so no placing segmenter is chosen —
+    and grid-measured is never asked to measure for a list it cannot place."""
+    steps = [{"name": "p", "duration": 2, "children": ["undated"]}]
+    seg = segment(steps=steps, grid=GRID)
+    assert seg.method != "grid-placed"
+    with pytest.raises(ValueError, match="steps.durations"):
+        segment("song.wav", steps=steps, segmenter="grid-measured")
