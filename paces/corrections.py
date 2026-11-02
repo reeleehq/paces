@@ -111,14 +111,14 @@ class Correction:
                 f"{self.verb!r} {'needs' if needs_span else 'takes no'} span="
             )
         if self.span is not None:
-            if len(self.span) != 2:
+            if not isinstance(self.span, (tuple, list)) or len(self.span) != 2:
                 raise ValueError(f"span must be (start, end), got {self.span!r}")
             start, end = (_to_ms(t, what="span") for t in self.span)
             if not start < end:
                 raise ValueError(
                     f"span must be (start, end) with start < end: {self.span}"
                 )
-            if self.verb == "pin" and not start <= self.anchor_t <= end:
+            if self.verb == "pin" and not start <= self.anchor_t < end:
                 raise ValueError(
                     f"a pin's anchor_t ({self.anchor_t}) must lie inside its span {self.span}"
                 )
@@ -210,8 +210,11 @@ def from_wire(wire: Mapping) -> Correction:
     if missing:
         raise ValueError(f"correction {dict(wire)} is missing {missing}")
     kwargs = {by_wire[key]: value for key, value in wire.items()}
-    if kwargs.get("span") is not None:
-        kwargs["span"] = tuple(kwargs["span"])
+    span = kwargs.get("span")
+    if span is not None:
+        if not isinstance(span, (list, tuple)):
+            raise ValueError(f"span must be a [start, end] list, got {span!r}")
+        kwargs["span"] = tuple(span)
     return Correction(**kwargs)
 
 
@@ -236,9 +239,9 @@ def normalize_corrections(
             f"corrections must be a list of corrections, got a single {kind}; "
             "wrap it in a list"
         )
-    if isinstance(corrections, (str, bytes)):
+    if isinstance(corrections, (str, bytes)) or not isinstance(corrections, Iterable):
         raise ValueError(
-            f"corrections must be a list of corrections, got a string {corrections[:80]!r}"
+            f"corrections must be a list of corrections, got {corrections!r:.80}"
         )
     return tuple(c if isinstance(c, Correction) else from_wire(c) for c in corrections)
 
@@ -252,12 +255,14 @@ class _State:
 
     steps: tuple[SegStep, ...]
     boundaries: frozenset[float]
+    seen_ids: frozenset[str] = frozenset()  # never reused: a forbid names one
 
 
 @dataclass(frozen=True, slots=True)
 class _Options:
     merge_tolerance_s: float
     min_step_s: float
+    cuts_only: bool  # decided once, from the input: no steps, only boundaries
 
 
 @dataclass(frozen=True, slots=True)
@@ -294,8 +299,16 @@ def replay(
     >>> replay(seg, [split(5), split(5.1)]).flags
     ('corrected: split@5', 'correction-unmatched: split@5.1 (within 0.25 s of a cut)')
     """
-    options = _Options(merge_tolerance_s=merge_tolerance_s, min_step_s=min_step_s)
-    state = _State(steps=tuple(seg.steps), boundaries=frozenset(seg.boundaries))
+    options = _Options(
+        merge_tolerance_s=merge_tolerance_s,
+        min_step_s=min_step_s,
+        cuts_only=not seg.steps,
+    )
+    state = _State(
+        steps=tuple(seg.steps),
+        boundaries=frozenset(seg.boundaries),
+        seen_ids=frozenset(step.id for step in seg.steps),
+    )
     outcomes: list = []
     for correction in normalize_corrections(corrections):
         state, outcome = _APPLY[correction.verb](state, correction, options)
@@ -389,7 +402,7 @@ def _infeasible(state: _State, correction: Correction, why: str):
 
 def _apply_split(state: _State, correction: Correction, options: _Options):
     t = correction.anchor_t
-    if not state.steps:
+    if options.cuts_only:
         return _split_cuts(state, correction, options)
     hit = _covering(state.steps, t)
     if hit is None:
@@ -401,13 +414,14 @@ def _apply_split(state: _State, correction: Correction, options: _Options):
     if why:
         return _unmatched(state, correction, why)
     to_tail = [_falls_in(c, (t, end)) for c in step.children]
-    taken = {s.id for s in state.steps}
+    taken = state.seen_ids
+    tail_id = next(
+        f"{step.id}-{n}"
+        for n in range(2, len(taken) + 3)
+        if f"{step.id}-{n}" not in taken
+    )
     tail = SegStep(
-        id=next(
-            f"{step.id}-{n}"
-            for n in range(2, len(taken) + 3)
-            if f"{step.id}-{n}" not in taken
-        ),
+        id=tail_id,
         spans=((t, end),),
         confidence=DFLT_EXPLICIT_CONFIDENCE,
         children=tuple(c for c, moves in zip(step.children, to_tail) if moves),
@@ -418,8 +432,19 @@ def _apply_split(state: _State, correction: Correction, options: _Options):
         _with_span(step, j, (start, t)),
         children=tuple(c for c, moves in zip(step.children, to_tail) if not moves),
     )
+    # a head child that ran past the cut is trimmed to it (it starts before t,
+    # so it is never emptied)
+    head, _ = _clip_children(head, (start, t), (start, t))
     steps = state.steps[:i] + (head, tail) + state.steps[i + 1 :]
-    return _done(_State(steps, state.boundaries | {t}), correction)
+    return _done(
+        dataclasses.replace(
+            state,
+            steps=steps,
+            boundaries=state.boundaries | {t},
+            seen_ids=state.seen_ids | {tail_id},
+        ),
+        correction,
+    )
 
 
 def _split_cuts(state: _State, correction: Correction, options: _Options):
@@ -431,23 +456,29 @@ def _split_cuts(state: _State, correction: Correction, options: _Options):
     why = _too_close(t, interval, options.min_step_s)
     if why:
         return _unmatched(state, correction, why)
-    return _done(_State(state.steps, state.boundaries | {t}), correction)
+    return _done(
+        dataclasses.replace(state, boundaries=state.boundaries | {t}), correction
+    )
 
 
 def _meeting_cuts(steps: Sequence[SegStep]) -> dict[float, tuple]:
     """``{cut: ((li, lj), (ri, rj))}`` for every time where a span of one step
     ends and a span of a *different* step starts (both non-empty)."""
+    starting: dict[float, list[tuple[int, int]]] = {}
+    for ri, step in enumerate(steps):
+        for rj, (start, _) in enumerate(step.spans):
+            starting.setdefault(start, []).append((ri, rj))
     meets: dict[float, tuple] = {}
     for li, step in enumerate(steps):
         for lj, (lo, cut) in enumerate(step.spans):
-            for ri, rj in _edges_at(steps, cut, side=0):
+            for ri, rj in starting.get(cut, ()):
                 if ri != li and lo < cut < steps[ri].spans[rj][1]:
                     meets.setdefault(cut, ((li, lj), (ri, rj)))
     return meets
 
 
 def _apply_merge(state: _State, correction: Correction, options: _Options):
-    if not state.steps:
+    if options.cuts_only:
         return _merge_cuts(state, correction, options)
     t, tolerance = correction.anchor_t, options.merge_tolerance_s
     meets = _meeting_cuts(state.steps)
@@ -473,13 +504,18 @@ def _apply_merge(state: _State, correction: Correction, options: _Options):
     if right.spans:  # the right step lives on elsewhere: it keeps its identity
         steps[li], steps[ri] = left, right
     else:  # fully absorbed: it is gone, and the merged step keeps a visible name
-        if not left.name and right.name:
-            left = dataclasses.replace(left, id=right.id, name=right.name)
-        steps[li] = dataclasses.replace(left, children=left.children + right.children)
+        children = left.children + right.children
+        # keep the record a human can see: an unnamed left step yields to the
+        # named right one (its id, name, source, evidence), not just its label
+        survivor = right if (not left.name and right.name) else left
+        steps[li] = dataclasses.replace(survivor, spans=left.spans, children=children)
         del steps[ri]
     still_an_edge = cut in _edges(steps)
     boundaries = state.boundaries if still_an_edge else state.boundaries - {cut}
-    return _done(_State(tuple(steps), boundaries), correction)
+    return _done(
+        dataclasses.replace(state, steps=tuple(steps), boundaries=boundaries),
+        correction,
+    )
 
 
 def _merge_cuts(state: _State, correction: Correction, options: _Options):
@@ -489,7 +525,9 @@ def _merge_cuts(state: _State, correction: Correction, options: _Options):
     cut = _nearest(interior, correction.anchor_t, tolerance)
     if cut is None:
         return _unmatched(state, correction, f"no cut within {_time_str(tolerance)} s")
-    return _done(_State(state.steps, state.boundaries - {cut}), correction)
+    return _done(
+        dataclasses.replace(state, boundaries=state.boundaries - {cut}), correction
+    )
 
 
 def _neighbour(steps, t: float, side: int, exclude: tuple[int, int]):
@@ -571,7 +609,10 @@ def _apply_pin(state: _State, correction: Correction, _options: _Options):
         "outside its step's new span)"
         for name in dropped
     )
-    return _done(_State(tuple(new_steps), frozenset(boundaries)), correction, *extra)
+    new_state = dataclasses.replace(
+        state, steps=tuple(new_steps), boundaries=frozenset(boundaries)
+    )
+    return _done(new_state, correction, *extra)
 
 
 def _apply_forbid(state: _State, correction: Correction, _options: _Options):
@@ -589,7 +630,7 @@ def _apply_absent(state: _State, correction: Correction, _options: _Options):
         return _unmatched(state, correction, "no step spans that time")
     # the cuts stay: the time is still there, just not this step
     steps = state.steps[: hit[0]] + state.steps[hit[0] + 1 :]
-    return _done(_State(steps, state.boundaries), correction)
+    return _done(dataclasses.replace(state, steps=steps), correction)
 
 
 _APPLY = {
@@ -599,6 +640,7 @@ _APPLY = {
     "forbid": _apply_forbid,
     "absent": _apply_absent,
 }
+assert set(_APPLY) == set(VERBS), "every verb needs exactly one replay rule"
 
 
 # ── after the log: judge the forbids, check the result is consistent ────────
@@ -645,6 +687,13 @@ def _inconsistencies(state: _State) -> tuple[str, ...]:
         for k, (a, a_id) in enumerate(spans)
         for b, b_id in spans[k + 1 :]
         if a_id != b_id and _overlaps(a, b)
+    ]
+    flags += [
+        f"inconsistent: child {child.id!r} of {step.id!r} lies outside its parent"
+        for step in state.steps
+        for child in step.children
+        for span in child.spans
+        if not any(p[0] <= span[0] and span[1] <= p[1] for p in step.spans)
     ]
     missing = sorted(_edges(state.steps) - state.boundaries)
     if missing:

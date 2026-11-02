@@ -475,9 +475,7 @@ def test_the_consistency_pass_flags_what_replay_cannot_repair():
         boundaries=(0.0, 10.0, 20.0),
     )
     out = replay(seg, [absent(25)])
-    assert _flagged(out, "inconsistent: steps 'b' and 'a' overlap (8–10)") or _flagged(
-        out, "inconsistent: steps 'a' and 'b' overlap (8–10)"
-    )
+    assert "inconsistent: steps 'a' and 'b' overlap (8–10)" in out.flags
     assert "inconsistent: step edges not in boundaries: 8" in out.flags
 
 
@@ -516,3 +514,79 @@ def test_a_combined_log_stays_consistent():
         "corrected: absent@3",
     )
     assert not _flagged(seg, "inconsistent")
+
+
+# ── regressions from the second review of #33 ───────────────────────────────
+
+
+@pytest.mark.parametrize("span", ["15", 5, ["1", "2", "3"]])
+def test_from_wire_refuses_a_span_that_is_not_a_pair(span):
+    with pytest.raises(ValueError, match="span must be"):
+        from_wire({"verb": "forbid", "anchorT": "1", "span": span})
+
+
+def test_a_non_iterable_log_is_a_value_error():
+    with pytest.raises(ValueError, match="list of corrections"):
+        segment(boundaries=CUTS, corrections=5)
+
+
+def test_the_steps_or_cuts_mode_is_decided_once_from_the_input():
+    """Removing the last step does not turn a later split into a cut edit."""
+    seg = segment(boundaries=[0, 10], corrections=[absent(5), split(5)])
+    assert _flagged(seg, "correction-unmatched: split@5")
+    assert seg.boundaries == (0.0, 10.0)
+
+
+def test_a_split_never_reuses_an_id_a_forbid_may_still_name():
+    seg = segment(
+        boundaries=[0, 10, 20],
+        steps=["a", "b"],
+        corrections=[split(15), forbid(17, (12, 20)), absent(17), split(12)],
+    )
+    assert "b-2" not in [s.id for s in seg.steps]  # 'b-2' was absented; not reborn
+    assert not _flagged(seg, "correction-unenforced: forbid@17")
+    assert "satisfied: forbid@17" in seg.flags
+
+
+def test_split_trims_a_child_that_straddles_the_cut():
+    seg = _seg(
+        SegStep(
+            id="v",
+            spans=((10.0, 20.0),),
+            children=(SegStep(id="c", spans=((12.0, 18.0),)),),
+        )
+    )
+    out = replay(seg, [split(15)])
+    head, tail = out.steps
+    assert [c.spans for c in head.children] == [((12.0, 15.0),)]
+    assert tail.children == ()
+    assert not _flagged(out, "inconsistent")
+
+
+def test_the_consistency_pass_flags_a_child_outside_its_parent():
+    seg = _seg(
+        SegStep(
+            id="v",
+            spans=((10.0, 20.0),),
+            children=(SegStep(id="c", spans=((18.0, 25.0),)),),
+        )
+    )
+    out = replay(seg, [absent(99)])
+    assert "inconsistent: child 'c' of 'v' lies outside its parent" in out.flags
+
+
+def test_merge_into_a_named_step_keeps_that_steps_record():
+    seg = segment(boundaries=CUTS, steps=NAMES, corrections=[split(15), merge(20)])
+    chorus = seg.steps[2]
+    assert (chorus.id, chorus.name, chorus.spans) == (
+        "chorus",
+        "chorus",
+        ((15.0, 30.0),),
+    )
+    assert chorus.source == "explicit"
+    assert "split_from" not in chorus.evidence
+
+
+def test_a_pin_anchor_must_lie_strictly_before_its_span_end():
+    with pytest.raises(ValueError, match="inside its span"):
+        pin((0, 10), anchor_t=10)
