@@ -263,11 +263,75 @@ def test_a_step_that_is_neither_name_pair_nor_mapping_is_named_in_the_error():
         segment(steps=[{"name": "p", "duration": 1, "children": [3]}], grid=GRID)
 
 
-def test_an_undated_child_keeps_placement_from_being_selected():
+def test_bytes_is_not_a_name_duration_pair():
+    with pytest.raises(TypeError, match=r"steps\[0\].*got bytes"):
+        segment(steps=[b"ab"], grid=GRID)
+
+
+def test_duplicate_explicit_ids_name_both_paths():
+    steps = [
+        {"name": "a", "id": "x", "duration": 1},
+        ("b", 1),
+        {"name": "c", "duration": 2, "children": [("d", 1), {"name": "e", "id": "x"}]},
+    ]
+    with pytest.raises(
+        ValueError, match=r"'x' at steps\[0\] and steps\[2\]\.children\[1\]"
+    ):
+        segment(steps=steps, grid=GRID)
+
+
+def test_generated_ids_are_breadth_first_so_children_never_rename_parents():
+    before = segment(steps=[{"name": "Turn", "duration": 2}, ("Turn", 2)], grid=GRID)
+    after = segment(
+        steps=[{"name": "Turn", "duration": 2, "children": [("Turn", 2)]}, ("Turn", 2)],
+        grid=GRID,
+    )
+    assert [s.id for s in before.steps] == [s.id for s in after.steps]
+    assert [s.id for s in after.steps] == ["turn", "turn-2"]
+    assert after.steps[0].children[0].id == "turn-3"
+
+
+def test_partly_undated_steps_are_named_in_a_flag():
+    """The refused state's 'try:' must not read as if no durations were given."""
+    steps = [("a", 2), {"name": "p", "duration": 2, "children": ["u"]}]
+    seg = segment(steps=steps, grid=GRID)
+    assert "steps-undated: ['u']" in seg.flags
+    assert not [f for f in segment(steps=["a"], grid=GRID).flags if "undated" in f]
+
+
+def _forbid_measuring(monkeypatch):
+    import paces.measure
+
+    def _measure_grid(*args, **kwargs):
+        raise AssertionError("measure_grid must not be called")
+
+    monkeypatch.setattr(paces.measure, "measure_grid", _measure_grid)
+
+
+def test_an_undated_child_keeps_placement_from_being_selected(tmp_path, monkeypatch):
     """'steps.durations' covers children, so no placing segmenter is chosen —
     and grid-measured is never asked to measure for a list it cannot place."""
     steps = [{"name": "p", "duration": 2, "children": ["undated"]}]
     seg = segment(steps=steps, grid=GRID)
     assert seg.method != "grid-placed"
-    with pytest.raises(ValueError, match="steps.durations"):
-        segment("song.wav", steps=steps, segmenter="grid-measured")
+    media = tmp_path / "song.wav"
+    media.write_bytes(b"")
+    _forbid_measuring(monkeypatch)
+    with pytest.raises(
+        ValueError, match=r"needs inputs you did not provide: \['steps\.durations'\]"
+    ):
+        segment(str(media), steps=steps, segmenter="grid-measured")
+
+
+@pytest.mark.parametrize("bad", [0, -1, float("nan")])
+def test_grid_measured_rejects_bad_durations_before_measuring(
+    bad, tmp_path, monkeypatch
+):
+    pytest.importorskip("mixing")
+    pytest.importorskip("librosa")
+    media = tmp_path / "song.wav"
+    media.write_bytes(b"")
+    _forbid_measuring(monkeypatch)
+    steps = [("a", 1), {"name": "p", "duration": 2, "children": [("c", bad)]}]
+    with pytest.raises(ValueError, match=r"positive, finite durations: \['c'\]"):
+        segment(str(media), steps=steps, segmenter="grid-measured")

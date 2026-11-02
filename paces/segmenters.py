@@ -39,7 +39,7 @@ from __future__ import annotations
 import importlib
 import math
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
@@ -131,18 +131,31 @@ def _slugify(text: str) -> str:
     return slug or "step"
 
 
-def unique_slug_ids(names: Sequence[str], *, fallback: str = "step") -> list[str]:
+def unique_slug_ids(
+    names: Sequence[str], *, fallback: str = "step", taken: Iterable[str] = ()
+) -> list[str]:
     """One unique, git-readable id per name; unnamed ones get ``{fallback}-{i}``.
+
+    An id already in ``taken`` (or produced earlier in this call) gets a
+    ``-2``, ``-3``… suffix — the first one free. ``taken`` is only read.
 
     >>> unique_slug_ids(["Turn", "", "Turn"], fallback="cue")
     ['turn', 'cue-2', 'turn-2']
+    >>> unique_slug_ids(["Turn", "Turn", "Turn 2"])
+    ['turn', 'turn-2', 'turn-2-2']
+    >>> unique_slug_ids(["Turn"], taken={"turn"})
+    ['turn-2']
     """
-    seen: dict[str, int] = {}
+    used = set(taken)
     ids = []
     for index, name in enumerate(names):
-        slug = _slugify(name) if name else f"{fallback}-{index + 1}"
-        seen[slug] = seen.get(slug, 0) + 1
-        ids.append(slug if seen[slug] == 1 else f"{slug}-{seen[slug]}")
+        base = _slugify(name) if name else f"{fallback}-{index + 1}"
+        candidate, n = base, 1
+        while candidate in used:
+            n += 1
+            candidate = f"{base}-{n}"
+        used.add(candidate)
+        ids.append(candidate)
     return ids
 
 
@@ -150,25 +163,45 @@ def _normalize_steps(steps: Sequence | None) -> list[dict]:
     """Accept names, (name, duration) pairs, or mappings; emit uniform dicts.
 
     Uniform shape: ``{id, name, duration (float units or None), spans, children}``.
-    Ids are unique across the whole tree, as a document requires: an id the
-    caller gave is kept as given; a generated one (the name's slug) gets a
-    ``-2``, ``-3``… suffix when it is already taken.
+    Ids are unique across the whole tree, as a document requires. An id the
+    caller gave is kept as given, and two equal ones are a ``ValueError``
+    naming both paths. A generated one is the name's slug, suffixed ``-2``,
+    ``-3``… when taken; generation runs breadth-first (every top-level row,
+    then each level of children), so editing children never renames a parent.
+    A generated id still follows position among same-named steps — give
+    repeated steps that must keep their identity across edits explicit ids.
 
     >>> [r["id"] for r in _normalize_steps(["Turn", "Turn", {"name": "x", "id": "turn-2"}])]
     ['turn', 'turn-3', 'turn-2']
     """
     rows = _step_rows(steps, where="steps")
-    taken = {row["id"] for row in _walk_rows(rows) if row["id"] is not None}
-    for row in _walk_rows(rows):
+
+    def _paths(rows: list[dict], where: str):
+        for i, row in enumerate(rows):
+            yield f"{where}[{i}]", row
+            yield from _paths(row["children"], f"{where}[{i}].children")
+
+    explicit: dict[str, str] = {}
+    for path, row in _paths(rows, "steps"):
         if row["id"] is None:
-            base, n = row.pop("_slug"), 1
-            candidate = base
-            while candidate in taken:
-                n += 1
-                candidate = f"{base}-{n}"
-            row["id"] = candidate
-            taken.add(candidate)
-        row.pop("_slug", None)
+            continue
+        if row["id"] in explicit:
+            raise ValueError(
+                f"duplicate step id {row['id']!r} at {explicit[row['id']]} and {path}"
+            )
+        explicit[row["id"]] = path
+
+    taken = set(explicit)
+    level = rows
+    while level:
+        pending = [row for row in level if row["id"] is None]
+        ids = unique_slug_ids(
+            [row.get("name") or "step" for row in pending], taken=taken
+        )
+        for row, step_id in zip(pending, ids):
+            row["id"] = step_id
+        taken.update(ids)
+        level = [child for row in level for child in row["children"]]
     return rows
 
 
@@ -179,30 +212,41 @@ def _walk_rows(rows: list[dict]):
         yield from _walk_rows(row["children"])
 
 
+def check_step_durations(rows: list[dict], *, who: str = "place_on_grid") -> None:
+    """Raise ``ValueError`` unless every (nested) row has a positive, finite
+    duration — the precondition for placing a step list on a grid."""
+    undated = [row["id"] for row in _walk_rows(rows) if row["duration"] is None]
+    if undated:
+        raise ValueError(f"{who} needs a duration for every step: {undated}")
+    bad = [
+        row["id"]
+        for row in _walk_rows(rows)
+        if not (math.isfinite(row["duration"]) and row["duration"] > 0)
+    ]
+    if bad:
+        raise ValueError(f"{who} needs positive, finite durations: {bad}")
+
+
 def _step_rows(steps: Sequence | None, *, where: str) -> list[dict]:
     if steps is None:
         return []
     rows: list[dict] = []
     for i, item in enumerate(steps):
+        is_sequence = isinstance(item, Sequence) and not isinstance(item, bytes)
         if isinstance(item, str):
             row = {"name": item}
         elif isinstance(item, Mapping):
             row = dict(item)
-        elif isinstance(item, Sequence) and len(item) == 2:
+        elif is_sequence and len(item) == 2:
             name, duration = item
             row = {"name": name, "duration": duration}
         else:
-            got = (
-                f"a {len(item)}-item sequence"
-                if isinstance(item, Sequence)
-                else type(item).__name__
-            )
+            got = f"a {len(item)}-item sequence" if is_sequence else type(item).__name__
             raise TypeError(
                 f"{where}[{i}]: expected a name, a (name, duration) pair, or a "
                 f"mapping — got {got}"
             )
         row["id"] = row.get("id")
-        row["_slug"] = _slugify(row.get("name") or "")  # "step" when unnamed
         row["duration"] = (
             None if row.get("duration") is None else float(row["duration"])
         )
@@ -408,6 +452,11 @@ def segment(
     chapters = _normalize_chapters(metadata)
     subtitles, subtitles_problem = _subtitle_cues(metadata)
     problem_flags = (subtitles_problem,) if subtitles_problem else ()
+    undated = [row["id"] for row in _walk_rows(step_rows) if row["duration"] is None]
+    if undated and len(undated) < sum(1 for _ in _walk_rows(step_rows)):
+        # durations were given but not for all: say which, so a refused or
+        # unplaced result never just asks for what the caller supplied
+        problem_flags += (f"steps-undated: {undated}",)
     transcript_cues = normalize_timed_text(transcript)
     # fail fast: a malformed log raises before any segmenter runs
     correction_log = (
@@ -553,11 +602,6 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
     ([((1.0, 5.0),), ((5.0, 13.0),)], (1.0, 5.0, 13.0))
     """
 
-    def _all_rows(rows: list[dict]):
-        for row in rows:
-            yield row
-            yield from _all_rows(row["children"])
-
     grid = _normalize_grid(grid)
     rows = _normalize_steps(steps)
     if grid is None:
@@ -571,16 +615,7 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
         raise ValueError(f"place_on_grid needs a grid with {' and '.join(missing)}")
     if not rows:
         raise ValueError("place_on_grid needs at least one step")
-    undated = [row["id"] for row in _all_rows(rows) if row["duration"] is None]
-    if undated:
-        raise ValueError(f"place_on_grid needs a duration for every step: {undated}")
-    bad = [
-        row["id"]
-        for row in _all_rows(rows)
-        if not (math.isfinite(row["duration"]) and row["duration"] > 0)
-    ]
-    if bad:
-        raise ValueError(f"place_on_grid needs positive, finite durations: {bad}")
+    check_step_durations(rows)
     spu = seconds_per_unit(grid)
     origin = float(grid.origin)
 
