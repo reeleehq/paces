@@ -369,7 +369,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="231">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"tempo-unmeasured: </span><span class="si">{</span><span class="n">tempo_unmeasured_note</span><span class="si">}{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">"</span><span class="p">,)</span>
 </span><span data-line="232">
 </span><span data-line="233">    <span class="c1"># Explicit beats inferred — but a disagreement is a finding, not a secret.</span>
-</span><span data-line="234">    <span class="n">final_tempo</span> <span class="o">=</span> <span class="n">known_tempo</span> <span class="ow">or</span> <span class="n">measured_tempo</span>
+</span><span data-line="234">    <span class="n">final_tempo</span> <span class="o">=</span> <span class="n">known_tempo</span> <span class="k">if</span> <span class="n">known_tempo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">measured_tempo</span>
 </span><span data-line="235">    <span class="k">if</span> <span class="p">(</span>
 </span><span data-line="236">        <span class="n">known_tempo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </span><span data-line="237">        <span class="ow">and</span> <span class="n">measured_tempo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -381,7 +381,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="243">            <span class="sa">f</span><span class="s2">"measures </span><span class="si">{</span><span class="n">measured_tempo</span><span class="si">}</span><span class="s2"> — using yours; drop tempoBpm from "</span>
 </span><span data-line="244">            <span class="s2">"grid= to use the measured value"</span><span class="p">,</span>
 </span><span data-line="245">        <span class="p">)</span>
-</span><span data-line="246">    <span class="n">final_origin</span> <span class="o">=</span> <span class="n">known_origin</span> <span class="ow">or</span> <span class="n">measured_origin</span>
+</span><span data-line="246">    <span class="n">final_origin</span> <span class="o">=</span> <span class="n">known_origin</span> <span class="k">if</span> <span class="n">known_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">measured_origin</span>
 </span><span data-line="247">    <span class="k">if</span> <span class="n">known_origin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">measured_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span data-line="248">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
 </span><span data-line="249">            <span class="sa">f</span><span class="s2">"origin-estimated: first beat of the music region "</span>
@@ -405,88 +405,96 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="267">        <span class="n">confidence</span> <span class="o">=</span> <span class="n">UNMEASURED_CONFIDENCE</span>
 </span><span data-line="268">    <span class="k">else</span><span class="p">:</span>
 </span><span data-line="269">        <span class="n">confidence</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="270">            <span class="n">KNOWN_ORIGIN_CONFIDENCE</span> <span class="k">if</span> <span class="n">known_origin</span> <span class="k">else</span> <span class="n">DFLT_MEASURED_CONFIDENCE</span>
-</span><span data-line="271">        <span class="p">)</span>
-</span><span data-line="272">
-</span><span data-line="273">    <span class="n">spu</span> <span class="o">=</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
-</span><span data-line="274">    <span class="k">if</span> <span class="n">total_units</span> <span class="ow">and</span> <span class="n">total_units</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">spu</span> <span class="ow">and</span> <span class="n">final_origin</span> <span class="ow">and</span> <span class="n">region</span><span class="p">:</span>
-</span><span data-line="275">        <span class="n">routine_s</span> <span class="o">=</span> <span class="n">total_units</span> <span class="o">*</span> <span class="n">spu</span>
-</span><span data-line="276">        <span class="n">region_s</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">final_origin</span><span class="p">))</span>
-</span><span data-line="277">        <span class="n">evidence</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">routine_s</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">routine_s</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">region_s</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">region_s</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-</span><span data-line="278">        <span class="k">if</span> <span class="n">routine_s</span> <span class="o">&gt;</span> <span class="n">region_s</span> <span class="o">*</span> <span class="n">FIT_TOLERANCE</span><span class="p">:</span>
-</span><span data-line="279">            <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
-</span><span data-line="280">                <span class="sa">f</span><span class="s2">"duration-mismatch: </span><span class="si">{</span><span class="n">_dec</span><span class="p">(</span><span class="n">total_units</span><span class="p">)</span><span class="si">}</span><span class="s2"> × </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2"> = "</span>
-</span><span data-line="281">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">routine_s</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s but the music region holds </span><span class="si">{</span><span class="n">region_s</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s "</span>
-</span><span data-line="282">                <span class="s2">"— the step list or the tempo may be wrong"</span><span class="p">,</span>
-</span><span data-line="283">            <span class="p">)</span>
-</span><span data-line="284">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="285">            <span class="n">confidence</span> <span class="o">+=</span> <span class="n">FIT_BONUS</span>
-</span><span data-line="286">    <span class="k">return</span> <span class="n">GridMeasurement</span><span class="p">(</span>
-</span><span data-line="287">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">confidence</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span> <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span>
-</span><span data-line="288">    <span class="p">)</span></div>
+</span><span data-line="270">            <span class="n">KNOWN_ORIGIN_CONFIDENCE</span>
+</span><span data-line="271">            <span class="k">if</span> <span class="n">known_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="272">            <span class="k">else</span> <span class="n">DFLT_MEASURED_CONFIDENCE</span>
+</span><span data-line="273">        <span class="p">)</span>
+</span><span data-line="274">
+</span><span data-line="275">    <span class="n">spu</span> <span class="o">=</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+</span><span data-line="276">    <span class="k">if</span> <span class="p">(</span>
+</span><span data-line="277">        <span class="n">total_units</span>
+</span><span data-line="278">        <span class="ow">and</span> <span class="n">total_units</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</span><span data-line="279">        <span class="ow">and</span> <span class="n">spu</span>
+</span><span data-line="280">        <span class="ow">and</span> <span class="n">final_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="281">        <span class="ow">and</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="282">    <span class="p">):</span>
+</span><span data-line="283">        <span class="n">routine_s</span> <span class="o">=</span> <span class="n">total_units</span> <span class="o">*</span> <span class="n">spu</span>
+</span><span data-line="284">        <span class="n">region_s</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">final_origin</span><span class="p">))</span>
+</span><span data-line="285">        <span class="n">evidence</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">routine_s</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">routine_s</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">region_s</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">region_s</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</span><span data-line="286">        <span class="k">if</span> <span class="n">routine_s</span> <span class="o">&gt;</span> <span class="n">region_s</span> <span class="o">*</span> <span class="n">FIT_TOLERANCE</span><span class="p">:</span>
+</span><span data-line="287">            <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
+</span><span data-line="288">                <span class="sa">f</span><span class="s2">"duration-mismatch: </span><span class="si">{</span><span class="n">_dec</span><span class="p">(</span><span class="n">total_units</span><span class="p">)</span><span class="si">}</span><span class="s2"> × </span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2"> = "</span>
+</span><span data-line="289">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">routine_s</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s but the music region holds </span><span class="si">{</span><span class="n">region_s</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s "</span>
+</span><span data-line="290">                <span class="s2">"— the step list or the tempo may be wrong"</span><span class="p">,</span>
+</span><span data-line="291">            <span class="p">)</span>
+</span><span data-line="292">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="293">            <span class="n">confidence</span> <span class="o">+=</span> <span class="n">FIT_BONUS</span>
+</span><span data-line="294">    <span class="k">return</span> <span class="n">GridMeasurement</span><span class="p">(</span>
+</span><span data-line="295">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">confidence</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span> <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span>
+</span><span data-line="296">    <span class="p">)</span></div>
 
-</span><span data-line="289">
-</span><span data-line="290">
-</span><span data-line="291"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_grid_measured</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="292"><span class="w">    </span><span class="sd">"""Measure what the caller's partial ``grid=`` left unknown, then place</span>
-</span><span data-line="293"><span class="sd">    like ``grid-placed``.</span>
-</span><span data-line="294">
-</span><span data-line="295"><span class="sd">    With no grid at all the dance default is assumed — and flagged, because</span>
-</span><span data-line="296"><span class="sd">    an assumed unit is a guess, not a measurement. Whatever still cannot be</span>
-</span><span data-line="297"><span class="sd">    known (a beatless recording's origin) yields the honest partial result,</span>
-</span><span data-line="298"><span class="sd">    never an exception and never an invented placement.</span>
-</span><span data-line="299"><span class="sd">    """</span>
-</span><span data-line="300">    <span class="n">partial</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"grid"</span><span class="p">]</span>
-</span><span data-line="301">    <span class="n">unit</span> <span class="o">=</span> <span class="n">partial</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DFLT_UNIT</span>
-</span><span data-line="302">    <span class="n">subdivisions</span> <span class="o">=</span> <span class="n">partial</span><span class="o">.</span><span class="n">subdivisions</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DFLT_SUBDIVISIONS</span>
-</span><span data-line="303">    <span class="n">total_units</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span>
-</span><span data-line="304">    <span class="n">measurement</span> <span class="o">=</span> <span class="n">measure_grid</span><span class="p">(</span>
-</span><span data-line="305">        <span class="n">inputs</span><span class="p">[</span><span class="s2">"media"</span><span class="p">],</span>
-</span><span data-line="306">        <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
-</span><span data-line="307">        <span class="n">subdivisions</span><span class="o">=</span><span class="n">subdivisions</span><span class="p">,</span>
-</span><span data-line="308">        <span class="n">tempo_bpm</span><span class="o">=</span><span class="n">partial</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="309">        <span class="n">origin</span><span class="o">=</span><span class="n">partial</span><span class="o">.</span><span class="n">origin</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="310">        <span class="n">total_units</span><span class="o">=</span><span class="n">total_units</span><span class="p">,</span>
-</span><span data-line="311">    <span class="p">)</span>
-</span><span data-line="312">    <span class="n">flags</span> <span class="o">=</span> <span class="n">measurement</span><span class="o">.</span><span class="n">flags</span>
-</span><span data-line="313">    <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="314">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
-</span><span data-line="315">            <span class="sa">f</span><span class="s2">"assumed-unit: </span><span class="si">{</span><span class="n">DFLT_UNIT</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">DFLT_SUBDIVISIONS</span><span class="si">}</span><span class="s2"> beats) — pass "</span>
-</span><span data-line="316">            <span class="s2">"grid={'unit': ..., 'subdivisions': ...} to change"</span><span class="p">,</span>
-</span><span data-line="317">        <span class="p">)</span>
-</span><span data-line="318">    <span class="n">grid</span> <span class="o">=</span> <span class="n">measurement</span><span class="o">.</span><span class="n">grid</span>
-</span><span data-line="319">    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="320">        <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
-</span><span data-line="321">    <span class="n">placed</span> <span class="o">=</span> <span class="n">place_on_grid</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">grid</span><span class="p">)</span>
-</span><span data-line="322">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="323">        <span class="n">steps</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="324">        <span class="n">boundaries</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="325">        <span class="n">unit</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
-</span><span data-line="326">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
-</span><span data-line="327">        <span class="n">confidence</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">placed</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span> <span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">),</span>
-</span><span data-line="328">        <span class="n">flags</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">flags</span> <span class="o">+</span> <span class="n">flags</span><span class="p">,</span>
-</span><span data-line="329">    <span class="p">)</span>
-</span><span data-line="330">
-</span><span data-line="331">
-</span><span data-line="332"><span class="n">GRID_MEASURED</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
-</span><span data-line="333">    <span class="n">Capability</span><span class="p">(</span>
-</span><span data-line="334">        <span class="n">name</span><span class="o">=</span><span class="s2">"grid-measured"</span><span class="p">,</span>
-</span><span data-line="335">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
-</span><span data-line="336">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
-</span><span data-line="337">            <span class="s2">"Measure the metric grid from the media itself (speech/music "</span>
-</span><span data-line="338">            <span class="s2">"split + beat tracking, via mixing), then place the step list "</span>
-</span><span data-line="339">            <span class="s2">"on it. Origin is estimated and flagged for confirmation."</span>
-</span><span data-line="340">        <span class="p">),</span>
-</span><span data-line="341">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.measure:_segment_grid_measured"</span><span class="p">,</span>
-</span><span data-line="342">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"media.local"</span><span class="p">,</span> <span class="s2">"steps"</span><span class="p">,</span> <span class="s2">"steps.durations"</span><span class="p">}),</span>
-</span><span data-line="343">        <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="s2">"mixing"</span><span class="p">,</span> <span class="s2">"librosa"</span><span class="p">),</span>
-</span><span data-line="344">        <span class="c1"># Explicit information outranks inference: a full grid (1.2) and</span>
-</span><span data-line="345">        <span class="c1"># author chapters (0.75) both beat a measured guess.</span>
-</span><span data-line="346">        <span class="n">base</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
-</span><span data-line="347">        <span class="n">s_per_min</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
-</span><span data-line="348">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-</span><span data-line="349">    <span class="p">)</span>
-</span><span data-line="350"><span class="p">)</span>
+</span><span data-line="297">
+</span><span data-line="298">
+</span><span data-line="299"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_grid_measured</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="300"><span class="w">    </span><span class="sd">"""Measure what the caller's partial ``grid=`` left unknown, then place</span>
+</span><span data-line="301"><span class="sd">    like ``grid-placed``.</span>
+</span><span data-line="302">
+</span><span data-line="303"><span class="sd">    With no grid at all the dance default is assumed — and flagged, because</span>
+</span><span data-line="304"><span class="sd">    an assumed unit is a guess, not a measurement. Whatever still cannot be</span>
+</span><span data-line="305"><span class="sd">    known (a beatless recording's origin) yields the honest partial result,</span>
+</span><span data-line="306"><span class="sd">    never an exception and never an invented placement.</span>
+</span><span data-line="307"><span class="sd">    """</span>
+</span><span data-line="308">    <span class="n">partial</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"grid"</span><span class="p">]</span>
+</span><span data-line="309">    <span class="n">unit</span> <span class="o">=</span> <span class="n">partial</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DFLT_UNIT</span>
+</span><span data-line="310">    <span class="n">subdivisions</span> <span class="o">=</span> <span class="n">partial</span><span class="o">.</span><span class="n">subdivisions</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DFLT_SUBDIVISIONS</span>
+</span><span data-line="311">    <span class="n">total_units</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span>
+</span><span data-line="312">    <span class="n">measurement</span> <span class="o">=</span> <span class="n">measure_grid</span><span class="p">(</span>
+</span><span data-line="313">        <span class="n">inputs</span><span class="p">[</span><span class="s2">"media"</span><span class="p">],</span>
+</span><span data-line="314">        <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+</span><span data-line="315">        <span class="n">subdivisions</span><span class="o">=</span><span class="n">subdivisions</span><span class="p">,</span>
+</span><span data-line="316">        <span class="n">tempo_bpm</span><span class="o">=</span><span class="n">partial</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="317">        <span class="n">origin</span><span class="o">=</span><span class="n">partial</span><span class="o">.</span><span class="n">origin</span> <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="318">        <span class="n">total_units</span><span class="o">=</span><span class="n">total_units</span><span class="p">,</span>
+</span><span data-line="319">    <span class="p">)</span>
+</span><span data-line="320">    <span class="n">flags</span> <span class="o">=</span> <span class="n">measurement</span><span class="o">.</span><span class="n">flags</span>
+</span><span data-line="321">    <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="322">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
+</span><span data-line="323">            <span class="sa">f</span><span class="s2">"assumed-unit: </span><span class="si">{</span><span class="n">DFLT_UNIT</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">DFLT_SUBDIVISIONS</span><span class="si">}</span><span class="s2"> beats) — pass "</span>
+</span><span data-line="324">            <span class="s2">"grid={'unit': ..., 'subdivisions': ...} to change"</span><span class="p">,</span>
+</span><span data-line="325">        <span class="p">)</span>
+</span><span data-line="326">    <span class="n">grid</span> <span class="o">=</span> <span class="n">measurement</span><span class="o">.</span><span class="n">grid</span>
+</span><span data-line="327">    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="328">        <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
+</span><span data-line="329">    <span class="n">placed</span> <span class="o">=</span> <span class="n">place_on_grid</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">grid</span><span class="p">)</span>
+</span><span data-line="330">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="331">        <span class="n">steps</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
+</span><span data-line="332">        <span class="n">boundaries</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="333">        <span class="n">unit</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+</span><span data-line="334">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+</span><span data-line="335">        <span class="n">confidence</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">placed</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span> <span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">),</span>
+</span><span data-line="336">        <span class="n">flags</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">flags</span> <span class="o">+</span> <span class="n">flags</span><span class="p">,</span>
+</span><span data-line="337">    <span class="p">)</span>
+</span><span data-line="338">
+</span><span data-line="339">
+</span><span data-line="340"><span class="n">GRID_MEASURED</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
+</span><span data-line="341">    <span class="n">Capability</span><span class="p">(</span>
+</span><span data-line="342">        <span class="n">name</span><span class="o">=</span><span class="s2">"grid-measured"</span><span class="p">,</span>
+</span><span data-line="343">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
+</span><span data-line="344">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
+</span><span data-line="345">            <span class="s2">"Measure the metric grid from the media itself (speech/music "</span>
+</span><span data-line="346">            <span class="s2">"split + beat tracking, via mixing), then place the step list "</span>
+</span><span data-line="347">            <span class="s2">"on it. Origin is estimated and flagged for confirmation."</span>
+</span><span data-line="348">        <span class="p">),</span>
+</span><span data-line="349">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.measure:_segment_grid_measured"</span><span class="p">,</span>
+</span><span data-line="350">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"media.local"</span><span class="p">,</span> <span class="s2">"steps"</span><span class="p">,</span> <span class="s2">"steps.durations"</span><span class="p">}),</span>
+</span><span data-line="351">        <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="s2">"mixing"</span><span class="p">,</span> <span class="s2">"librosa"</span><span class="p">),</span>
+</span><span data-line="352">        <span class="c1"># Explicit information outranks inference: a full grid (1.2) and</span>
+</span><span data-line="353">        <span class="c1"># author chapters (0.75) both beat a measured guess.</span>
+</span><span data-line="354">        <span class="n">base</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+</span><span data-line="355">        <span class="n">s_per_min</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+</span><span data-line="356">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+</span><span data-line="357">    <span class="p">)</span>
+</span><span data-line="358"><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -514,7 +522,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=056c92e6"></script>
+      <script src="../../_static/documentation_options.js?v=a11416ff"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
