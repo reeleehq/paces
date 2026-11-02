@@ -499,12 +499,14 @@ def segment(
 # ── the two v1 segmenters ───────────────────────────────────────────────────
 
 
-def _segment_grid_placed(inputs: Mapping[str, Any]) -> Segmentation:
+def segment_grid_placed(inputs: Mapping[str, Any]) -> Segmentation:
     """Place an ordered step list on the timeline using a metric grid.
 
     The que-calor shape: cumulative domain durations from the grid's origin,
     ``span = origin + cumulative_units * seconds_per_unit``. Children subdivide
-    their parent's span the same way.
+    their parent's span the same way. Public because ``grid-measured``
+    (:mod:`paces.measure`) places its steps with it once it has measured the
+    grid; ``inputs`` is the facade's normalised input mapping.
     """
     grid: MetricGrid = inputs["grid"]
     spu = seconds_per_unit(grid)
@@ -661,7 +663,7 @@ GRID_PLACED = register(
             "Place an ordered step list with domain durations on the timeline "
             "using a metric grid (tempo + origin). The que-calor path."
         ),
-        target="paces.segmenters:_segment_grid_placed",
+        target="paces.segmenters:segment_grid_placed",
         needs=frozenset({"steps", "steps.durations", "grid"}),
         base=1.2,  # a caller who spelled out steps+grid meant them: top rank
         resolution_s=0.1,
