@@ -376,3 +376,13 @@ def test_grid_placed_children_with_fractional_durations_are_consistent():
     ]
     seg = segment(steps=steps, grid={**GRID, "tempoBpm": "120", "origin": "0"})
     assert not [f for f in seg.flags if f.startswith("inconsistent")]
+
+
+@pytest.mark.parametrize("origin", ["1.2345", "0.0005", "0.0015"])
+def test_grid_placed_children_survive_half_millisecond_origins(origin):
+    steps = [
+        ("a", 2),
+        {"name": "b", "duration": 0.3, "children": [("c1", 0.1), ("c2", 0.2)]},
+    ]
+    seg = segment(steps=steps, grid={**GRID, "tempoBpm": "120", "origin": origin})
+    assert not [f for f in seg.flags if f.startswith("inconsistent")]
