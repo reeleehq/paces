@@ -232,6 +232,8 @@ def test_js_time_format_matches_the_python_wire_format():
     values = [0, 15, 95.8, 0.8550444, 10.1235, 1e-7, 123.4567, 7.0005, 59.9996]
     # exact binary ties: Python's format rounds half-even, toFixed rounds up
     values += [10.0625, 0.0625, 0.1875, 0.3125, 2.5625, 1023.9375, 0.0005]
+    # values that round to zero carry no sign, in either language (#40)
+    values += [-0.0004, -0.0, -1e-9]
     got = _run_js(f"{json.dumps(values)}.map(core.timeStr)")
     assert got == [decimal_str(v, places=3) for v in values]
 

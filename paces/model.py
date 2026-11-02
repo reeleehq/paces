@@ -24,6 +24,7 @@ Design decisions, each argued in ``docs/07-annotation-model.md``:
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from datetime import datetime
 from fractions import Fraction
@@ -286,9 +287,16 @@ def decimal_str(value: float, *, places: int = 3) -> str:
 
     >>> decimal_str(72.60000000000001, places=3)
     '72.6'
+    >>> decimal_str(-0.0004, places=3)  # rounds to zero: no sign
+    '0'
     """
-    text = f"{float(value):.{places}f}".rstrip("0").rstrip(".")
-    return text or "0"
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"no decimal string for a non-finite value: {value!r}")
+    text = f"{number:.{places}f}"
+    if "." in text:  # places=0 has no fraction to trim
+        text = text.rstrip("0").rstrip(".")
+    return "0" if text in ("", "-0") else text
 
 
 # ── serialisation (the git rules of docs/07 §6.5) ───────────────────────────

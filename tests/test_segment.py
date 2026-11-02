@@ -145,3 +145,28 @@ def test_tools_segment_accepts_json_strings():
     assert payload["method"] == "grid-placed"
     assert payload["steps"][0]["name"] == "intro"
     json.dumps(payload)  # JSON-ready throughout
+
+
+@pytest.mark.parametrize(
+    "value, places, expected",
+    [
+        (-0.0004, 3, "0"),  # rounds to zero: no sign (#40)
+        (-0.0, 3, "0"),
+        (-0.0005, 3, "-0.001"),
+        (100, 0, "100"),  # places=0: no fraction to trim, digits stay
+        (-0.4, 0, "0"),
+        (72.60000000000001, 3, "72.6"),
+    ],
+)
+def test_decimal_str_writes_clean_wire_decimals(value, places, expected):
+    from paces.model import decimal_str
+
+    assert decimal_str(value, places=places) == expected
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_decimal_str_refuses_non_finite_values(value):
+    from paces.model import decimal_str
+
+    with pytest.raises(ValueError, match="non-finite"):
+        decimal_str(value)
