@@ -231,7 +231,7 @@ def measure_grid(
         flags += (f"tempo-unmeasured: {tempo_unmeasured_note}{suffix}",)
 
     # Explicit beats inferred — but a disagreement is a finding, not a secret.
-    final_tempo = known_tempo or measured_tempo
+    final_tempo = known_tempo if known_tempo is not None else measured_tempo
     if (
         known_tempo is not None
         and measured_tempo is not None
@@ -243,7 +243,7 @@ def measure_grid(
             f"measures {measured_tempo} — using yours; drop tempoBpm from "
             "grid= to use the measured value",
         )
-    final_origin = known_origin or measured_origin
+    final_origin = known_origin if known_origin is not None else measured_origin
     if known_origin is None and measured_origin is not None:
         flags += (
             f"origin-estimated: first beat of the music region "
@@ -267,11 +267,19 @@ def measure_grid(
         confidence = UNMEASURED_CONFIDENCE
     else:
         confidence = (
-            KNOWN_ORIGIN_CONFIDENCE if known_origin else DFLT_MEASURED_CONFIDENCE
+            KNOWN_ORIGIN_CONFIDENCE
+            if known_origin is not None
+            else DFLT_MEASURED_CONFIDENCE
         )
 
     spu = seconds_per_unit(grid)
-    if total_units and total_units > 0 and spu and final_origin and region:
+    if (
+        total_units
+        and total_units > 0
+        and spu
+        and final_origin is not None
+        and region is not None
+    ):
         routine_s = total_units * spu
         region_s = region.end - float(Fraction(final_origin))
         evidence.update(routine_s=round(routine_s, 2), region_s=round(region_s, 2))
