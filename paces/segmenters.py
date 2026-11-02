@@ -499,47 +499,87 @@ def segment(
 # ── the two v1 segmenters ───────────────────────────────────────────────────
 
 
-def _segment_grid_placed(inputs: Mapping[str, Any]) -> Segmentation:
+def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
     """Place an ordered step list on the timeline using a metric grid.
 
     The que-calor shape: cumulative domain durations from the grid's origin,
     ``span = origin + cumulative_units * seconds_per_unit``. Children subdivide
-    their parent's span the same way.
-    """
-    grid: MetricGrid = inputs["grid"]
-    spu = seconds_per_unit(grid)
-    origin = float(grid.origin)  # guaranteed by the 'grid' fact
+    their parent's span the same way. ``steps`` takes any form
+    :func:`segment` takes (``(name, duration)`` pairs, mappings with
+    ``children``); every step needs a positive duration, and the grid a tempo
+    and an origin — anything missing or invalid is a ``ValueError`` naming it.
 
-    def _place(rows: list[dict], at_units: float) -> tuple[list[SegStep], float]:
+    >>> seg = place_on_grid([("a", 1), ("b", 2)],
+    ...                     {"unit": "eight", "subdivisions": 8,
+    ...                      "tempoBpm": "120", "origin": "1"})
+    >>> [s.spans for s in seg.steps], seg.boundaries
+    ([((1.0, 5.0),), ((5.0, 13.0),)], (1.0, 5.0, 13.0))
+    """
+
+    def _all_rows(rows: list[dict]):
+        for row in rows:
+            yield row
+            yield from _all_rows(row["children"])
+
+    grid = _normalize_grid(grid)
+    rows = _normalize_steps(steps)
+    if grid is None:
+        raise ValueError("place_on_grid needs a grid; got None")
+    missing = [
+        name
+        for name, value in (("tempoBpm", grid.tempo_bpm), ("origin", grid.origin))
+        if value is None
+    ]
+    if missing:
+        raise ValueError(f"place_on_grid needs a grid with {' and '.join(missing)}")
+    if not rows:
+        raise ValueError("place_on_grid needs at least one step")
+    undated = [row["id"] for row in _all_rows(rows) if row["duration"] is None]
+    if undated:
+        raise ValueError(f"place_on_grid needs a duration for every step: {undated}")
+    bad = [
+        row["id"]
+        for row in _all_rows(rows)
+        if not (math.isfinite(row["duration"]) and row["duration"] > 0)
+    ]
+    if bad:
+        raise ValueError(f"place_on_grid needs positive, finite durations: {bad}")
+    spu = seconds_per_unit(grid)
+    origin = float(grid.origin)
+
+    def _place(rows: list[dict], at_units: float) -> list[SegStep]:
         placed = []
         for row in rows:
             duration = row["duration"]
             start = origin + at_units * spu
             end = origin + (at_units + duration) * spu
-            children, _ = _place(row["children"], at_units)
             placed.append(
                 SegStep(
                     id=row["id"],
                     name=row["name"],
                     spans=((start, end),),
                     confidence=DFLT_GRID_CONFIDENCE,
-                    children=tuple(children),
+                    children=tuple(_place(row["children"], at_units)),
                     source="grid-placed",
                     evidence={"duration_units": duration, "offset_units": at_units},
                 )
             )
             at_units += duration
-        return placed, at_units
+        return placed
 
-    steps, total_units = _place(inputs["steps"], 0.0)
-    boundaries = tuple(origin + units * spu for units in _cumulative(inputs["steps"]))
+    boundaries = tuple(origin + units * spu for units in _cumulative(rows))
     return Segmentation(
-        steps=tuple(steps),
+        steps=tuple(_place(rows, 0.0)),
         boundaries=boundaries,
         unit=grid.unit,
         grid=grid,
         confidence=DFLT_GRID_CONFIDENCE,
     )
+
+
+def _segment_grid_placed(inputs: Mapping[str, Any]) -> Segmentation:
+    """The ``grid-placed`` capability: :func:`place_on_grid` over the facade's inputs."""
+    return place_on_grid(inputs["steps"], inputs["grid"])
 
 
 def _cumulative(rows: list[dict]) -> list[float]:

@@ -170,3 +170,32 @@ def test_decimal_str_refuses_non_finite_values(value):
 
     with pytest.raises(ValueError, match="non-finite"):
         decimal_str(value)
+
+
+def test_place_on_grid_is_the_public_placement():
+    from paces.segmenters import place_on_grid
+
+    seg = place_on_grid(ROUTINE_STEPS, GRID)
+    assert [s.spans for s in seg.steps] == [
+        s.spans for s in segment(steps=ROUTINE_STEPS, grid=GRID).steps
+    ]
+
+
+@pytest.mark.parametrize(
+    "steps, grid, match",
+    [
+        (ROUTINE_STEPS, {"unit": "eight", "subdivisions": 8}, "tempoBpm and origin"),
+        (ROUTINE_STEPS, {**GRID, "origin": None}, "with origin$"),
+        ([], GRID, "at least one step"),
+        ([("back", -1)], GRID, r"positive, finite durations: \['back'\]"),
+        ([("nan", float("nan"))], GRID, "positive, finite"),
+        ([("zero", 0)], GRID, "positive, finite"),
+        (["no duration"], GRID, "duration for every step"),
+        ([{"name": "p", "duration": 2, "children": ["c"]}], GRID, r"\['c'\]"),
+    ],
+)
+def test_place_on_grid_names_what_is_missing(steps, grid, match):
+    from paces.segmenters import place_on_grid
+
+    with pytest.raises(ValueError, match=match):
+        place_on_grid(steps, grid)
