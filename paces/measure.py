@@ -45,7 +45,7 @@ from paces.model import MetricGrid, decimal_str, seconds_per_unit
 from paces.segmenters import (
     Capability,
     Segmentation,
-    segment_grid_placed,
+    place_on_grid,
     register,
 )
 
@@ -318,7 +318,7 @@ def _segment_grid_measured(inputs: Mapping[str, Any]) -> Segmentation:
     grid = measurement.grid
     if grid.tempo_bpm is None or grid.origin is None:
         return Segmentation(grid=grid, confidence=measurement.confidence, flags=flags)
-    placed = segment_grid_placed({**inputs, "grid": grid})
+    placed = place_on_grid(inputs["steps"], grid)
     return Segmentation(
         steps=placed.steps,
         boundaries=placed.boundaries,
