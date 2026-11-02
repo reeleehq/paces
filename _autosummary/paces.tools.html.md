@@ -104,13 +104,16 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, segmenter=None, k=None, output=None)
+### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, output=None)
 
 Cut media into steps using whatever else is present (ADR-0003).
 
 `steps`, `boundaries`, `grid` and `metadata` accept JSON values,
 JSON strings, or paths to JSON files — `metadata` notably takes a
-yt-dlp `.info.json` (its `chapters` become a named segmentation).
+yt-dlp `.info.json` (its `chapters` become a named segmentation) or
+`{"subtitles": <SRT text | .srt/.vtt path | cue list>}`. `transcript`
+is timed text — SRT text, an `.srt`/`.vtt` path, or JSON cues
+`[{"start", "end", "text"}]` — read for step markers (“now”, “next”).
 Returns the segmentation as a JSON-ready dict (also written to
 `output=` when given) — honest about naming
 (`flags: ['naming-abstained']`) and about refusal

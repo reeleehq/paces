@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="tomato" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.segmenters - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.tools" href="paces.tools.html" /><link rel="prev" title="paces.render" href="paces.render.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.segmenters - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.timed_text" href="paces.timed_text.html" /><link rel="prev" title="paces.render" href="paces.render.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d88b86f9" />
@@ -66,6 +66,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="paces.html">paces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.edits.html">paces.edits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.excerpts.html">paces.excerpts</a></li>
@@ -75,6 +76,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.projection.html">paces.projection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.render.html">paces.render</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">paces.segmenters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.timed_text.html">paces.timed_text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.tools.html">paces.tools</a></li>
 </ul>
 </li>
@@ -99,6 +101,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#paces.segmenters.capabilities"><code class="docutils literal notranslate"><span class="pre">capabilities()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.register"><code class="docutils literal notranslate"><span class="pre">register()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.segment"><code class="docutils literal notranslate"><span class="pre">segment()</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmenters.unique_slug_ids"><code class="docutils literal notranslate"><span class="pre">unique_slug_ids()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -159,6 +162,12 @@ when not.</p></li>
 <p>Plus <code class="docutils literal notranslate"><span class="pre">chapters</span></code> (external, explicit): author-supplied chapter metadata — a
 yt-dlp info dict or ffprobe’s <code class="docutils literal notranslate"><span class="pre">-show_chapters</span></code> output — is a complete named
 segmentation for ~0 cost, and most tutorial content on the web carries it.</p>
+<p>Plus <code class="docutils literal notranslate"><span class="pre">subtitle-cues</span></code> and <code class="docutils literal notranslate"><span class="pre">transcript-cues</span></code> (<code class="docutils literal notranslate"><span class="pre">paces/cues.py</span></code>): proposers
+that read step markers (“now”, “next”, “step two”) out of timed text — uploader
+subtitles or any transcript — and return low-confidence, honestly flagged
+spans. Like <code class="docutils literal notranslate"><span class="pre">grid-measured</span></code> (<code class="docutils literal notranslate"><span class="pre">paces/measure.py</span></code>) they register when
+<code class="docutils literal notranslate"><span class="pre">paces</span></code> is imported — the package <code class="docutils literal notranslate"><span class="pre">__init__</span></code> imports their module, so
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">paces.segmenters</span> <span class="pre">import</span> <span class="pre">segment</span></code> sees them too.</p>
 <p>Honesty rules (<code class="docutils literal notranslate"><span class="pre">docs/alignment/07</span> <span class="pre">§9.5</span></code>): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -175,6 +184,9 @@ by an exception.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, segmenter, steps, ...])</p></td>
 <td><p>Cut <em>media</em> into named steps, using whatever else is present.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.unique_slug_ids" title="paces.segmenters.unique_slug_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique_slug_ids</span></code></a>(names, *[, fallback])</p></td>
+<td><p>One unique, git-readable id per name; unnamed ones get <code class="docutils literal notranslate"><span class="pre">{fallback}-{i}</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -256,7 +268,7 @@ may be empty while <code class="docutils literal notranslate"><span class="pre">
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.segmenters.segment">
-<span class="sig-prename descclassname"><span class="pre">paces.segmenters.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmenters.segment" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.segmenters.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmenters.segment" title="Link to this definition">#</a></dt>
 <dd><p>Cut <em>media</em> into named steps, using whatever else is present.</p>
 <p>Returns a <a class="reference internal" href="#paces.segmenters.Segmentation" title="paces.segmenters.Segmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Segmentation</span></code></a> ALWAYS. A segmenter that cannot name the
 steps returns <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> and <code class="docutils literal notranslate"><span class="pre">steps=()</span></code>; when nothing applies the
@@ -275,6 +287,21 @@ exception.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmenters.unique_slug_ids">
+<span class="sig-prename descclassname"><span class="pre">paces.segmenters.</span></span><span class="sig-name descname"><span class="pre">unique_slug_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'step'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#unique_slug_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmenters.unique_slug_ids" title="Link to this definition">#</a></dt>
+<dd><p>One unique, git-readable id per name; unnamed ones get <code class="docutils literal notranslate"><span class="pre">{fallback}-{i}</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">unique_slug_ids</span><span class="p">([</span><span class="s2">"Turn"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"Turn"</span><span class="p">],</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"cue"</span><span class="p">)</span>
+</span><span data-line="2"><span class="go">['turn', 'cue-2', 'turn-2']</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article><button class="back-to-top" type="button">
@@ -289,10 +316,10 @@ exception.</p>
         <span>Previous</span><div class="title">paces.render</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="paces.tools.html">
+    <a href="paces.timed_text.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">paces.tools</div>
+        <div class="title">paces.timed_text</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>
@@ -317,7 +344,7 @@ exception.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=9fc46840"></script>
+      <script src="../_static/documentation_options.js?v=f0357c94"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

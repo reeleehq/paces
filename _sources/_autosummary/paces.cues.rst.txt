@@ -1,0 +1,19 @@
+paces.cues
+==========
+
+.. automodule:: paces.cues
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_CUE_PATTERNS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      detect_cues
+      normalize_timed_text
+   

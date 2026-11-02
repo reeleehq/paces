@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="tomato" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.tools - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="For AI agents" href="../ai-agents.html" /><link rel="prev" title="paces.segmenters" href="paces.segmenters.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.tools - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="For AI agents" href="../ai-agents.html" /><link rel="prev" title="paces.timed_text" href="paces.timed_text.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d88b86f9" />
@@ -66,6 +66,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="paces.html">paces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.edits.html">paces.edits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.excerpts.html">paces.excerpts</a></li>
@@ -75,6 +76,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.projection.html">paces.projection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.render.html">paces.render</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.segmenters.html">paces.segmenters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.timed_text.html">paces.timed_text</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">paces.tools</a></li>
 </ul>
 </li>
@@ -296,11 +298,14 @@ otherwise the rendered text itself.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.tools.segment">
-<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.segment" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.segment" title="Link to this definition">#</a></dt>
 <dd><p>Cut media into steps using whatever else is present (ADR-0003).</p>
 <p><code class="docutils literal notranslate"><span class="pre">steps</span></code>, <code class="docutils literal notranslate"><span class="pre">boundaries</span></code>, <code class="docutils literal notranslate"><span class="pre">grid</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata</span></code> accept JSON values,
 JSON strings, or paths to JSON files — <code class="docutils literal notranslate"><span class="pre">metadata</span></code> notably takes a
-yt-dlp <code class="docutils literal notranslate"><span class="pre">.info.json</span></code> (its <code class="docutils literal notranslate"><span class="pre">chapters</span></code> become a named segmentation).
+yt-dlp <code class="docutils literal notranslate"><span class="pre">.info.json</span></code> (its <code class="docutils literal notranslate"><span class="pre">chapters</span></code> become a named segmentation) or
+<code class="docutils literal notranslate"><span class="pre">{&quot;subtitles&quot;:</span> <span class="pre">&lt;SRT</span> <span class="pre">text</span> <span class="pre">|</span> <span class="pre">.srt/.vtt</span> <span class="pre">path</span> <span class="pre">|</span> <span class="pre">cue</span> <span class="pre">list&gt;}</span></code>. <code class="docutils literal notranslate"><span class="pre">transcript</span></code>
+is timed text — SRT text, an <code class="docutils literal notranslate"><span class="pre">.srt</span></code>/<code class="docutils literal notranslate"><span class="pre">.vtt</span></code> path, or JSON cues
+<code class="docutils literal notranslate"><span class="pre">[{&quot;start&quot;,</span> <span class="pre">&quot;end&quot;,</span> <span class="pre">&quot;text&quot;}]</span></code> — read for step markers (“now”, “next”).
 Returns the segmentation as a JSON-ready dict (also written to
 <code class="docutils literal notranslate"><span class="pre">output=</span></code> when given) — honest about naming
 (<code class="docutils literal notranslate"><span class="pre">flags:</span> <span class="pre">['naming-abstained']</span></code>) and about refusal
@@ -359,10 +364,10 @@ canonical wire form is also written to that path.</p>
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="paces.segmenters.html">
+    <a href="paces.timed_text.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">paces.segmenters</div></div>
+        <span>Previous</span><div class="title">paces.timed_text</div></div>
     </a>
   </div><div class="navigation-next">
     <a href="../ai-agents.html">
@@ -393,7 +398,7 @@ canonical wire form is also written to that path.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=9fc46840"></script>
+      <script src="../_static/documentation_options.js?v=f0357c94"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

@@ -11,6 +11,7 @@ paces.segmenters
       capabilities
       register
       segment
+      unique_slug_ids
    
    .. rubric:: Classes
 

@@ -23,6 +23,13 @@ Plus `chapters` (external, explicit): author-supplied chapter metadata — a
 yt-dlp info dict or ffprobe’s `-show_chapters` output — is a complete named
 segmentation for ~0 cost, and most tutorial content on the web carries it.
 
+Plus `subtitle-cues` and `transcript-cues` (`paces/cues.py`): proposers
+that read step markers (“now”, “next”, “step two”) out of timed text — uploader
+subtitles or any transcript — and return low-confidence, honestly flagged
+spans. Like `grid-measured` (`paces/measure.py`) they register when
+`paces` is imported — the package `__init__` imports their module, so
+`from paces.segmenters import segment` sees them too.
+
 Honesty rules (`docs/alignment/07 §9.5`): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -30,10 +37,11 @@ by an exception.
 
 ### Functions
 
-| [`capabilities`](#paces.segmenters.capabilities)()                          | The registered capability catalog (read-only view).            |
-|------------------------------------------------------------------------------------------|----------------------------------------------------------------|
-| [`register`](#paces.segmenters.register)(capability)                    | Register a segmentation capability; returns it for assignment. |
-| [`segment`](#paces.segmenters.segment)([media, segmenter, steps, ...]) | Cut *media* into named steps, using whatever else is present.  |
+| [`capabilities`](#paces.segmenters.capabilities)()                          | The registered capability catalog (read-only view).                      |
+|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`register`](#paces.segmenters.register)(capability)                    | Register a segmentation capability; returns it for assignment.           |
+| [`segment`](#paces.segmenters.segment)([media, segmenter, steps, ...]) | Cut *media* into named steps, using whatever else is present.            |
+| [`unique_slug_ids`](#paces.segmenters.unique_slug_ids)(names, \*[, fallback])  | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`. |
 
 ### Classes
 
@@ -87,7 +95,7 @@ Register a segmentation capability; returns it for assignment.
 * **Return type:**
   [`Capability`](#paces.segmenters.Capability)
 
-### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, k=None, catalog=None)
+### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -106,3 +114,15 @@ The seam: `segmenter=None` selects from what is present; a name pins it.
 
 * **Return type:**
   [`Segmentation`](#paces.segmenters.Segmentation)
+
+### paces.segmenters.unique_slug_ids(names, , fallback='step')
+
+One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.
+
+```pycon
+>>> unique_slug_ids(["Turn", "", "Turn"], fallback="cue")
+['turn', 'cue-2', 'turn-2']
+```
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

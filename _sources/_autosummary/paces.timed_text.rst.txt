@@ -1,0 +1,12 @@
+paces.timed\_text
+=================
+
+.. automodule:: paces.timed_text
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      normalize_timed_text
+   

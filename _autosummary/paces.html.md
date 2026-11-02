@@ -504,7 +504,7 @@ Seconds one domain unit lasts under *grid*, or None without a tempo.
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### paces.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, k=None, catalog=None)
+### paces.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -575,14 +575,16 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 
 ### Modules
 
-| [`derivation`](paces.derivation.html.md#module-paces.derivation)   | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                     |
-|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`edits`](paces.edits.html.md#module-paces.edits)             | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                 |
-| [`excerpts`](paces.excerpts.html.md#module-paces.excerpts)       | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                       |
-| [`measure`](paces.measure.html.md#module-paces.measure)         | Measure a [`MetricGrid`](paces.model.html.md#paces.model.MetricGrid) from the media itself.                                  |
-| [`model`](paces.model.html.md#module-paces.model)             | The paces intermediate representation: the `StepDocument`.                                                                                           |
-| [`pose`](paces.pose.html.md#module-paces.pose)               | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                            |
-| [`projection`](paces.projection.html.md#module-paces.projection)   | The projection from analysis result to document: `to_document`.                                                                                      |
-| [`render`](paces.render.html.md#module-paces.render)           | Render a [`StepDocument`](paces.model.html.md#paces.model.StepDocument) into learning material.                              |
-| [`segmenters`](paces.segmenters.html.md#module-paces.segmenters)   | Segmentation is a seam, not a stage (ADR-0003).                                                                                                      |
-| [`tools`](paces.tools.html.md#module-paces.tools)             | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic. |
+| [`cues`](paces.cues.html.md#module-paces.cues)             | Lexical cue segmenters: subtitles and transcripts → proposed named spans.                                                                            |
+|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`derivation`](paces.derivation.html.md#module-paces.derivation) | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                     |
+| [`edits`](paces.edits.html.md#module-paces.edits)           | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                 |
+| [`excerpts`](paces.excerpts.html.md#module-paces.excerpts)     | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                       |
+| [`measure`](paces.measure.html.md#module-paces.measure)       | Measure a [`MetricGrid`](paces.model.html.md#paces.model.MetricGrid) from the media itself.                                  |
+| [`model`](paces.model.html.md#module-paces.model)           | The paces intermediate representation: the `StepDocument`.                                                                                           |
+| [`pose`](paces.pose.html.md#module-paces.pose)             | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                            |
+| [`projection`](paces.projection.html.md#module-paces.projection) | The projection from analysis result to document: `to_document`.                                                                                      |
+| [`render`](paces.render.html.md#module-paces.render)         | Render a [`StepDocument`](paces.model.html.md#paces.model.StepDocument) into learning material.                              |
+| [`segmenters`](paces.segmenters.html.md#module-paces.segmenters) | Segmentation is a seam, not a stage (ADR-0003).                                                                                                      |
+| [`timed_text`](paces.timed_text.html.md#module-paces.timed_text) | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                 |
+| [`tools`](paces.tools.html.md#module-paces.tools)           | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic. |

@@ -60,6 +60,7 @@
    :recursive:
 
    bodies
+   cues
    derivation
    edits
    evidence
@@ -70,4 +71,5 @@
    projection
    render
    segmenters
+   timed_text
    tools
