@@ -337,3 +337,19 @@ def test_grid_measured_rejects_bad_durations_before_measuring(
     steps = [("a", 1), {"name": "p", "duration": 2, "children": [("c", bad)]}]
     with pytest.raises(ValueError, match=r"positive, finite durations: \['c'\]"):
         segment(str(media), steps=steps, segmenter="grid-measured")
+
+
+def test_the_spans_fact_reads_the_whole_step_tree():
+    """A span on a child counts, as a duration on a child does (#51)."""
+    from paces.segmenters import _facts, _normalize_steps
+
+    nested = _normalize_steps(
+        [{"name": "p", "duration": 2, "children": [{"name": "c", "spans": [(1, 2)]}]}]
+    )
+    flat = _normalize_steps([("p", 2)])
+    assert "steps.spans" in _facts(
+        media=None, steps=nested, boundaries=None, grid=None, k=None
+    )
+    assert "steps.spans" not in _facts(
+        media=None, steps=flat, boundaries=None, grid=None, k=None
+    )

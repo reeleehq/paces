@@ -386,8 +386,8 @@ def _facts(
         facts.add("steps")
         if not _undated_ids(steps):
             facts.add("steps.durations")  # children too: placement needs them all
-        if any(row["spans"] for row in steps):
-            facts.add("steps.spans")
+        if any(row["spans"] for row in _walk_rows(steps)):
+            facts.add("steps.spans")  # like steps.durations: the whole tree
     if boundaries:
         facts.add("boundaries")
     if grid is not None and grid.tempo_bpm is not None and grid.origin is not None:
