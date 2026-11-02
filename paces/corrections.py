@@ -42,7 +42,7 @@ from dataclasses import dataclass
 from typing import Literal, get_args
 
 from paces.model import decimal_str
-from paces.segmenters import (
+from paces.segmentation import (
     DFLT_EXPLICIT_CONFIDENCE,
     SegStep,
     Segmentation,

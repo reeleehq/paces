@@ -144,7 +144,7 @@ from paces.model import (
     StepDocument,
 )
 from paces.projection import to_document
-from paces.segmenters import Segmentation
+from paces.segmentation import Segmentation
 
 #: The namespace every paces annotation id is derived under. Derived from the
 #: repository URL rather than typed as a literal, so it is reproducible from

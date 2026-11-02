@@ -49,7 +49,7 @@ from paces.corrections import (
     time_str,
 )
 from paces.model import seconds_per_unit
-from paces.segmenters import Segmentation
+from paces.segmentation import Segmentation
 
 PROPOSAL_KIND = "PacesAskProposal"
 ANSWERS_KIND = "PacesAskAnswers"

@@ -44,54 +44,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
+from paces import corrections as corrections_module
 from paces.model import MetricGrid, seconds_per_unit
+from paces.segmentation import (  # noqa: F401 — re-exported; their home is there
+    DFLT_CHAPTERS_CONFIDENCE,
+    DFLT_EXPLICIT_CONFIDENCE,
+    DFLT_GRID_CONFIDENCE,
+    SegStep,
+    Segmentation,
+    Span,
+)
 from paces.timed_text import normalize_timed_text
-
-Span = tuple[float, float]  # seconds, half-open
-
-# Confidence constants: placement from user-supplied inputs is arithmetic, so
-# what these grade is trust in the inputs, not in any inference.
-DFLT_EXPLICIT_CONFIDENCE = 0.95  # a human said so
-DFLT_GRID_CONFIDENCE = 0.9  # exact given the grid; the grid itself may drift
-DFLT_CHAPTERS_CONFIDENCE = 0.9  # the author said so, in metadata
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class SegStep:
-    """One named piece of the media, as an analysis result.
-
-    ``name=''`` means "found, not named" — a VALID state, not an error.
-    ``spans`` is a tuple because a step legitimately appears in several places
-    (run-through AND breakdown).
-    """
-
-    id: str
-    name: str = ""
-    spans: tuple[Span, ...] = ()
-    confidence: float = 0.0
-    children: tuple["SegStep", ...] = ()
-    source: str = ""  # which capability produced it
-    evidence: Mapping[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Segmentation:
-    """What every segmenter returns. Reviewable, re-runnable, arguable.
-
-    ``boundaries`` is separate from ``steps`` and populated even when naming
-    failed: nine excellent unnamed cuts are a useful, honest result. ``steps``
-    may be empty while ``boundaries`` is not.
-    """
-
-    steps: tuple[SegStep, ...] = ()  # ordered; MAY be empty while boundaries is not
-    boundaries: tuple[float, ...] = ()  # the raw cut set, always
-    unit: str = "seconds"  # "eight" | "rep" | "seconds"
-    grid: MetricGrid | None = None
-    confidence: float = 0.0
-    method: str = ""  # which capability ran (the ADR's "reported default")
-    flags: tuple[str, ...] = ()  # 'naming-abstained', 'no-signal', 'try: ...'
-    elapsed_s: float = 0.0
-    spent_usd: float = 0.0
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -354,13 +317,6 @@ def _facts(
     return frozenset(facts)
 
 
-def _corrections_api():
-    """:mod:`paces.corrections`, imported lazily: it imports this module."""
-    from paces import corrections
-
-    return corrections
-
-
 def _apply_corrections(
     result: Segmentation, log: tuple, capability: Capability | None
 ) -> Segmentation:
@@ -370,7 +326,7 @@ def _apply_corrections(
     unmatched — rather than dropped."""
     if not log or (capability is not None and "corrections" in capability.reads):
         return result
-    return _corrections_api().replay(result, log)
+    return corrections_module.replay(result, log)
 
 
 # ── the facade ──────────────────────────────────────────────────────────────
@@ -418,7 +374,7 @@ def segment(
     transcript_cues = normalize_timed_text(transcript)
     # fail fast: a malformed log raises before any segmenter runs
     correction_log = (
-        _corrections_api().normalize_corrections(corrections)
+        corrections_module.normalize_corrections(corrections)
         if corrections is not None
         else ()
     )
