@@ -13,13 +13,20 @@ import pytest
 from paces import tools
 from paces.ask import (
     ANSWERS_KIND,
+    CONTRACT_VERSION,
+    Answers,
     load_answers,
     propose,
     render_ask_page,
 )
-from paces.corrections import split
+from paces.corrections import (
+    DFLT_MERGE_TOLERANCE_S,
+    DFLT_MIN_STEP_S,
+    split,
+    time_str,
+)
 from paces.model import decimal_str
-from paces.segmenters import segment
+from paces.segmenters import Segmentation, segment
 
 CUTS = [0, 10, 20, 30]
 NAMES = ["intro", "verse", "chorus"]
@@ -49,7 +56,20 @@ def test_snap_targets_add_the_grid_ticks_to_the_cuts():
     proposal = propose(segment(boundaries=CUTS, grid=GRID))  # 4 s per eight
     targets = proposal["snap"]["targets"]
     assert targets == ["0", "4", "8", "10", "12", "16", "20", "24", "28"]
-    assert proposal["snap"]["windowS"] == "1.5"
+    assert proposal["snap"]["windowS"] == time_str(DFLT_MERGE_TOLERANCE_S)
+
+
+def test_the_proposal_carries_the_contract():
+    proposal = propose(segment(boundaries=CUTS))
+    assert proposal["version"] == CONTRACT_VERSION
+    assert proposal["answersKind"] == ANSWERS_KIND
+    assert proposal["minStepS"] == time_str(DFLT_MIN_STEP_S)
+
+
+def test_cuts_are_deduped_after_rounding_and_k_counts_the_deduped():
+    proposal = propose(Segmentation(boundaries=(0, 10, 10.0001, 9.9999, 20)))
+    assert proposal["cuts"] == ["10"]
+    assert proposal["k"] == 2 and proposal["extent"] == ["0", "20"]
 
 
 def test_a_too_dense_grid_falls_back_to_cuts_only():
@@ -85,9 +105,18 @@ def test_a_title_cannot_break_out_of_the_page():
     assert page.count("<script") == 2  # the data block and the page script
 
 
+@pytest.mark.parametrize("title", ["{{js}}", "{{data}}", "{{css}}{{title}}"])
+def test_a_placeholder_in_the_title_stays_text(title):
+    page = render_ask_page(propose(segment(boundaries=CUTS), title=title))
+    assert page.count("function timeStr") == 1  # the script went in once
+    assert f"<h1>{title}</h1>" in page
+
+
 def test_render_refuses_what_is_not_a_proposal():
     with pytest.raises(ValueError, match="PacesAskProposal"):
         render_ask_page({"cuts": []})
+    with pytest.raises(ValueError, match="version"):
+        render_ask_page({**propose(segment(boundaries=CUTS)), "version": 2})
 
 
 # ── answers back in ─────────────────────────────────────────────────────────
@@ -96,6 +125,7 @@ def test_render_refuses_what_is_not_a_proposal():
 def _answers(**overrides):
     return {
         "kind": ANSWERS_KIND,
+        "version": CONTRACT_VERSION,
         "k": 4,
         "corrections": [{"verb": "split", "anchorT": "15"}],
         **overrides,
@@ -103,8 +133,12 @@ def _answers(**overrides):
 
 
 def test_load_answers_gives_k_and_a_validated_log():
-    k, log = load_answers(_answers())
-    assert k == 4 and log == (split(15),)
+    assert load_answers(_answers()) == Answers(k=4, corrections=(split(15),))
+
+
+def test_load_answers_reads_tapped_boundaries():
+    got = load_answers(_answers(corrections=[], boundaries=["0", "10", "20.5"]))
+    assert got.boundaries == (0.0, 10.0, 20.5)
 
 
 @pytest.mark.parametrize(
@@ -117,6 +151,12 @@ def test_load_answers_gives_k_and_a_validated_log():
         (_answers(extra=1), "unknown answers keys"),
         (_answers(corrections=[{"verb": "split"}]), "missing"),
         ([], "PacesAskAnswers"),
+        ({k: v for k, v in _answers().items() if k != "version"}, "version"),
+        (_answers(version=2), "version"),
+        (_answers(boundaries=["0"]), "2 or more"),
+        (_answers(boundaries=["0", "x"]), "times in seconds"),
+        (_answers(boundaries=["10", "5"]), "increasing"),
+        (_answers(boundaries=["-1", "5"]), "increasing"),
     ],
 )
 def test_bad_answers_fail_before_any_rerun(answers, match):
@@ -163,6 +203,13 @@ def test_an_explicit_k_wins_over_the_answered_one(monkeypatch):
     assert seen["k"] == 4
 
 
+def test_tool_segment_uses_answered_boundaries_unless_given():
+    answers = json.dumps(_answers(corrections=[], boundaries=["0", "12", "30"]))
+    assert tools.segment("v.mp4", answers=answers)["boundaries"] == [0.0, 12.0, 30.0]
+    given = tools.segment(boundaries=json.dumps(CUTS), answers=answers)
+    assert given["boundaries"] == [0.0, 10.0, 20.0, 30.0]
+
+
 # ── the page's pure core, run in node ───────────────────────────────────────
 
 node = shutil.which("node")
@@ -182,7 +229,9 @@ def _run_js(expression: str):
 
 @needs_node
 def test_js_time_format_matches_the_python_wire_format():
-    values = [0, 15, 95.8, 0.8550444, 10.1235, 1e-7, 123.4567, 7.0005]
+    values = [0, 15, 95.8, 0.8550444, 10.1235, 1e-7, 123.4567, 7.0005, 59.9996]
+    # exact binary ties: Python's format rounds half-even, toFixed rounds up
+    values += [10.0625, 0.0625, 0.1875, 0.3125, 2.5625, 1023.9375, 0.0005]
     got = _run_js(f"{json.dumps(values)}.map(core.timeStr)")
     assert got == [decimal_str(v, places=3) for v in values]
 
@@ -205,6 +254,7 @@ def test_js_answers_load_and_replay_in_python():
         "added": ["24", "16", "16"],  # out of order, and a double tap
         "absent": ["intro"],
         "at": "2026-11-02T10:00:00Z",
+        "kTouched": True,
     }
     answers = _run_js(
         f"core.buildAnswers({json.dumps({**proposal, 'author': 'user:t'})}, "
@@ -217,9 +267,9 @@ def test_js_answers_load_and_replay_in_python():
         ("split", "24"),
     ]
     assert all(c["author"] == "user:t" for c in answers["corrections"])
-    k, log = load_answers(answers)
-    seg = segment(boundaries=CUTS, steps=NAMES, corrections=log)
-    assert k == 3
+    got = load_answers(answers)
+    seg = segment(boundaries=CUTS, steps=NAMES, corrections=got.corrections)
+    assert got.k == 3 and got.boundaries is None
     assert seg.boundaries == (0.0, 10.0, 16.0, 24.0, 30.0)
     assert not [f for f in seg.flags if f.startswith("correction-")]
 
@@ -230,4 +280,167 @@ def test_js_an_unset_k_is_null_not_zero():
     state = {"k": None, "struck": [], "added": [], "absent": [], "at": ""}
     answers = _run_js(f"core.buildAnswers({json.dumps(proposal)}, {json.dumps(state)})")
     assert answers["k"] is None and answers["corrections"] == []
-    assert load_answers(answers) == (None, ())
+    assert load_answers(answers) == Answers(k=None)
+
+
+@needs_node
+def test_js_mmss_never_shows_sixty_seconds():
+    got = _run_js("[59.96, 119.99, 5, 0, 61.04].map(core.mmss)")
+    assert got == ["1:00.0", "2:00.0", "0:05.0", "0:00.0", "1:01.0"]
+
+
+# ── the reducer: every state decision the page makes, run in node ───────────
+
+
+def _reduce(proposal: dict, actions: list[dict]) -> list[dict]:
+    """Each action's ``{state, message, fresh}``, applied in order from a fresh state."""
+    return _run_js(
+        f"(() => {{ const p = {json.dumps(proposal)}; let s = core.freshState(p);\n"
+        f"return {json.dumps(actions)}.map((a) => {{ const out = core.reduce(p, s, a);"
+        " s = out.state; return out; }); })()"
+    )
+
+
+def _answers_after(proposal: dict, actions: list[dict]) -> dict:
+    return _run_js(
+        f"(() => {{ const p = {json.dumps(proposal)}; let s = core.freshState(p);\n"
+        f"for (const a of {json.dumps(actions)}) s = core.reduce(p, s, a).state;"
+        " return core.buildAnswers(p, s); })()"
+    )
+
+
+def _named():
+    return propose(segment(boundaries=CUTS, steps=NAMES))
+
+
+@needs_node
+def test_js_refused_state_taps_become_boundaries_and_reach_segment():
+    """B1: with nothing proposed, the taps are not lost — they are the cuts."""
+    proposal = propose(segment("video.mp4"))
+    actions = [
+        {"type": "duration", "seconds": 30.0},
+        {"type": "tap", "t": 20},
+        {"type": "tap", "t": 10},
+    ]
+    answers = _answers_after(proposal, actions)
+    assert answers["boundaries"] == ["0", "10", "20", "30"]
+    assert answers["corrections"] == []
+    payload = tools.segment("video.mp4", answers=json.dumps(answers))
+    assert payload["boundaries"] == [0.0, 10.0, 20.0, 30.0]
+
+
+@needs_node
+def test_js_a_tap_outside_the_extent_is_refused_and_says_why():
+    proposal = propose(segment(boundaries=[5, 10, 20, 30]))
+    [out] = _reduce(proposal, [{"type": "tap", "t": 2}])
+    assert out["state"]["added"] == []
+    assert "outside the part being checked" in out["message"]
+
+
+@needs_node
+def test_js_a_struck_cut_is_not_a_snap_target():
+    """M1: strike 20, tap near it — the cut moves rather than coming back."""
+    near = _reduce(_named(), [{"type": "tap", "t": 19.5}])
+    assert near[0]["state"]["added"] == [] and "already a cut" in near[0]["message"]
+    moved = _reduce(
+        _named(), [{"type": "strike", "cut": "20"}, {"type": "tap", "t": 19.5}]
+    )
+    assert moved[-1]["state"]["added"] == ["19.5"]
+    assert moved[-1]["state"]["struck"] == ["20"]
+
+
+@needs_node
+def test_js_absent_steps_guard_their_cuts_and_their_inside():
+    """M2: no merge at an absent step's edge, no split inside it."""
+    out = _reduce(
+        _named(),
+        [
+            {"type": "absent", "stepId": "verse", "on": True},  # 10–20
+            {"type": "strike", "cut": "10"},
+            {"type": "strike", "cut": "20"},
+            {"type": "tap", "t": 15},
+        ],
+    )
+    assert out[0]["state"]["absent"] == ["verse"]
+    for refused in out[1:]:
+        assert refused["state"] == out[0]["state"]
+    assert "borders" in out[1]["message"] and "borders" in out[2]["message"]
+    assert "inside a step you marked" in out[3]["message"]
+    # and the other way round: a struck edge or an added cut blocks marking it
+    struck_first = _reduce(
+        _named(),
+        [
+            {"type": "strike", "cut": "10"},
+            {"type": "absent", "stepId": "verse", "on": True},
+        ],
+    )
+    assert struck_first[-1]["state"]["absent"] == []
+    added_first = _reduce(
+        _named(),
+        [{"type": "tap", "t": 15}, {"type": "absent", "stepId": "verse", "on": True}],
+    )
+    assert added_first[-1]["state"]["absent"] == []
+
+
+@needs_node
+def test_js_a_step_with_no_span_cannot_be_marked_absent():
+    proposal = _named()
+    proposal["steps"][0]["spans"] = []
+    [out] = _reduce(proposal, [{"type": "absent", "stepId": "intro", "on": True}])
+    assert out["state"]["absent"] == [] and "no time" in out["message"]
+
+
+@needs_node
+def test_js_a_tap_within_min_step_of_a_cut_is_ignored():
+    """M3: a double tap is not two cuts; a struck cut is not a cut."""
+    out = _reduce(
+        _named(),
+        [
+            {"type": "tap", "t": 15},
+            {"type": "tap", "t": 15.1},
+            {"type": "strike", "cut": "20"},
+            {"type": "tap", "t": 21.6},  # 1.6 s from 20: beyond the snap window
+            {"type": "tap", "t": 21.7},
+        ],
+    )
+    assert out[1]["state"]["added"] == ["15"]
+    assert f"within {time_str(DFLT_MIN_STEP_S)} s" in out[1]["message"]
+    assert out[-1]["state"]["added"] == ["15", "21.6"]
+
+
+@needs_node
+def test_js_k_is_sent_only_once_the_human_touched_it():
+    """M4: the machine's guess pre-fills the field but is not an answer."""
+    untouched = _answers_after(_named(), [])
+    assert untouched["k"] is None
+    confirmed = _answers_after(_named(), [{"type": "setK", "value": "3"}])
+    assert confirmed["k"] == 3
+    assert confirmed["version"] == CONTRACT_VERSION
+    assert confirmed["kind"] == ANSWERS_KIND
+
+
+@needs_node
+def test_js_start_over_can_be_undone():
+    """M5: Start over resets everything, k included, and keeps one Undo."""
+    out = _reduce(
+        _named(),
+        [
+            {"type": "setK", "value": "5"},
+            {"type": "strike", "cut": "10"},
+            {"type": "startOver"},
+            {"type": "undoStartOver"},
+        ],
+    )
+    before, reset, undone = out[1]["state"], out[2]["state"], out[3]["state"]
+    assert reset["k"] == 3 and not reset["kTouched"] and reset["struck"] == []
+    assert reset["previous"]["struck"] == ["10"]
+    assert undone == {**before, "previous": None}
+    # anything done after Start over closes its Undo
+    later = _reduce(_named(), [{"type": "startOver"}, {"type": "tap", "t": 15}])
+    assert later[-1]["state"]["previous"] is None
+
+
+@needs_node
+def test_js_only_the_just_added_cut_is_fresh():
+    out = _reduce(_named(), [{"type": "tap", "t": 15}, {"type": "setK", "value": "4"}])
+    assert out[0]["fresh"] == "15" and out[1]["fresh"] is None

@@ -915,6 +915,8 @@ frontend (`06-surfaces-and-conventions.md`), a CLI prompt, a notebook widget, or
 answering on the user's behalf — which is the case that makes `ask` interesting: **an agent with the
 contact sheet in context is a legitimate `ui`**, and it is `llm-sheets` wearing a different hat.
 
+> **As built (issue #10, `paces/ask.py`).** The seam is a JSON contract rather than a `ui=` callback: `propose()` writes a versioned `PacesAskProposal` (K with its evidence, cuts, steps, snap targets, `minStepS`), the default page answers it with a `PacesAskAnswers` document, and `load_answers()` returns `Answers(k, corrections, boundaries)`. K is sent only when the human touched it. When the proposal has no cuts (the refused state), the taps come back as `boundaries` from 0 to the media's end, not as corrections. The snap window is the merge tolerance (both absorb the same tapping imprecision), and every state decision on the page is one pure reducer in `ask.js`, tested in node.
+
 ### 7.5 How the human's answer survives a re-run — and where I disagree with `06`
 
 `06 §5` has this almost entirely right and I am reusing it wholesale:

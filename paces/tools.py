@@ -147,24 +147,27 @@ def segment(
     ``{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}``
     (inline, or a path) — replayed as constraints; any it could not honour
     is reported in ``flags``. ``answers`` is the JSON the ``ask`` page exports
-    (inline, or a path): its step count fills ``k`` unless ``k`` is given, and
-    its corrections run after ``corrections``. Returns the segmentation as a JSON-ready dict (also written to
+    (inline, or a path): its step count fills ``k`` unless ``k`` is given, its
+    boundaries (tapped on a page that had no cuts to correct) fill
+    ``boundaries`` unless it is given, and its corrections run after
+    ``corrections``. Returns the segmentation as a JSON-ready dict (also written to
     ``output=`` when given) — honest about naming
     (``flags: ['naming-abstained']``) and about refusal
     (``flags: ['no-signal', 'try: ...']``); never a fabricated step list.
     """
     log = _structured(corrections, what="corrections")
+    boundaries = _structured(boundaries, what="boundaries")
     if answers is not None:
-        answered_k, answered_log = ask_module.load_answers(
-            _structured(answers, what="answers")
-        )
-        k = answered_k if k is None else k
-        log = normalize_corrections(log) + answered_log
+        answered = ask_module.load_answers(_structured(answers, what="answers"))
+        k = answered.k if k is None else k
+        if boundaries is None and answered.boundaries is not None:
+            boundaries = list(answered.boundaries)
+        log = normalize_corrections(log) + answered.corrections
     result = segment_module.segment(
         media,
         segmenter=segmenter,
         steps=_structured(steps, what="steps"),
-        boundaries=_structured(boundaries, what="boundaries"),
+        boundaries=boundaries,
         grid=_structured(grid, what="grid"),
         metadata=_structured(metadata, what="metadata"),
         transcript=_timed_text(transcript),

@@ -590,3 +590,28 @@ def test_merge_into_a_named_step_keeps_that_steps_record():
 def test_a_pin_anchor_must_lie_strictly_before_its_span_end():
     with pytest.raises(ValueError, match="inside its span"):
         pin((0, 10), anchor_t=10)
+
+
+def test_merge_exactly_on_a_cut_that_joins_nothing_does_not_fall_back():
+    """The human struck THAT cut (here the edge of a gap); a meeting cut 1 s
+    away is not what they meant, even though it is within the tolerance."""
+    seg = _seg(
+        SegStep(id="a", spans=((0.0, 10.0),)),
+        SegStep(id="b", spans=((10.0, 11.0),)),
+        SegStep(id="c", spans=((11.5, 20.0),)),
+    )
+    out = replay(seg, [merge(11)])
+    assert out.steps == seg.steps and out.boundaries == seg.boundaries
+    assert out.flags == (
+        "correction-unmatched: merge@11 (no two steps meet at that exact cut)",
+    )
+    # one millisecond off that cut, the nearest meeting cut is still found
+    assert "corrected: merge@10.999" in replay(seg, [merge(10.999)]).flags
+
+
+def test_merge_exactly_on_an_end_of_a_boundaries_only_segmentation_is_unmatched():
+    out = replay(Segmentation(boundaries=(0.0, 10.0, 11.0)), [merge(11)])
+    assert out.boundaries == (0.0, 10.0, 11.0)
+    assert out.flags == (
+        "correction-unmatched: merge@11 (that is an end, not a cut between steps)",
+    )

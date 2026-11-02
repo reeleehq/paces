@@ -179,7 +179,7 @@ decisions, not measurements. Full table and rationale in
 | cut media into steps | `segment(media, steps=..., grid=...)` → `Segmentation` |
 | explicit/human boundaries | `segment(media, boundaries=[...], steps=[names])` |
 | keep a human's corrections across re-runs | `segment(..., corrections=[split(t), merge(t), pin((s, e)), forbid(t, (s, e)), absent(t)])` — from `paces.corrections`; a time-keyed log, replayed as constraints, anything it could not honour flagged |
-| ask a human to check a segmentation | `paces ask seg.json --media video.mp4 --output ask.html` → they confirm the step count, tap along to add cuts, strike wrong ones → `answers.json` → `paces segment ... --answers answers.json`. The proposal/answers JSON is the contract any other UI (or an agent) can speak |
+| ask a human to check a segmentation | `paces ask seg.json --media video.mp4 --output ask.html` → they confirm the step count, tap along to add cuts (or, when nothing was found, tap the cuts themselves), strike wrong ones → `answers.json` → `paces segment ... --answers answers.json`. The versioned proposal/answers JSON (`load_answers` → `Answers(k, corrections, boundaries)`) is the contract any other UI (or an agent) can speak |
 | use the video's own chapters | `segment(media, metadata=<yt-dlp info.json>)` |
 | measure the grid from the media | `segment(local_media, steps=[(name, counts), ...])` — no grid needed; tempo + structure measured, origin estimated and flagged (`pip install paces[audio]`) |
 | protect edits from regeneration | `apply_edits(doc, patches, by="user:you")` + `merge_regenerated(committed, fresh)` |
