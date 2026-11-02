@@ -231,7 +231,7 @@ def measure_grid(
         flags += (f"tempo-unmeasured: {tempo_unmeasured_note}{suffix}",)
 
     # Explicit beats inferred — but a disagreement is a finding, not a secret.
-    final_tempo = known_tempo or measured_tempo
+    final_tempo = known_tempo if known_tempo is not None else measured_tempo
     if (
         known_tempo is not None
         and measured_tempo is not None
