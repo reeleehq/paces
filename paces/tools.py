@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 
 from paces import (
+    ask as ask_module,
     edits as edits_module,
     excerpts as excerpts_module,
     model,
@@ -21,6 +22,7 @@ from paces import (
     render as render_module,
     segmenters as segment_module,
 )
+from paces.corrections import normalize_corrections
 
 
 def _structured(value, *, what: str = "argument"):
@@ -130,6 +132,7 @@ def segment(
     segmenter: str | None = None,
     k: int | None = None,
     corrections=None,
+    answers=None,
     output: str | None = None,
 ) -> dict:
     """Cut media into steps using whatever else is present (ADR-0003).
@@ -143,21 +146,33 @@ def segment(
     ``corrections`` is a human's correction log — a JSON list of
     ``{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}``
     (inline, or a path) — replayed as constraints; any it could not honour
-    is reported in ``flags``. Returns the segmentation as a JSON-ready dict (also written to
+    is reported in ``flags``. ``answers`` is the JSON the ``ask`` page exports
+    (inline, or a path): its step count fills ``k`` unless ``k`` is given, its
+    boundaries (tapped on a page that had no cuts to correct) fill
+    ``boundaries`` unless it is given, and its corrections run after
+    ``corrections``. Returns the segmentation as a JSON-ready dict (also written to
     ``output=`` when given) — honest about naming
     (``flags: ['naming-abstained']``) and about refusal
     (``flags: ['no-signal', 'try: ...']``); never a fabricated step list.
     """
+    log = _structured(corrections, what="corrections")
+    boundaries = _structured(boundaries, what="boundaries")
+    if answers is not None:
+        answered = ask_module.load_answers(_structured(answers, what="answers"))
+        k = answered.k if k is None else k
+        if boundaries is None and answered.boundaries is not None:
+            boundaries = list(answered.boundaries)
+        log = normalize_corrections(log) + answered.corrections
     result = segment_module.segment(
         media,
         segmenter=segmenter,
         steps=_structured(steps, what="steps"),
-        boundaries=_structured(boundaries, what="boundaries"),
+        boundaries=boundaries,
         grid=_structured(grid, what="grid"),
         metadata=_structured(metadata, what="metadata"),
         transcript=_timed_text(transcript),
         k=k,
-        corrections=_structured(corrections, what="corrections"),
+        corrections=log,
     )
     payload = _segmentation_to_dict(result)
     if output:
@@ -219,6 +234,34 @@ def render(document, *, output: str | None = None, renderer: str = "html") -> st
     text = renderers[renderer](doc)
     if output:
         _warn_if_page_leaves_media_behind(doc, document, output)
+        Path(output).write_text(text, encoding="utf-8")
+        return output
+    return text
+
+
+def ask(
+    segmentation,
+    *,
+    media: str | None = None,
+    title: str = "",
+    author: str = "",
+    output: str | None = None,
+) -> str:
+    """Write the page a human answers a segmentation on (the ask segmenter).
+
+    It asks how many steps there are (the machine's guess pre-filled), lets
+    them tap along with the media to add cuts, strike wrong cuts and mark
+    steps that are not in the media, and exports ``answers.json`` for
+    ``segment --answers``. ``media`` is what the page plays (a path relative
+    to the page, or a URL); without it the human opens the file on their
+    device. Returns the output path when ``output=`` is given, otherwise the
+    page itself.
+    """
+    proposal = ask_module.propose(
+        _segmentation_from_dict(segmentation), media=media, title=title
+    )
+    text = ask_module.render_ask_page(proposal, author=author)
+    if output:
         Path(output).write_text(text, encoding="utf-8")
         return output
     return text
@@ -474,6 +517,7 @@ def list_segmenters() -> dict:
 
 _dispatch_funcs = [
     segment,
+    ask,
     to_document,
     render,
     suggest_excerpts,

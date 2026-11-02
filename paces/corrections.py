@@ -177,15 +177,21 @@ _WIRE_KEYS = {
 _REQUIRED_WIRE_KEYS = ("verb", "anchorT")
 
 
-def _time_str(t: float) -> str:
+def time_str(t: float) -> str:
+    """A time as paces' millisecond wire decimal — the one formatter every
+    corrections producer shares (the ask page's ``timeStr`` mirrors it).
+
+    >>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
+    ('95.8', '10.062')
+    """
     return decimal_str(t, places=TIME_PLACES)
 
 
 def to_wire(correction: Correction) -> dict:
     """A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted."""
-    wire: dict = {"verb": correction.verb, "anchorT": _time_str(correction.anchor_t)}
+    wire: dict = {"verb": correction.verb, "anchorT": time_str(correction.anchor_t)}
     if correction.span is not None:
-        wire["span"] = [_time_str(t) for t in correction.span]
+        wire["span"] = [time_str(t) for t in correction.span]
     for field_name in ("step_id", "author", "at", "media_key", "reason"):
         value = getattr(correction, field_name)
         if value:
@@ -381,7 +387,7 @@ def _too_close(t: float, cuts: Iterable[float], min_step_s: float) -> str:
     if gap == 0:
         return "already a cut there"
     if gap < min_step_s:
-        return f"within {_time_str(min_step_s)} s of a cut"
+        return f"within {time_str(min_step_s)} s of a cut"
     return ""
 
 
@@ -482,9 +488,13 @@ def _apply_merge(state: _State, correction: Correction, options: _Options):
         return _merge_cuts(state, correction, options)
     t, tolerance = correction.anchor_t, options.merge_tolerance_s
     meets = _meeting_cuts(state.steps)
+    if t in state.boundaries and t not in meets:
+        # exactly on a cut that joins no two steps (e.g. the edge of an absent
+        # step): the human meant THAT cut, so another one nearby is not a match
+        return _unmatched(state, correction, "no two steps meet at that exact cut")
     cut = _nearest(meets, t, tolerance)
     if cut is None:
-        within = f"within {_time_str(tolerance)} s"
+        within = f"within {time_str(tolerance)} s"
         if _nearest(state.boundaries, t, tolerance) is None:
             return _unmatched(state, correction, f"no cut {within}")
         return _unmatched(state, correction, f"no two steps meet {within}")
@@ -522,9 +532,11 @@ def _merge_cuts(state: _State, correction: Correction, options: _Options):
     """Merge over a boundaries-only segmentation: remove the interior cut."""
     tolerance = options.merge_tolerance_s
     interior = sorted(state.boundaries)[1:-1]
+    if correction.anchor_t in state.boundaries and correction.anchor_t not in interior:
+        return _unmatched(state, correction, "that is an end, not a cut between steps")
     cut = _nearest(interior, correction.anchor_t, tolerance)
     if cut is None:
-        return _unmatched(state, correction, f"no cut within {_time_str(tolerance)} s")
+        return _unmatched(state, correction, f"no cut within {time_str(tolerance)} s")
     return _done(
         dataclasses.replace(state, boundaries=state.boundaries - {cut}), correction
     )
@@ -677,13 +689,13 @@ def _inconsistencies(state: _State) -> tuple[str, ...]:
     ``boundaries``."""
     spans = sorted((span, step.id) for step in state.steps for span in step.spans)
     flags = [
-        f"inconsistent: step {step_id!r} has an empty span at {_time_str(span[0])}"
+        f"inconsistent: step {step_id!r} has an empty span at {time_str(span[0])}"
         for span, step_id in spans
         if span[0] >= span[1]
     ]
     flags += [
         f"inconsistent: steps {a_id!r} and {b_id!r} overlap "
-        f"({_time_str(max(a[0], b[0]))}–{_time_str(min(a[1], b[1]))})"
+        f"({time_str(max(a[0], b[0]))}–{time_str(min(a[1], b[1]))})"
         for k, (a, a_id) in enumerate(spans)
         for b, b_id in spans[k + 1 :]
         if a_id != b_id and _overlaps(a, b)
@@ -697,6 +709,6 @@ def _inconsistencies(state: _State) -> tuple[str, ...]:
     ]
     missing = sorted(_edges(state.steps) - state.boundaries)
     if missing:
-        listed = ", ".join(_time_str(t) for t in missing)
+        listed = ", ".join(time_str(t) for t in missing)
         flags.append(f"inconsistent: step edges not in boundaries: {listed}")
     return tuple(flags)
