@@ -45,6 +45,7 @@ from paces.model import MetricGrid, decimal_str, seconds_per_unit
 from paces.segmenters import (
     Capability,
     Segmentation,
+    check_step_durations,
     place_on_grid,
     register,
 )
@@ -308,6 +309,8 @@ def _segment_grid_measured(inputs: Mapping[str, Any]) -> Segmentation:
     partial: MetricGrid | None = inputs["grid"]
     unit = partial.unit if partial is not None else DFLT_UNIT
     subdivisions = partial.subdivisions if partial is not None else DFLT_SUBDIVISIONS
+    # bad durations fail here, before the costly measurement, not after it
+    check_step_durations(inputs["steps"], who="grid-measured")
     total_units = sum(row["duration"] for row in inputs["steps"])
     measurement = measure_grid(
         inputs["media"],

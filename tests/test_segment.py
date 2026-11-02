@@ -231,3 +231,109 @@ def test_resolve_treats_a_numeric_zero_origin_as_an_origin():
     doc = to_document(segment(steps=[("a", 1)], grid=GRID), doc_id="d", title="t")
     doc = doc.model_copy(update={"metric": doc.metric.model_copy(update={"origin": 0})})
     assert resolve(doc)["steps"][0]["start_s"] == 0.0
+
+
+def test_duplicate_step_names_get_unique_ids_tree_wide():
+    """Edits, locks and the evidence layer address steps by id (#47)."""
+    steps = [
+        ("Turn", 2),
+        ("Turn", 2),
+        {"name": "Kick", "duration": 4, "children": [("Turn", 2), ("Turn", 2)]},
+    ]
+    seg = segment(steps=steps, grid=GRID)
+    ids = [seg.steps[0].id, seg.steps[1].id, *(c.id for c in seg.steps[2].children)]
+    assert ids == ["turn", "turn-2", "turn-3", "turn-4"]
+    doc = to_document(seg, doc_id="d", title="t")
+    from paces.model import validate_document
+
+    assert not [i for i in validate_document(doc) if "duplicate step id" in i]
+
+
+def test_an_explicit_step_id_is_kept_and_never_reused():
+    seg = segment(
+        steps=[("Turn", 1), {"name": "x", "id": "turn", "duration": 1}], grid=GRID
+    )
+    assert [s.id for s in seg.steps] == ["turn-2", "turn"]
+
+
+def test_a_step_that_is_neither_name_pair_nor_mapping_is_named_in_the_error():
+    with pytest.raises(TypeError, match=r"steps\[1\].*3-item sequence"):
+        segment(steps=[("a", 1), ("b", 1, "extra")], grid=GRID)
+    with pytest.raises(TypeError, match=r"steps\[0\]\.children\[0\]"):
+        segment(steps=[{"name": "p", "duration": 1, "children": [3]}], grid=GRID)
+
+
+def test_bytes_is_not_a_name_duration_pair():
+    with pytest.raises(TypeError, match=r"steps\[0\].*got bytes"):
+        segment(steps=[b"ab"], grid=GRID)
+
+
+def test_duplicate_explicit_ids_name_both_paths():
+    steps = [
+        {"name": "a", "id": "x", "duration": 1},
+        ("b", 1),
+        {"name": "c", "duration": 2, "children": [("d", 1), {"name": "e", "id": "x"}]},
+    ]
+    with pytest.raises(
+        ValueError, match=r"'x' at steps\[0\] and steps\[2\]\.children\[1\]"
+    ):
+        segment(steps=steps, grid=GRID)
+
+
+def test_generated_ids_are_breadth_first_so_children_never_rename_parents():
+    before = segment(steps=[{"name": "Turn", "duration": 2}, ("Turn", 2)], grid=GRID)
+    after = segment(
+        steps=[{"name": "Turn", "duration": 2, "children": [("Turn", 2)]}, ("Turn", 2)],
+        grid=GRID,
+    )
+    assert [s.id for s in before.steps] == [s.id for s in after.steps]
+    assert [s.id for s in after.steps] == ["turn", "turn-2"]
+    assert after.steps[0].children[0].id == "turn-3"
+
+
+def test_partly_undated_steps_are_named_in_a_flag():
+    """The refused state's 'try:' must not read as if no durations were given."""
+    steps = [("a", 2), {"name": "p", "duration": 2, "children": ["u"]}]
+    seg = segment(steps=steps, grid=GRID)
+    assert "steps-undated: ['u']" in seg.flags
+    assert not [f for f in segment(steps=["a"], grid=GRID).flags if "undated" in f]
+
+
+def _forbid_measuring(monkeypatch):
+    import paces.measure
+
+    def _measure_grid(*args, **kwargs):
+        raise AssertionError("measure_grid must not be called")
+
+    monkeypatch.setattr(paces.measure, "measure_grid", _measure_grid)
+
+
+def test_an_undated_child_keeps_placement_from_being_selected(tmp_path, monkeypatch):
+    """'steps.durations' covers children, so no placing segmenter is chosen —
+    and grid-measured is never asked to measure for a list it cannot place."""
+    steps = [{"name": "p", "duration": 2, "children": ["undated"]}]
+    seg = segment(steps=steps, grid=GRID)
+    assert seg.method != "grid-placed"
+    media = tmp_path / "song.wav"
+    media.write_bytes(b"")
+    _forbid_measuring(monkeypatch)
+    with pytest.raises(
+        ValueError,
+        match=r"needs inputs you did not provide: \['steps\.durations'\]"
+        r".*steps without a duration: \['undated'\]",
+    ):
+        segment(str(media), steps=steps, segmenter="grid-measured")
+
+
+@pytest.mark.parametrize("bad", [0, -1, float("nan")])
+def test_grid_measured_rejects_bad_durations_before_measuring(
+    bad, tmp_path, monkeypatch
+):
+    pytest.importorskip("mixing")
+    pytest.importorskip("librosa")
+    media = tmp_path / "song.wav"
+    media.write_bytes(b"")
+    _forbid_measuring(monkeypatch)
+    steps = [("a", 1), {"name": "p", "duration": 2, "children": [("c", bad)]}]
+    with pytest.raises(ValueError, match=r"positive, finite durations: \['c'\]"):
+        segment(str(media), steps=steps, segmenter="grid-measured")

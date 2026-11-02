@@ -456,7 +456,8 @@ def test_js_repeated_names_are_separate_rows():
     """verse/chorus/verse: each occurrence is marked on its own, and replays."""
     names = ["verse", "chorus", "verse"]
     proposal = propose(segment(boundaries=CUTS, steps=names))
-    assert [s["id"] for s in proposal["steps"]] == names  # ids repeat
+    # ids are unique now (#47), but rows stay the key: names still repeat
+    assert [s["id"] for s in proposal["steps"]] == ["verse", "chorus", "verse-2"]
     answers = _answers_after(proposal, [{"type": "absent", "index": 2, "on": True}])
     assert [(c["verb"], c["anchorT"]) for c in answers["corrections"]] == [
         ("absent", "25")
