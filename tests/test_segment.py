@@ -184,8 +184,12 @@ def test_place_on_grid_is_the_public_placement():
 @pytest.mark.parametrize(
     "steps, grid, match",
     [
-        (ROUTINE_STEPS, {"unit": "eight", "subdivisions": 8}, "tempo and an origin"),
-        (ROUTINE_STEPS, {**GRID, "origin": None}, "tempo and an origin"),
+        (ROUTINE_STEPS, {"unit": "eight", "subdivisions": 8}, "tempoBpm and origin"),
+        (ROUTINE_STEPS, {**GRID, "origin": None}, "with origin$"),
+        ([], GRID, "at least one step"),
+        ([("back", -1)], GRID, r"positive, finite durations: \['back'\]"),
+        ([("nan", float("nan"))], GRID, "positive, finite"),
+        ([("zero", 0)], GRID, "positive, finite"),
         (["no duration"], GRID, "duration for every step"),
         ([{"name": "p", "duration": 2, "children": ["c"]}], GRID, r"\['c'\]"),
     ],

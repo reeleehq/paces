@@ -506,8 +506,8 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
     ``span = origin + cumulative_units * seconds_per_unit``. Children subdivide
     their parent's span the same way. ``steps`` takes any form
     :func:`segment` takes (``(name, duration)`` pairs, mappings with
-    ``children``); every step needs a duration, and the grid a tempo and an
-    origin — a missing one is a ``ValueError`` naming it.
+    ``children``); every step needs a positive duration, and the grid a tempo
+    and an origin — anything missing or invalid is a ``ValueError`` naming it.
 
     >>> seg = place_on_grid([("a", 1), ("b", 2)],
     ...                     {"unit": "eight", "subdivisions": 8,
@@ -515,16 +515,36 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
     >>> [s.spans for s in seg.steps], seg.boundaries
     ([((1.0, 5.0),), ((5.0, 13.0),)], (1.0, 5.0, 13.0))
     """
+
+    def _all_rows(rows: list[dict]):
+        for row in rows:
+            yield row
+            yield from _all_rows(row["children"])
+
     grid = _normalize_grid(grid)
     rows = _normalize_steps(steps)
-    spu = seconds_per_unit(grid) if grid is not None else None
-    if spu is None or grid.origin is None:
-        raise ValueError(
-            f"place_on_grid needs a grid with a tempo and an origin, got {grid!r}"
-        )
+    if grid is None:
+        raise ValueError("place_on_grid needs a grid; got None")
+    missing = [
+        name
+        for name, value in (("tempoBpm", grid.tempo_bpm), ("origin", grid.origin))
+        if value is None
+    ]
+    if missing:
+        raise ValueError(f"place_on_grid needs a grid with {' and '.join(missing)}")
+    if not rows:
+        raise ValueError("place_on_grid needs at least one step")
     undated = [row["id"] for row in _all_rows(rows) if row["duration"] is None]
     if undated:
         raise ValueError(f"place_on_grid needs a duration for every step: {undated}")
+    bad = [
+        row["id"]
+        for row in _all_rows(rows)
+        if not (math.isfinite(row["duration"]) and row["duration"] > 0)
+    ]
+    if bad:
+        raise ValueError(f"place_on_grid needs positive, finite durations: {bad}")
+    spu = seconds_per_unit(grid)
     origin = float(grid.origin)
 
     def _place(rows: list[dict], at_units: float) -> list[SegStep]:
@@ -555,12 +575,6 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
         grid=grid,
         confidence=DFLT_GRID_CONFIDENCE,
     )
-
-
-def _all_rows(rows: list[dict]):
-    for row in rows:
-        yield row
-        yield from _all_rows(row["children"])
 
 
 def _segment_grid_placed(inputs: Mapping[str, Any]) -> Segmentation:
