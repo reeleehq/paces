@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="tomato" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.cues" href="paces.cues.html" /><link rel="prev" title="API reference" href="../api.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.corrections" href="paces.corrections.html" /><link rel="prev" title="API reference" href="../api.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d88b86f9" />
@@ -66,6 +66,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">paces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="paces.corrections.html">paces.corrections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.edits.html">paces.edits</a></li>
@@ -913,13 +914,18 @@ out: full frame, no policy — no crop is genuinely uncropped.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.segment">
-<span class="sig-prename descclassname"><span class="pre">paces.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segment" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segment" title="Link to this definition">#</a></dt>
 <dd><p>Cut <em>media</em> into named steps, using whatever else is present.</p>
 <p>Returns a <a class="reference internal" href="#paces.Segmentation" title="paces.Segmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Segmentation</span></code></a> ALWAYS. A segmenter that cannot name the
 steps returns <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> and <code class="docutils literal notranslate"><span class="pre">steps=()</span></code>; when nothing applies the
 result is the refused state (<code class="docutils literal notranslate"><span class="pre">flags=('no-signal',</span> <span class="pre">'try:</span> <span class="pre">...')</span></code>), not an
 exception.</p>
 <p>The seam: <code class="docutils literal notranslate"><span class="pre">segmenter=None</span></code> selects from what is present; a name pins it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">corrections</span></code> is a human’s correction log (<a class="reference internal" href="paces.corrections.html#module-paces.corrections" title="paces.corrections"><code class="xref py py-mod docutils literal notranslate"><span class="pre">paces.corrections</span></code></a>):
+constraints that survive re-runs. A segmenter that lists
+<code class="docutils literal notranslate"><span class="pre">&quot;corrections&quot;</span></code> in <code class="docutils literal notranslate"><span class="pre">reads</span></code> receives the log and honours it itself;
+for any other, the log is replayed over its result, and every correction
+that could not be honoured is flagged, never dropped.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">seg</span> <span class="o">=</span> <span class="n">segment</span><span class="p">(</span><span class="n">boundaries</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">steps</span><span class="o">=</span><span class="p">[</span><span class="s1">'intro'</span><span class="p">,</span> <span class="s1">'verse'</span><span class="p">])</span>
 </span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">]</span>
 </span><span data-line="3"><span class="go">[('intro', ((0.0, 10.0),)), ('verse', ((10.0, 20.0),))]</span>
@@ -998,40 +1004,43 @@ leaked onto the no-floats wire through an <code class="docutils literal notransl
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.cues.html#module-paces.cues" title="paces.cues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cues</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.corrections.html#module-paces.corrections" title="paces.corrections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">corrections</span></code></a></p></td>
+<td><p>Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.cues.html#module-paces.cues" title="paces.cues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cues</span></code></a></p></td>
 <td><p>Lexical cue segmenters: subtitles and transcripts → proposed named spans.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.derivation.html#module-paces.derivation" title="paces.derivation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">derivation</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.derivation.html#module-paces.derivation" title="paces.derivation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">derivation</span></code></a></p></td>
 <td><p>Media derivation: fill <a href="#id1"><span class="problematic" id="id2">``</span></a>ArtifactRef``s with real clips, gifs and posters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.edits.html#module-paces.edits" title="paces.edits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edits</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.edits.html#module-paces.edits" title="paces.edits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edits</span></code></a></p></td>
 <td><p>Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.excerpts.html#module-paces.excerpts" title="paces.excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">excerpts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.excerpts.html#module-paces.excerpts" title="paces.excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">excerpts</span></code></a></p></td>
 <td><p>Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.measure.html#module-paces.measure" title="paces.measure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.measure.html#module-paces.measure" title="paces.measure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure</span></code></a></p></td>
 <td><p>Measure a <a class="reference internal" href="paces.model.html#paces.model.MetricGrid" title="paces.model.MetricGrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricGrid</span></code></a> from the media itself.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.model.html#module-paces.model" title="paces.model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.model.html#module-paces.model" title="paces.model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model</span></code></a></p></td>
 <td><p>The paces intermediate representation: the <code class="docutils literal notranslate"><span class="pre">StepDocument</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.pose.html#module-paces.pose" title="paces.pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.pose.html#module-paces.pose" title="paces.pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose</span></code></a></p></td>
 <td><p>The pointable <code class="docutils literal notranslate"><span class="pre">subject_locator</span></code>: person boxes from rtmlib pose keypoints.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.projection.html#module-paces.projection" title="paces.projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projection</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.projection.html#module-paces.projection" title="paces.projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projection</span></code></a></p></td>
 <td><p>The projection from analysis result to document: <code class="docutils literal notranslate"><span class="pre">to_document</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.render.html#module-paces.render" title="paces.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.render.html#module-paces.render" title="paces.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>Render a <a class="reference internal" href="paces.model.html#paces.model.StepDocument" title="paces.model.StepDocument"><code class="xref py py-class docutils literal notranslate"><span class="pre">StepDocument</span></code></a> into learning material.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.segmenters.html#module-paces.segmenters" title="paces.segmenters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmenters</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.segmenters.html#module-paces.segmenters" title="paces.segmenters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmenters</span></code></a></p></td>
 <td><p>Segmentation is a seam, not a stage (ADR-0003).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.timed_text.html#module-paces.timed_text" title="paces.timed_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timed_text</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.timed_text.html#module-paces.timed_text" title="paces.timed_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timed_text</span></code></a></p></td>
 <td><p>Timed-text normalisation: any subtitle/transcript shape → <code class="docutils literal notranslate"><span class="pre">{start,</span> <span class="pre">end,</span> <span class="pre">text}</span></code> rows.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.tools.html#module-paces.tools" title="paces.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.tools.html#module-paces.tools" title="paces.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
 <td><p>Agent-callable tool surface over <code class="docutils literal notranslate"><span class="pre">paces</span></code> — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic.</p></td>
 </tr>
 </tbody>
@@ -1051,10 +1060,10 @@ leaked onto the no-floats wire through an <code class="docutils literal notransl
         <span>Previous</span><div class="title">API reference</div></div>
     </a>
   </div><div class="navigation-next">
-    <a href="paces.cues.html">
+    <a href="paces.corrections.html">
       <div class="page-info">
         <span>Next</span>
-        <div class="title">paces.cues</div>
+        <div class="title">paces.corrections</div>
       </div>
       <i class="i-lucide chevron-right"></i>
     </a>
@@ -1079,7 +1088,7 @@ leaked onto the no-floats wire through an <code class="docutils literal notransl
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=f0357c94"></script>
+      <script src="../_static/documentation_options.js?v=c7cdf6fe"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

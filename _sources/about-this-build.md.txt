@@ -5,7 +5,7 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-11-02 15:56 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/786281bd00886c2038c350f61b17142c5a298e35"><code>786281b</code></a> on branch <code>main</code>, for **paces 0.0.15** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 16:29 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/68a5e7dff781c3653253d58c141fdd1bc9cb346f"><code>68a5e7d</code></a> on branch <code>main</code>, for **paces 0.0.16** (from <code>pyproject.toml</code>).
 
 :::{note}
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -15,9 +15,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/reeleehq/paces/commit/786281bd00886c2038c350f61b17142c5a298e35"><code>786281bd00886c2038c350f61b17142c5a298e35</code></a> |
+| Commit | <a href="https://github.com/reeleehq/paces/commit/68a5e7dff781c3653253d58c141fdd1bc9cb346f"><code>68a5e7dff781c3653253d58c141fdd1bc9cb346f</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.0.15</code> |
+| Tags at this commit | <code>0.0.16</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/reeleehq/paces</code> |
 
@@ -26,9 +26,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>reeleehq/paces</code> |
-| Run | <a href="https://github.com/reeleehq/paces/actions/runs/41475880152">41475880152</a> |
+| Run | <a href="https://github.com/reeleehq/paces/actions/runs/41481081928">41481081928</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>24e0cca27dab5c2b2c07ac366425f7313861269f</code> (in the history of the built commit) |
+| Event commit | <code>f4882f63551f935c13c20d0d7b92e75c0cb5eb0c</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -53,13 +53,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.15/">0.0.15</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.16/">0.0.16</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 786281bd00886c2038c350f61b17142c5a298e35
+git checkout 68a5e7dff781c3653253d58c141fdd1bc9cb346f
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

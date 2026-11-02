@@ -60,6 +60,7 @@
    :recursive:
 
    bodies
+   corrections
    cues
    derivation
    edits

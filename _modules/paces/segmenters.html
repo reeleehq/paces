@@ -63,6 +63,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../_autosummary/paces.html">paces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.corrections.html">paces.corrections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.derivation.html">paces.derivation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.edits.html">paces.edits</a></li>
@@ -463,399 +464,438 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="318">    <span class="n">chapters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="319">    <span class="n">subtitles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="320">    <span class="n">transcript</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="321"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-</span><span data-line="322"><span class="w">    </span><span class="sd">"""The free half of the fact vocabulary (docs/alignment/07 §9.3): what is</span>
-</span><span data-line="323"><span class="sd">    present among the inputs. Probed (intrinsic) facts arrive with the first</span>
-</span><span data-line="324"><span class="sd">    intrinsic segmenter."""</span>
-</span><span data-line="325">    <span class="n">facts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-</span><span data-line="326">    <span class="k">if</span> <span class="n">media</span><span class="p">:</span>
-</span><span data-line="327">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"media"</span><span class="p">)</span>
-</span><span data-line="328">        <span class="k">try</span><span class="p">:</span>
-</span><span data-line="329">            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">media</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>  <span class="c1"># a directory is not measurable media</span>
-</span><span data-line="330">                <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"media.local"</span><span class="p">)</span>  <span class="c1"># intrinsic measurement needs bytes</span>
-</span><span data-line="331">        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-</span><span data-line="332">            <span class="k">pass</span>
-</span><span data-line="333">    <span class="k">if</span> <span class="n">steps</span><span class="p">:</span>
-</span><span data-line="334">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps"</span><span class="p">)</span>
-</span><span data-line="335">        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
-</span><span data-line="336">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.durations"</span><span class="p">)</span>
-</span><span data-line="337">        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"spans"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
-</span><span data-line="338">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.spans"</span><span class="p">)</span>
-</span><span data-line="339">    <span class="k">if</span> <span class="n">boundaries</span><span class="p">:</span>
-</span><span data-line="340">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"boundaries"</span><span class="p">)</span>
-</span><span data-line="341">    <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="342">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
-</span><span data-line="343">    <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="344">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"k"</span><span class="p">)</span>
-</span><span data-line="345">    <span class="k">if</span> <span class="n">chapters</span><span class="p">:</span>
-</span><span data-line="346">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"meta.chapters"</span><span class="p">)</span>
-</span><span data-line="347">    <span class="k">if</span> <span class="n">subtitles</span><span class="p">:</span>
-</span><span data-line="348">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"meta.subtitles"</span><span class="p">)</span>
-</span><span data-line="349">    <span class="k">if</span> <span class="n">transcript</span><span class="p">:</span>
-</span><span data-line="350">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"transcript"</span><span class="p">)</span>
-</span><span data-line="351">    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span>
-</span><span data-line="352">
-</span><span data-line="353">
-</span><span data-line="354"><span class="c1"># ── the facade ──────────────────────────────────────────────────────────────</span>
+</span><span data-line="321">    <span class="n">corrections</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="322"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span data-line="323"><span class="w">    </span><span class="sd">"""The free half of the fact vocabulary (docs/alignment/07 §9.3): what is</span>
+</span><span data-line="324"><span class="sd">    present among the inputs. Probed (intrinsic) facts arrive with the first</span>
+</span><span data-line="325"><span class="sd">    intrinsic segmenter."""</span>
+</span><span data-line="326">    <span class="n">facts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+</span><span data-line="327">    <span class="k">if</span> <span class="n">media</span><span class="p">:</span>
+</span><span data-line="328">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"media"</span><span class="p">)</span>
+</span><span data-line="329">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="330">            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">media</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>  <span class="c1"># a directory is not measurable media</span>
+</span><span data-line="331">                <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"media.local"</span><span class="p">)</span>  <span class="c1"># intrinsic measurement needs bytes</span>
+</span><span data-line="332">        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+</span><span data-line="333">            <span class="k">pass</span>
+</span><span data-line="334">    <span class="k">if</span> <span class="n">steps</span><span class="p">:</span>
+</span><span data-line="335">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps"</span><span class="p">)</span>
+</span><span data-line="336">        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
+</span><span data-line="337">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.durations"</span><span class="p">)</span>
+</span><span data-line="338">        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"spans"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
+</span><span data-line="339">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.spans"</span><span class="p">)</span>
+</span><span data-line="340">    <span class="k">if</span> <span class="n">boundaries</span><span class="p">:</span>
+</span><span data-line="341">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"boundaries"</span><span class="p">)</span>
+</span><span data-line="342">    <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="343">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
+</span><span data-line="344">    <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="345">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"k"</span><span class="p">)</span>
+</span><span data-line="346">    <span class="k">if</span> <span class="n">chapters</span><span class="p">:</span>
+</span><span data-line="347">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"meta.chapters"</span><span class="p">)</span>
+</span><span data-line="348">    <span class="k">if</span> <span class="n">subtitles</span><span class="p">:</span>
+</span><span data-line="349">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"meta.subtitles"</span><span class="p">)</span>
+</span><span data-line="350">    <span class="k">if</span> <span class="n">transcript</span><span class="p">:</span>
+</span><span data-line="351">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"transcript"</span><span class="p">)</span>
+</span><span data-line="352">    <span class="k">if</span> <span class="n">corrections</span><span class="p">:</span>
+</span><span data-line="353">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"corrections"</span><span class="p">)</span>
+</span><span data-line="354">    <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span>
 </span><span data-line="355">
 </span><span data-line="356">
+</span><span data-line="357"><span class="k">def</span><span class="w"> </span><span class="nf">_corrections_api</span><span class="p">():</span>
+</span><span data-line="358"><span class="w">    </span><span class="sd">""":mod:`paces.corrections`, imported lazily: it imports this module."""</span>
+</span><span data-line="359">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces</span><span class="w"> </span><span class="kn">import</span> <span class="n">corrections</span>
+</span><span data-line="360">
+</span><span data-line="361">    <span class="k">return</span> <span class="n">corrections</span>
+</span><span data-line="362">
+</span><span data-line="363">
+</span><span data-line="364"><span class="k">def</span><span class="w"> </span><span class="nf">_apply_corrections</span><span class="p">(</span>
+</span><span data-line="365">    <span class="n">result</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">capability</span><span class="p">:</span> <span class="n">Capability</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span data-line="366"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="367"><span class="w">    </span><span class="sd">"""Replay ``log`` over ``result`` unless ``capability`` honours it itself</span>
+</span><span data-line="368"><span class="sd">    (lists ``"corrections"`` in ``reads``). ``capability=None`` is the refused</span>
+</span><span data-line="369"><span class="sd">    state: nothing ran, so every correction is replayed — and flagged</span>
+</span><span data-line="370"><span class="sd">    unmatched — rather than dropped."""</span>
+</span><span data-line="371">    <span class="k">if</span> <span class="ow">not</span> <span class="n">log</span> <span class="ow">or</span> <span class="p">(</span><span class="n">capability</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"corrections"</span> <span class="ow">in</span> <span class="n">capability</span><span class="o">.</span><span class="n">reads</span><span class="p">):</span>
+</span><span data-line="372">        <span class="k">return</span> <span class="n">result</span>
+</span><span data-line="373">    <span class="k">return</span> <span class="n">_corrections_api</span><span class="p">()</span><span class="o">.</span><span class="n">replay</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+</span><span data-line="374">
+</span><span data-line="375">
+</span><span data-line="376"><span class="c1"># ── the facade ──────────────────────────────────────────────────────────────</span>
+</span><span data-line="377">
+</span><span data-line="378">
 <div class="viewcode-block" id="segment">
 <a class="viewcode-back" href="../../_autosummary/paces.segmenters.html#paces.segment">[docs]</a>
-</span><span data-line="357"><span class="k">def</span><span class="w"> </span><span class="nf">segment</span><span class="p">(</span>
-</span><span data-line="358">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="359">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="360">    <span class="n">segmenter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Capability</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="361">    <span class="n">steps</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="362">    <span class="n">boundaries</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="363">    <span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="364">    <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="365">    <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="366">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="367">    <span class="n">catalog</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Capability</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="368"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="369"><span class="w">    </span><span class="sd">"""Cut *media* into named steps, using whatever else is present.</span>
-</span><span data-line="370">
-</span><span data-line="371"><span class="sd">    Returns a :class:`Segmentation` ALWAYS. A segmenter that cannot name the</span>
-</span><span data-line="372"><span class="sd">    steps returns ``boundaries`` and ``steps=()``; when nothing applies the</span>
-</span><span data-line="373"><span class="sd">    result is the refused state (``flags=('no-signal', 'try: ...')``), not an</span>
-</span><span data-line="374"><span class="sd">    exception.</span>
-</span><span data-line="375">
-</span><span data-line="376"><span class="sd">    The seam: ``segmenter=None`` selects from what is present; a name pins it.</span>
-</span><span data-line="377">
-</span><span data-line="378"><span class="sd">    &gt;&gt;&gt; seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])</span>
-</span><span data-line="379"><span class="sd">    &gt;&gt;&gt; [(s.name, s.spans) for s in seg.steps]</span>
-</span><span data-line="380"><span class="sd">    [('intro', ((0.0, 10.0),)), ('verse', ((10.0, 20.0),))]</span>
-</span><span data-line="381"><span class="sd">    """</span>
-</span><span data-line="382">    <span class="n">started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-</span><span data-line="383">    <span class="n">catalog</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">catalog</span><span class="p">)</span> <span class="k">if</span> <span class="n">catalog</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_CAPABILITIES</span><span class="p">)</span>
-</span><span data-line="384">    <span class="n">step_rows</span> <span class="o">=</span> <span class="n">_normalize_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="385">    <span class="n">grid</span> <span class="o">=</span> <span class="n">_normalize_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
-</span><span data-line="386">    <span class="n">chapters</span> <span class="o">=</span> <span class="n">_normalize_chapters</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
-</span><span data-line="387">    <span class="n">subtitles</span><span class="p">,</span> <span class="n">subtitles_problem</span> <span class="o">=</span> <span class="n">_subtitle_cues</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
-</span><span data-line="388">    <span class="n">problem_flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">subtitles_problem</span><span class="p">,)</span> <span class="k">if</span> <span class="n">subtitles_problem</span> <span class="k">else</span> <span class="p">()</span>
-</span><span data-line="389">    <span class="n">transcript_cues</span> <span class="o">=</span> <span class="n">normalize_timed_text</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span>
-</span><span data-line="390">    <span class="n">facts</span> <span class="o">=</span> <span class="n">_facts</span><span class="p">(</span>
-</span><span data-line="391">        <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span>
-</span><span data-line="392">        <span class="n">steps</span><span class="o">=</span><span class="n">step_rows</span><span class="p">,</span>
-</span><span data-line="393">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="394">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
-</span><span data-line="395">        <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
-</span><span data-line="396">        <span class="n">chapters</span><span class="o">=</span><span class="n">chapters</span><span class="p">,</span>
-</span><span data-line="397">        <span class="n">subtitles</span><span class="o">=</span><span class="n">subtitles</span><span class="p">,</span>
-</span><span data-line="398">        <span class="n">transcript</span><span class="o">=</span><span class="n">transcript_cues</span><span class="p">,</span>
-</span><span data-line="399">    <span class="p">)</span>
-</span><span data-line="400">    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="401">        <span class="s2">"media"</span><span class="p">:</span> <span class="n">media</span><span class="p">,</span>
-</span><span data-line="402">        <span class="s2">"steps"</span><span class="p">:</span> <span class="n">step_rows</span><span class="p">,</span>
-</span><span data-line="403">        <span class="s2">"boundaries"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span><span class="p">)</span> <span class="k">if</span> <span class="n">boundaries</span> <span class="k">else</span> <span class="p">(),</span>
-</span><span data-line="404">        <span class="s2">"grid"</span><span class="p">:</span> <span class="n">grid</span><span class="p">,</span>
-</span><span data-line="405">        <span class="s2">"chapters"</span><span class="p">:</span> <span class="n">chapters</span><span class="p">,</span>
-</span><span data-line="406">        <span class="s2">"subtitles"</span><span class="p">:</span> <span class="n">subtitles</span><span class="p">,</span>
-</span><span data-line="407">        <span class="s2">"transcript"</span><span class="p">:</span> <span class="n">transcript_cues</span><span class="p">,</span>
-</span><span data-line="408">        <span class="s2">"k"</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
-</span><span data-line="409">    <span class="p">}</span>
-</span><span data-line="410">
-</span><span data-line="411">    <span class="k">if</span> <span class="n">segmenter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="412">        <span class="n">capability</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="413">            <span class="n">segmenter</span>
-</span><span data-line="414">            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">segmenter</span><span class="p">,</span> <span class="n">Capability</span><span class="p">)</span>
-</span><span data-line="415">            <span class="k">else</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">segmenter</span><span class="p">))</span>
-</span><span data-line="416">        <span class="p">)</span>
-</span><span data-line="417">        <span class="k">if</span> <span class="n">capability</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="418">            <span class="n">known</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">catalog</span><span class="p">))</span> <span class="ow">or</span> <span class="s2">"(none registered)"</span>
-</span><span data-line="419">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown segmenter </span><span class="si">{</span><span class="n">segmenter</span><span class="si">!r}</span><span class="s2">; registered: </span><span class="si">{</span><span class="n">known</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="420">        <span class="n">missing_facts</span> <span class="o">=</span> <span class="n">capability</span><span class="o">.</span><span class="n">needs</span> <span class="o">-</span> <span class="n">facts</span>
-</span><span data-line="421">        <span class="k">if</span> <span class="n">missing_facts</span><span class="p">:</span>
-</span><span data-line="422">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="423">                <span class="sa">f</span><span class="s2">"segmenter </span><span class="si">{</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> needs inputs you did not "</span>
-</span><span data-line="424">                <span class="sa">f</span><span class="s2">"provide: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing_facts</span><span class="p">)</span><span class="si">}</span><span class="s2"> (facts present: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
-</span><span data-line="425">            <span class="p">)</span>
-</span><span data-line="426">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="427">        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="428">            <span class="n">cap</span>
-</span><span data-line="429">            <span class="k">for</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">catalog</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-</span><span data-line="430">            <span class="k">if</span> <span class="n">cap</span><span class="o">.</span><span class="n">gives</span> <span class="o">==</span> <span class="s2">"segmentation"</span>
-</span><span data-line="431">            <span class="ow">and</span> <span class="n">cap</span><span class="o">.</span><span class="n">needs</span> <span class="o">&lt;=</span> <span class="n">facts</span>
-</span><span data-line="432">            <span class="ow">and</span> <span class="ow">not</span> <span class="n">_preflight</span><span class="p">(</span><span class="n">cap</span><span class="p">)</span>
-</span><span data-line="433">        <span class="p">]</span>
-</span><span data-line="434">        <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
-</span><span data-line="435">            <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="436">                <span class="n">confidence</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-</span><span data-line="437">                <span class="n">flags</span><span class="o">=</span><span class="n">problem_flags</span>
-</span><span data-line="438">                <span class="o">+</span> <span class="p">(</span>
-</span><span data-line="439">                    <span class="s2">"no-signal"</span><span class="p">,</span>
-</span><span data-line="440">                    <span class="s2">"try: steps=[(name, duration), ...] with grid=, "</span>
-</span><span data-line="441">                    <span class="s2">"boundaries=[t0, t1, ...], metadata= with chapters or subtitles, "</span>
-</span><span data-line="442">                    <span class="s2">"or transcript="</span><span class="p">,</span>
-</span><span data-line="443">                <span class="p">),</span>
-</span><span data-line="444">                <span class="n">elapsed_s</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">,</span>
-</span><span data-line="445">            <span class="p">)</span>
-</span><span data-line="446">
-</span><span data-line="447">        <span class="k">def</span><span class="w"> </span><span class="nf">_score</span><span class="p">(</span><span class="n">cap</span><span class="p">:</span> <span class="n">Capability</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="448">            <span class="k">return</span> <span class="n">cap</span><span class="o">.</span><span class="n">base</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
-</span><span data-line="449">                <span class="n">bonus</span> <span class="k">for</span> <span class="n">fact</span><span class="p">,</span> <span class="n">bonus</span> <span class="ow">in</span> <span class="n">cap</span><span class="o">.</span><span class="n">boosts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">facts</span>
-</span><span data-line="450">            <span class="p">)</span>
-</span><span data-line="451">
-</span><span data-line="452">        <span class="n">capability</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cap</span><span class="p">:</span> <span class="p">(</span><span class="n">_score</span><span class="p">(</span><span class="n">cap</span><span class="p">),</span> <span class="n">cap</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-</span><span data-line="453">
-</span><span data-line="454">    <span class="n">missing_modules</span> <span class="o">=</span> <span class="n">_preflight</span><span class="p">(</span><span class="n">capability</span><span class="p">)</span>
-</span><span data-line="455">    <span class="k">if</span> <span class="n">missing_modules</span><span class="p">:</span>
-</span><span data-line="456">        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-</span><span data-line="457">            <span class="sa">f</span><span class="s2">"segmenter </span><span class="si">{</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> requires "</span>
-</span><span data-line="458">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_modules</span><span class="p">)</span><span class="si">}</span><span class="s2"> — pip install them first"</span>
-</span><span data-line="459">        <span class="p">)</span>
-</span><span data-line="460">    <span class="n">result</span><span class="p">:</span> <span class="n">Segmentation</span> <span class="o">=</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">capability</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span>
-</span><span data-line="461">
-</span><span data-line="462">    <span class="c1"># Honesty: an explicitly supplied input the chosen segmenter neither</span>
-</span><span data-line="463">    <span class="c1"># needs nor reads was silently discarded — say so instead of implying it</span>
-</span><span data-line="464">    <span class="c1"># was consumed.</span>
-</span><span data-line="465">    <span class="n">ignorable</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="466">        <span class="s2">"steps"</span><span class="p">:</span> <span class="s2">"steps"</span><span class="p">,</span>
-</span><span data-line="467">        <span class="s2">"boundaries"</span><span class="p">:</span> <span class="s2">"boundaries"</span><span class="p">,</span>
-</span><span data-line="468">        <span class="s2">"meta.chapters"</span><span class="p">:</span> <span class="s2">"metadata (chapters)"</span><span class="p">,</span>
-</span><span data-line="469">        <span class="s2">"meta.subtitles"</span><span class="p">:</span> <span class="s2">"metadata (subtitles)"</span><span class="p">,</span>
-</span><span data-line="470">        <span class="s2">"transcript"</span><span class="p">:</span> <span class="s2">"transcript"</span><span class="p">,</span>
-</span><span data-line="471">        <span class="s2">"k"</span><span class="p">:</span> <span class="s2">"k"</span><span class="p">,</span>
-</span><span data-line="472">    <span class="p">}</span>
-</span><span data-line="473">    <span class="n">used</span> <span class="o">=</span> <span class="n">capability</span><span class="o">.</span><span class="n">needs</span> <span class="o">|</span> <span class="n">capability</span><span class="o">.</span><span class="n">reads</span>
-</span><span data-line="474">    <span class="n">ignored</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-</span><span data-line="475">        <span class="n">label</span> <span class="k">for</span> <span class="n">fact</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">ignorable</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">facts</span> <span class="ow">and</span> <span class="n">fact</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used</span>
-</span><span data-line="476">    <span class="p">)</span>
-</span><span data-line="477">    <span class="n">extra_flags</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"ignored: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,)</span> <span class="k">if</span> <span class="n">ignored</span> <span class="k">else</span> <span class="p">()</span>
-</span><span data-line="478">    <span class="n">extra_flags</span> <span class="o">+=</span> <span class="n">problem_flags</span>
-</span><span data-line="479">
-</span><span data-line="480">    <span class="c1"># A grid describes the media's own clock; any segmentation over that</span>
-</span><span data-line="481">    <span class="c1"># media may carry it (and its unit) even when placement didn't use it —</span>
-</span><span data-line="482">    <span class="c1"># this is what lets the projection express durations in domain units.</span>
-</span><span data-line="483">    <span class="n">out_grid</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">grid</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">grid</span>
-</span><span data-line="484">    <span class="n">out_unit</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">unit</span>
-</span><span data-line="485">    <span class="k">if</span> <span class="p">(</span>
-</span><span data-line="486">        <span class="n">out_unit</span> <span class="o">==</span> <span class="s2">"seconds"</span>
-</span><span data-line="487">        <span class="ow">and</span> <span class="n">out_grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-</span><span data-line="488">        <span class="ow">and</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">out_grid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-</span><span data-line="489">    <span class="p">):</span>
-</span><span data-line="490">        <span class="n">out_unit</span> <span class="o">=</span> <span class="n">out_grid</span><span class="o">.</span><span class="n">unit</span>
-</span><span data-line="491">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="492">        <span class="n">steps</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="493">        <span class="n">boundaries</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="494">        <span class="n">unit</span><span class="o">=</span><span class="n">out_unit</span><span class="p">,</span>
-</span><span data-line="495">        <span class="n">grid</span><span class="o">=</span><span class="n">out_grid</span><span class="p">,</span>
-</span><span data-line="496">        <span class="n">confidence</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span>
-</span><span data-line="497">        <span class="n">method</span><span class="o">=</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span data-line="498">        <span class="n">flags</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">flags</span> <span class="o">+</span> <span class="n">extra_flags</span><span class="p">,</span>
-</span><span data-line="499">        <span class="n">elapsed_s</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">,</span>
-</span><span data-line="500">        <span class="n">spent_usd</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">spent_usd</span><span class="p">,</span>
-</span><span data-line="501">    <span class="p">)</span></div>
+</span><span data-line="379"><span class="k">def</span><span class="w"> </span><span class="nf">segment</span><span class="p">(</span>
+</span><span data-line="380">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="381">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="382">    <span class="n">segmenter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Capability</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="383">    <span class="n">steps</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="384">    <span class="n">boundaries</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="385">    <span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="386">    <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="387">    <span class="n">transcript</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="388">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="389">    <span class="n">corrections</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="390">    <span class="n">catalog</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Capability</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="391"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="392"><span class="w">    </span><span class="sd">"""Cut *media* into named steps, using whatever else is present.</span>
+</span><span data-line="393">
+</span><span data-line="394"><span class="sd">    Returns a :class:`Segmentation` ALWAYS. A segmenter that cannot name the</span>
+</span><span data-line="395"><span class="sd">    steps returns ``boundaries`` and ``steps=()``; when nothing applies the</span>
+</span><span data-line="396"><span class="sd">    result is the refused state (``flags=('no-signal', 'try: ...')``), not an</span>
+</span><span data-line="397"><span class="sd">    exception.</span>
+</span><span data-line="398">
+</span><span data-line="399"><span class="sd">    The seam: ``segmenter=None`` selects from what is present; a name pins it.</span>
+</span><span data-line="400">
+</span><span data-line="401"><span class="sd">    ``corrections`` is a human's correction log (:mod:`paces.corrections`):</span>
+</span><span data-line="402"><span class="sd">    constraints that survive re-runs. A segmenter that lists</span>
+</span><span data-line="403"><span class="sd">    ``"corrections"`` in ``reads`` receives the log and honours it itself;</span>
+</span><span data-line="404"><span class="sd">    for any other, the log is replayed over its result, and every correction</span>
+</span><span data-line="405"><span class="sd">    that could not be honoured is flagged, never dropped.</span>
+</span><span data-line="406">
+</span><span data-line="407"><span class="sd">    &gt;&gt;&gt; seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])</span>
+</span><span data-line="408"><span class="sd">    &gt;&gt;&gt; [(s.name, s.spans) for s in seg.steps]</span>
+</span><span data-line="409"><span class="sd">    [('intro', ((0.0, 10.0),)), ('verse', ((10.0, 20.0),))]</span>
+</span><span data-line="410"><span class="sd">    """</span>
+</span><span data-line="411">    <span class="n">started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+</span><span data-line="412">    <span class="n">catalog</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">catalog</span><span class="p">)</span> <span class="k">if</span> <span class="n">catalog</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_CAPABILITIES</span><span class="p">)</span>
+</span><span data-line="413">    <span class="n">step_rows</span> <span class="o">=</span> <span class="n">_normalize_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="414">    <span class="n">grid</span> <span class="o">=</span> <span class="n">_normalize_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+</span><span data-line="415">    <span class="n">chapters</span> <span class="o">=</span> <span class="n">_normalize_chapters</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+</span><span data-line="416">    <span class="n">subtitles</span><span class="p">,</span> <span class="n">subtitles_problem</span> <span class="o">=</span> <span class="n">_subtitle_cues</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+</span><span data-line="417">    <span class="n">problem_flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">subtitles_problem</span><span class="p">,)</span> <span class="k">if</span> <span class="n">subtitles_problem</span> <span class="k">else</span> <span class="p">()</span>
+</span><span data-line="418">    <span class="n">transcript_cues</span> <span class="o">=</span> <span class="n">normalize_timed_text</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span>
+</span><span data-line="419">    <span class="c1"># fail fast: a malformed log raises before any segmenter runs</span>
+</span><span data-line="420">    <span class="n">correction_log</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="421">        <span class="n">_corrections_api</span><span class="p">()</span><span class="o">.</span><span class="n">normalize_corrections</span><span class="p">(</span><span class="n">corrections</span><span class="p">)</span>
+</span><span data-line="422">        <span class="k">if</span> <span class="n">corrections</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="423">        <span class="k">else</span> <span class="p">()</span>
+</span><span data-line="424">    <span class="p">)</span>
+</span><span data-line="425">    <span class="n">facts</span> <span class="o">=</span> <span class="n">_facts</span><span class="p">(</span>
+</span><span data-line="426">        <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span>
+</span><span data-line="427">        <span class="n">steps</span><span class="o">=</span><span class="n">step_rows</span><span class="p">,</span>
+</span><span data-line="428">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="429">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+</span><span data-line="430">        <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+</span><span data-line="431">        <span class="n">chapters</span><span class="o">=</span><span class="n">chapters</span><span class="p">,</span>
+</span><span data-line="432">        <span class="n">subtitles</span><span class="o">=</span><span class="n">subtitles</span><span class="p">,</span>
+</span><span data-line="433">        <span class="n">transcript</span><span class="o">=</span><span class="n">transcript_cues</span><span class="p">,</span>
+</span><span data-line="434">        <span class="n">corrections</span><span class="o">=</span><span class="n">correction_log</span><span class="p">,</span>
+</span><span data-line="435">    <span class="p">)</span>
+</span><span data-line="436">    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="437">        <span class="s2">"media"</span><span class="p">:</span> <span class="n">media</span><span class="p">,</span>
+</span><span data-line="438">        <span class="s2">"steps"</span><span class="p">:</span> <span class="n">step_rows</span><span class="p">,</span>
+</span><span data-line="439">        <span class="s2">"boundaries"</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span><span class="p">)</span> <span class="k">if</span> <span class="n">boundaries</span> <span class="k">else</span> <span class="p">(),</span>
+</span><span data-line="440">        <span class="s2">"grid"</span><span class="p">:</span> <span class="n">grid</span><span class="p">,</span>
+</span><span data-line="441">        <span class="s2">"chapters"</span><span class="p">:</span> <span class="n">chapters</span><span class="p">,</span>
+</span><span data-line="442">        <span class="s2">"subtitles"</span><span class="p">:</span> <span class="n">subtitles</span><span class="p">,</span>
+</span><span data-line="443">        <span class="s2">"transcript"</span><span class="p">:</span> <span class="n">transcript_cues</span><span class="p">,</span>
+</span><span data-line="444">        <span class="s2">"k"</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+</span><span data-line="445">        <span class="s2">"corrections"</span><span class="p">:</span> <span class="n">correction_log</span><span class="p">,</span>
+</span><span data-line="446">    <span class="p">}</span>
+</span><span data-line="447">
+</span><span data-line="448">    <span class="k">if</span> <span class="n">segmenter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="449">        <span class="n">capability</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="450">            <span class="n">segmenter</span>
+</span><span data-line="451">            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">segmenter</span><span class="p">,</span> <span class="n">Capability</span><span class="p">)</span>
+</span><span data-line="452">            <span class="k">else</span> <span class="n">catalog</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">segmenter</span><span class="p">))</span>
+</span><span data-line="453">        <span class="p">)</span>
+</span><span data-line="454">        <span class="k">if</span> <span class="n">capability</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="455">            <span class="n">known</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">catalog</span><span class="p">))</span> <span class="ow">or</span> <span class="s2">"(none registered)"</span>
+</span><span data-line="456">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown segmenter </span><span class="si">{</span><span class="n">segmenter</span><span class="si">!r}</span><span class="s2">; registered: </span><span class="si">{</span><span class="n">known</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="457">        <span class="n">missing_facts</span> <span class="o">=</span> <span class="n">capability</span><span class="o">.</span><span class="n">needs</span> <span class="o">-</span> <span class="n">facts</span>
+</span><span data-line="458">        <span class="k">if</span> <span class="n">missing_facts</span><span class="p">:</span>
+</span><span data-line="459">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="460">                <span class="sa">f</span><span class="s2">"segmenter </span><span class="si">{</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> needs inputs you did not "</span>
+</span><span data-line="461">                <span class="sa">f</span><span class="s2">"provide: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing_facts</span><span class="p">)</span><span class="si">}</span><span class="s2"> (facts present: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">facts</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+</span><span data-line="462">            <span class="p">)</span>
+</span><span data-line="463">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="464">        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="465">            <span class="n">cap</span>
+</span><span data-line="466">            <span class="k">for</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">catalog</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span data-line="467">            <span class="k">if</span> <span class="n">cap</span><span class="o">.</span><span class="n">gives</span> <span class="o">==</span> <span class="s2">"segmentation"</span>
+</span><span data-line="468">            <span class="ow">and</span> <span class="n">cap</span><span class="o">.</span><span class="n">needs</span> <span class="o">&lt;=</span> <span class="n">facts</span>
+</span><span data-line="469">            <span class="ow">and</span> <span class="ow">not</span> <span class="n">_preflight</span><span class="p">(</span><span class="n">cap</span><span class="p">)</span>
+</span><span data-line="470">        <span class="p">]</span>
+</span><span data-line="471">        <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
+</span><span data-line="472">            <span class="n">refused</span> <span class="o">=</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="473">                <span class="n">confidence</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+</span><span data-line="474">                <span class="n">flags</span><span class="o">=</span><span class="n">problem_flags</span>
+</span><span data-line="475">                <span class="o">+</span> <span class="p">(</span>
+</span><span data-line="476">                    <span class="s2">"no-signal"</span><span class="p">,</span>
+</span><span data-line="477">                    <span class="s2">"try: steps=[(name, duration), ...] with grid=, "</span>
+</span><span data-line="478">                    <span class="s2">"boundaries=[t0, t1, ...], metadata= with chapters or subtitles, "</span>
+</span><span data-line="479">                    <span class="s2">"or transcript="</span><span class="p">,</span>
+</span><span data-line="480">                <span class="p">),</span>
+</span><span data-line="481">                <span class="n">elapsed_s</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">,</span>
+</span><span data-line="482">            <span class="p">)</span>
+</span><span data-line="483">            <span class="k">return</span> <span class="n">_apply_corrections</span><span class="p">(</span><span class="n">refused</span><span class="p">,</span> <span class="n">correction_log</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="484">
+</span><span data-line="485">        <span class="k">def</span><span class="w"> </span><span class="nf">_score</span><span class="p">(</span><span class="n">cap</span><span class="p">:</span> <span class="n">Capability</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="486">            <span class="k">return</span> <span class="n">cap</span><span class="o">.</span><span class="n">base</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
+</span><span data-line="487">                <span class="n">bonus</span> <span class="k">for</span> <span class="n">fact</span><span class="p">,</span> <span class="n">bonus</span> <span class="ow">in</span> <span class="n">cap</span><span class="o">.</span><span class="n">boosts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">facts</span>
+</span><span data-line="488">            <span class="p">)</span>
+</span><span data-line="489">
+</span><span data-line="490">        <span class="n">capability</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cap</span><span class="p">:</span> <span class="p">(</span><span class="n">_score</span><span class="p">(</span><span class="n">cap</span><span class="p">),</span> <span class="n">cap</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+</span><span data-line="491">
+</span><span data-line="492">    <span class="n">missing_modules</span> <span class="o">=</span> <span class="n">_preflight</span><span class="p">(</span><span class="n">capability</span><span class="p">)</span>
+</span><span data-line="493">    <span class="k">if</span> <span class="n">missing_modules</span><span class="p">:</span>
+</span><span data-line="494">        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+</span><span data-line="495">            <span class="sa">f</span><span class="s2">"segmenter </span><span class="si">{</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> requires "</span>
+</span><span data-line="496">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_modules</span><span class="p">)</span><span class="si">}</span><span class="s2"> — pip install them first"</span>
+</span><span data-line="497">        <span class="p">)</span>
+</span><span data-line="498">    <span class="n">result</span><span class="p">:</span> <span class="n">Segmentation</span> <span class="o">=</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">capability</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span>
+</span><span data-line="499">    <span class="n">result</span> <span class="o">=</span> <span class="n">_apply_corrections</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">correction_log</span><span class="p">,</span> <span class="n">capability</span><span class="p">)</span>
+</span><span data-line="500">
+</span><span data-line="501">    <span class="c1"># Honesty: an explicitly supplied input the chosen segmenter neither</span>
+</span><span data-line="502">    <span class="c1"># needs nor reads was silently discarded — say so instead of implying it</span>
+</span><span data-line="503">    <span class="c1"># was consumed.</span>
+</span><span data-line="504">    <span class="n">ignorable</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="505">        <span class="s2">"steps"</span><span class="p">:</span> <span class="s2">"steps"</span><span class="p">,</span>
+</span><span data-line="506">        <span class="s2">"boundaries"</span><span class="p">:</span> <span class="s2">"boundaries"</span><span class="p">,</span>
+</span><span data-line="507">        <span class="s2">"meta.chapters"</span><span class="p">:</span> <span class="s2">"metadata (chapters)"</span><span class="p">,</span>
+</span><span data-line="508">        <span class="s2">"meta.subtitles"</span><span class="p">:</span> <span class="s2">"metadata (subtitles)"</span><span class="p">,</span>
+</span><span data-line="509">        <span class="s2">"transcript"</span><span class="p">:</span> <span class="s2">"transcript"</span><span class="p">,</span>
+</span><span data-line="510">        <span class="s2">"k"</span><span class="p">:</span> <span class="s2">"k"</span><span class="p">,</span>
+</span><span data-line="511">    <span class="p">}</span>
+</span><span data-line="512">    <span class="n">used</span> <span class="o">=</span> <span class="n">capability</span><span class="o">.</span><span class="n">needs</span> <span class="o">|</span> <span class="n">capability</span><span class="o">.</span><span class="n">reads</span>
+</span><span data-line="513">    <span class="n">ignored</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+</span><span data-line="514">        <span class="n">label</span> <span class="k">for</span> <span class="n">fact</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">ignorable</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">facts</span> <span class="ow">and</span> <span class="n">fact</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used</span>
+</span><span data-line="515">    <span class="p">)</span>
+</span><span data-line="516">    <span class="n">extra_flags</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"ignored: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,)</span> <span class="k">if</span> <span class="n">ignored</span> <span class="k">else</span> <span class="p">()</span>
+</span><span data-line="517">    <span class="n">extra_flags</span> <span class="o">+=</span> <span class="n">problem_flags</span>
+</span><span data-line="518">
+</span><span data-line="519">    <span class="c1"># A grid describes the media's own clock; any segmentation over that</span>
+</span><span data-line="520">    <span class="c1"># media may carry it (and its unit) even when placement didn't use it —</span>
+</span><span data-line="521">    <span class="c1"># this is what lets the projection express durations in domain units.</span>
+</span><span data-line="522">    <span class="n">out_grid</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">grid</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">grid</span>
+</span><span data-line="523">    <span class="n">out_unit</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">unit</span>
+</span><span data-line="524">    <span class="k">if</span> <span class="p">(</span>
+</span><span data-line="525">        <span class="n">out_unit</span> <span class="o">==</span> <span class="s2">"seconds"</span>
+</span><span data-line="526">        <span class="ow">and</span> <span class="n">out_grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="527">        <span class="ow">and</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">out_grid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="528">    <span class="p">):</span>
+</span><span data-line="529">        <span class="n">out_unit</span> <span class="o">=</span> <span class="n">out_grid</span><span class="o">.</span><span class="n">unit</span>
+</span><span data-line="530">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="531">        <span class="n">steps</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
+</span><span data-line="532">        <span class="n">boundaries</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="533">        <span class="n">unit</span><span class="o">=</span><span class="n">out_unit</span><span class="p">,</span>
+</span><span data-line="534">        <span class="n">grid</span><span class="o">=</span><span class="n">out_grid</span><span class="p">,</span>
+</span><span data-line="535">        <span class="n">confidence</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span>
+</span><span data-line="536">        <span class="n">method</span><span class="o">=</span><span class="n">capability</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span data-line="537">        <span class="n">flags</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">flags</span> <span class="o">+</span> <span class="n">extra_flags</span><span class="p">,</span>
+</span><span data-line="538">        <span class="n">elapsed_s</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">started</span><span class="p">,</span>
+</span><span data-line="539">        <span class="n">spent_usd</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">spent_usd</span><span class="p">,</span>
+</span><span data-line="540">    <span class="p">)</span></div>
 
-</span><span data-line="502">
-</span><span data-line="503">
-</span><span data-line="504"><span class="c1"># ── the two v1 segmenters ───────────────────────────────────────────────────</span>
-</span><span data-line="505">
-</span><span data-line="506">
-</span><span data-line="507"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_grid_placed</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="508"><span class="w">    </span><span class="sd">"""Place an ordered step list on the timeline using a metric grid.</span>
-</span><span data-line="509">
-</span><span data-line="510"><span class="sd">    The que-calor shape: cumulative domain durations from the grid's origin,</span>
-</span><span data-line="511"><span class="sd">    ``span = origin + cumulative_units * seconds_per_unit``. Children subdivide</span>
-</span><span data-line="512"><span class="sd">    their parent's span the same way.</span>
-</span><span data-line="513"><span class="sd">    """</span>
-</span><span data-line="514">    <span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"grid"</span><span class="p">]</span>
-</span><span data-line="515">    <span class="n">spu</span> <span class="o">=</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
-</span><span data-line="516">    <span class="n">origin</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">origin</span><span class="p">)</span>  <span class="c1"># guaranteed by the 'grid' fact</span>
-</span><span data-line="517">
-</span><span data-line="518">    <span class="k">def</span><span class="w"> </span><span class="nf">_place</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">at_units</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">SegStep</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
-</span><span data-line="519">        <span class="n">placed</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="520">        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-</span><span data-line="521">            <span class="n">duration</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span>
-</span><span data-line="522">            <span class="n">start</span> <span class="o">=</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">at_units</span> <span class="o">*</span> <span class="n">spu</span>
-</span><span data-line="523">            <span class="n">end</span> <span class="o">=</span> <span class="n">origin</span> <span class="o">+</span> <span class="p">(</span><span class="n">at_units</span> <span class="o">+</span> <span class="n">duration</span><span class="p">)</span> <span class="o">*</span> <span class="n">spu</span>
-</span><span data-line="524">            <span class="n">children</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_place</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"children"</span><span class="p">],</span> <span class="n">at_units</span><span class="p">)</span>
-</span><span data-line="525">            <span class="n">placed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="526">                <span class="n">SegStep</span><span class="p">(</span>
-</span><span data-line="527">                    <span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
-</span><span data-line="528">                    <span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
-</span><span data-line="529">                    <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">),),</span>
-</span><span data-line="530">                    <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_GRID_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="531">                    <span class="n">children</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">children</span><span class="p">),</span>
-</span><span data-line="532">                    <span class="n">source</span><span class="o">=</span><span class="s2">"grid-placed"</span><span class="p">,</span>
-</span><span data-line="533">                    <span class="n">evidence</span><span class="o">=</span><span class="p">{</span><span class="s2">"duration_units"</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span> <span class="s2">"offset_units"</span><span class="p">:</span> <span class="n">at_units</span><span class="p">},</span>
-</span><span data-line="534">                <span class="p">)</span>
-</span><span data-line="535">            <span class="p">)</span>
-</span><span data-line="536">            <span class="n">at_units</span> <span class="o">+=</span> <span class="n">duration</span>
-</span><span data-line="537">        <span class="k">return</span> <span class="n">placed</span><span class="p">,</span> <span class="n">at_units</span>
-</span><span data-line="538">
-</span><span data-line="539">    <span class="n">steps</span><span class="p">,</span> <span class="n">total_units</span> <span class="o">=</span> <span class="n">_place</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span>
-</span><span data-line="540">    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">origin</span> <span class="o">+</span> <span class="n">units</span> <span class="o">*</span> <span class="n">spu</span> <span class="k">for</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">_cumulative</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]))</span>
-</span><span data-line="541">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="542">        <span class="n">steps</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">steps</span><span class="p">),</span>
-</span><span data-line="543">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="544">        <span class="n">unit</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
-</span><span data-line="545">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
-</span><span data-line="546">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_GRID_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="547">    <span class="p">)</span>
+</span><span data-line="541">
+</span><span data-line="542">
+</span><span data-line="543"><span class="c1"># ── the two v1 segmenters ───────────────────────────────────────────────────</span>
+</span><span data-line="544">
+</span><span data-line="545">
+</span><span data-line="546"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_grid_placed</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="547"><span class="w">    </span><span class="sd">"""Place an ordered step list on the timeline using a metric grid.</span>
 </span><span data-line="548">
-</span><span data-line="549">
-</span><span data-line="550"><span class="k">def</span><span class="w"> </span><span class="nf">_cumulative</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-</span><span data-line="551">    <span class="n">offsets</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="mf">0.0</span>
-</span><span data-line="552">    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-</span><span data-line="553">        <span class="n">at</span> <span class="o">+=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span>
-</span><span data-line="554">        <span class="n">offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
-</span><span data-line="555">    <span class="k">return</span> <span class="n">offsets</span>
+</span><span data-line="549"><span class="sd">    The que-calor shape: cumulative domain durations from the grid's origin,</span>
+</span><span data-line="550"><span class="sd">    ``span = origin + cumulative_units * seconds_per_unit``. Children subdivide</span>
+</span><span data-line="551"><span class="sd">    their parent's span the same way.</span>
+</span><span data-line="552"><span class="sd">    """</span>
+</span><span data-line="553">    <span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"grid"</span><span class="p">]</span>
+</span><span data-line="554">    <span class="n">spu</span> <span class="o">=</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+</span><span data-line="555">    <span class="n">origin</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">origin</span><span class="p">)</span>  <span class="c1"># guaranteed by the 'grid' fact</span>
 </span><span data-line="556">
-</span><span data-line="557">
-</span><span data-line="558"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_explicit</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="559"><span class="w">    </span><span class="sd">"""Adopt boundaries supplied explicitly (by a human or a prior run).</span>
-</span><span data-line="560">
-</span><span data-line="561"><span class="sd">    N boundaries make N-1 spans. Names zip on when a step list of the right</span>
-</span><span data-line="562"><span class="sd">    length was supplied; otherwise the result is honestly unnamed</span>
-</span><span data-line="563"><span class="sd">    (``naming-abstained``), never invented.</span>
-</span><span data-line="564"><span class="sd">    """</span>
-</span><span data-line="565">    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"boundaries"</span><span class="p">]))</span>
-</span><span data-line="566">    <span class="n">spans</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
-</span><span data-line="567">    <span class="n">step_rows</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span>
-</span><span data-line="568">    <span class="n">flags</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-</span><span data-line="569">    <span class="n">steps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SegStep</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-</span><span data-line="570">    <span class="k">if</span> <span class="n">step_rows</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">spans</span><span class="p">):</span>
-</span><span data-line="571">        <span class="n">steps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
-</span><span data-line="572">            <span class="n">SegStep</span><span class="p">(</span>
-</span><span data-line="573">                <span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
-</span><span data-line="574">                <span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
-</span><span data-line="575">                <span class="n">spans</span><span class="o">=</span><span class="p">(</span><span class="n">span</span><span class="p">,),</span>
-</span><span data-line="576">                <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="577">                <span class="n">source</span><span class="o">=</span><span class="s2">"explicit"</span><span class="p">,</span>
-</span><span data-line="578">            <span class="p">)</span>
-</span><span data-line="579">            <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">step_rows</span><span class="p">,</span> <span class="n">spans</span><span class="p">)</span>
-</span><span data-line="580">        <span class="p">)</span>
-</span><span data-line="581">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="582">        <span class="k">if</span> <span class="n">step_rows</span><span class="p">:</span>
-</span><span data-line="583">            <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="584">                <span class="sa">f</span><span class="s2">"step-count-mismatch: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps vs </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">spans</span><span class="p">)</span><span class="si">}</span><span class="s2"> spans"</span><span class="p">,</span>
-</span><span data-line="585">            <span class="p">)</span>
-</span><span data-line="586">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="587">            <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"naming-abstained"</span><span class="p">,)</span>
-</span><span data-line="588">        <span class="n">steps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
-</span><span data-line="589">            <span class="n">SegStep</span><span class="p">(</span>
-</span><span data-line="590">                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"seg-</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-</span><span data-line="591">                <span class="n">spans</span><span class="o">=</span><span class="p">(</span><span class="n">span</span><span class="p">,),</span>
-</span><span data-line="592">                <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="593">                <span class="n">source</span><span class="o">=</span><span class="s2">"explicit"</span><span class="p">,</span>
-</span><span data-line="594">            <span class="p">)</span>
-</span><span data-line="595">            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spans</span><span class="p">)</span>
-</span><span data-line="596">        <span class="p">)</span>
-</span><span data-line="597">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="598">        <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="599">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="600">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="601">        <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span>
-</span><span data-line="602">    <span class="p">)</span>
-</span><span data-line="603">
-</span><span data-line="604">
-</span><span data-line="605"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_chapters</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="606"><span class="w">    </span><span class="sd">"""Adopt the author's own chapter list — names AND times, for ~0 cost.</span>
-</span><span data-line="607">
-</span><span data-line="608"><span class="sd">    External-explicit like ``explicit``, but the coordinates come from the</span>
-</span><span data-line="609"><span class="sd">    media's metadata rather than a human in this run. A caller-supplied step</span>
-</span><span data-line="610"><span class="sd">    list of matching length overrides the chapter titles (the human's</span>
-</span><span data-line="611"><span class="sd">    explicit input outranks the author's metadata); untitled chapters stay</span>
-</span><span data-line="612"><span class="sd">    honestly unnamed.</span>
-</span><span data-line="613"><span class="sd">    """</span>
-</span><span data-line="614">    <span class="n">chapters</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"chapters"</span><span class="p">]</span>  <span class="c1"># normalised, validated, sorted by start</span>
-</span><span data-line="615">    <span class="n">step_rows</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span>
-</span><span data-line="616">    <span class="n">user_names</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">chapters</span><span class="p">)</span>
-</span><span data-line="617">    <span class="n">flags</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-</span><span data-line="618">    <span class="k">if</span> <span class="n">step_rows</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">user_names</span><span class="p">:</span>
-</span><span data-line="619">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
-</span><span data-line="620">            <span class="sa">f</span><span class="s2">"step-count-mismatch: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps vs "</span>
-</span><span data-line="621">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chapters</span><span class="p">)</span><span class="si">}</span><span class="s2"> chapters (using chapter titles)"</span><span class="p">,</span>
-</span><span data-line="622">        <span class="p">)</span>
-</span><span data-line="623">    <span class="n">chapter_ids</span> <span class="o">=</span> <span class="n">unique_slug_ids</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chapters</span><span class="p">],</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"chapter"</span><span class="p">)</span>
-</span><span data-line="624">
-</span><span data-line="625">    <span class="k">def</span><span class="w"> </span><span class="nf">_step</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">chapter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SegStep</span><span class="p">:</span>
-</span><span data-line="626">        <span class="k">if</span> <span class="n">user_names</span><span class="p">:</span>
-</span><span data-line="627">            <span class="n">row</span> <span class="o">=</span> <span class="n">step_rows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-</span><span data-line="628">            <span class="n">name</span><span class="p">,</span> <span class="n">step_id</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
-</span><span data-line="629">            <span class="n">evidence</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"chapter_title"</span><span class="p">:</span> <span class="n">chapter</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]}</span>
-</span><span data-line="630">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="631">            <span class="n">name</span><span class="p">,</span> <span class="n">step_id</span> <span class="o">=</span> <span class="n">chapter</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span> <span class="n">chapter_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-</span><span data-line="632">            <span class="n">evidence</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span data-line="633">        <span class="k">return</span> <span class="n">SegStep</span><span class="p">(</span>
-</span><span data-line="634">            <span class="nb">id</span><span class="o">=</span><span class="n">step_id</span><span class="p">,</span>
-</span><span data-line="635">            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-</span><span data-line="636">            <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="n">chapter</span><span class="p">[</span><span class="s2">"start"</span><span class="p">],</span> <span class="n">chapter</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]),),</span>
-</span><span data-line="637">            <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_CHAPTERS_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="638">            <span class="n">source</span><span class="o">=</span><span class="s2">"chapters"</span><span class="p">,</span>
-</span><span data-line="639">            <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span><span class="p">,</span>
-</span><span data-line="640">        <span class="p">)</span>
-</span><span data-line="641">
-</span><span data-line="642">    <span class="n">steps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">chapter</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chapter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chapters</span><span class="p">))</span>
-</span><span data-line="643">    <span class="c1"># Starts AND ends: a gap between chapters is real structure, and an</span>
-</span><span data-line="644">    <span class="c1"># unsorted source must not cost us the true final boundary.</span>
-</span><span data-line="645">    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
-</span><span data-line="646">        <span class="nb">sorted</span><span class="p">(</span>
-</span><span data-line="647">            <span class="p">{</span><span class="n">chapter</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="k">for</span> <span class="n">chapter</span> <span class="ow">in</span> <span class="n">chapters</span><span class="p">}</span>
-</span><span data-line="648">            <span class="o">|</span> <span class="p">{</span><span class="n">chapter</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]</span> <span class="k">for</span> <span class="n">chapter</span> <span class="ow">in</span> <span class="n">chapters</span><span class="p">}</span>
-</span><span data-line="649">        <span class="p">)</span>
-</span><span data-line="650">    <span class="p">)</span>
-</span><span data-line="651">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
-</span><span data-line="652">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">"naming-abstained"</span><span class="p">,)</span>
-</span><span data-line="653">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="654">        <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="655">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="656">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_CHAPTERS_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="657">        <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span>
-</span><span data-line="658">    <span class="p">)</span>
-</span><span data-line="659">
-</span><span data-line="660">
-</span><span data-line="661"><span class="n">GRID_PLACED</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
-</span><span data-line="662">    <span class="n">Capability</span><span class="p">(</span>
-</span><span data-line="663">        <span class="n">name</span><span class="o">=</span><span class="s2">"grid-placed"</span><span class="p">,</span>
-</span><span data-line="664">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
-</span><span data-line="665">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
-</span><span data-line="666">            <span class="s2">"Place an ordered step list with domain durations on the timeline "</span>
-</span><span data-line="667">            <span class="s2">"using a metric grid (tempo + origin). The que-calor path."</span>
-</span><span data-line="668">        <span class="p">),</span>
-</span><span data-line="669">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.segmenters:_segment_grid_placed"</span><span class="p">,</span>
-</span><span data-line="670">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">,</span> <span class="s2">"steps.durations"</span><span class="p">,</span> <span class="s2">"grid"</span><span class="p">}),</span>
-</span><span data-line="671">        <span class="n">base</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>  <span class="c1"># a caller who spelled out steps+grid meant them: top rank</span>
-</span><span data-line="672">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-</span><span data-line="673">    <span class="p">)</span>
-</span><span data-line="674"><span class="p">)</span>
-</span><span data-line="675">
-</span><span data-line="676"><span class="n">EXPLICIT</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
-</span><span data-line="677">    <span class="n">Capability</span><span class="p">(</span>
-</span><span data-line="678">        <span class="n">name</span><span class="o">=</span><span class="s2">"explicit"</span><span class="p">,</span>
-</span><span data-line="679">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
-</span><span data-line="680">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
-</span><span data-line="681">            <span class="s2">"Adopt boundaries supplied explicitly — by a human ('ask the "</span>
-</span><span data-line="682">            <span class="s2">"user' is first-class) or a previous run."</span>
-</span><span data-line="683">        <span class="p">),</span>
-</span><span data-line="684">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.segmenters:_segment_explicit"</span><span class="p">,</span>
-</span><span data-line="685">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"boundaries"</span><span class="p">}),</span>
-</span><span data-line="686">        <span class="n">reads</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">}),</span>  <span class="c1"># names zip on when the count matches</span>
-</span><span data-line="687">        <span class="c1"># Bare boundaries rank below chapters (which carry names), but a</span>
-</span><span data-line="688">        <span class="c1"># human who supplied boundaries AND a step list gave the full</span>
-</span><span data-line="689">        <span class="c1"># explicit picture — e.g. to CORRECT bad chapters — and outranks them.</span>
-</span><span data-line="690">        <span class="n">boosts</span><span class="o">=</span><span class="p">{</span><span class="s2">"steps"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
-</span><span data-line="691">        <span class="n">base</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-</span><span data-line="692">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
-</span><span data-line="693">    <span class="p">)</span>
-</span><span data-line="694"><span class="p">)</span>
-</span><span data-line="695">
-</span><span data-line="696"><span class="n">CHAPTERS</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
-</span><span data-line="697">    <span class="n">Capability</span><span class="p">(</span>
-</span><span data-line="698">        <span class="n">name</span><span class="o">=</span><span class="s2">"chapters"</span><span class="p">,</span>
-</span><span data-line="699">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
-</span><span data-line="700">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
-</span><span data-line="701">            <span class="s2">"Adopt the media's own chapter metadata (yt-dlp info dict or "</span>
-</span><span data-line="702">            <span class="s2">"ffprobe -show_chapters): author-supplied names and times."</span>
-</span><span data-line="703">        <span class="p">),</span>
-</span><span data-line="704">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.segmenters:_segment_chapters"</span><span class="p">,</span>
-</span><span data-line="705">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"meta.chapters"</span><span class="p">}),</span>
-</span><span data-line="706">        <span class="n">reads</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">}),</span>  <span class="c1"># a matching user step list renames them</span>
-</span><span data-line="707">        <span class="n">base</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>  <span class="c1"># names beat bare boundaries; a user's steps+grid beat both</span>
-</span><span data-line="708">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-</span><span data-line="709">    <span class="p">)</span>
-</span><span data-line="710"><span class="p">)</span>
+</span><span data-line="557">    <span class="k">def</span><span class="w"> </span><span class="nf">_place</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">at_units</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">SegStep</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span data-line="558">        <span class="n">placed</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="559">        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+</span><span data-line="560">            <span class="n">duration</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span>
+</span><span data-line="561">            <span class="n">start</span> <span class="o">=</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">at_units</span> <span class="o">*</span> <span class="n">spu</span>
+</span><span data-line="562">            <span class="n">end</span> <span class="o">=</span> <span class="n">origin</span> <span class="o">+</span> <span class="p">(</span><span class="n">at_units</span> <span class="o">+</span> <span class="n">duration</span><span class="p">)</span> <span class="o">*</span> <span class="n">spu</span>
+</span><span data-line="563">            <span class="n">children</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_place</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"children"</span><span class="p">],</span> <span class="n">at_units</span><span class="p">)</span>
+</span><span data-line="564">            <span class="n">placed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="565">                <span class="n">SegStep</span><span class="p">(</span>
+</span><span data-line="566">                    <span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+</span><span data-line="567">                    <span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
+</span><span data-line="568">                    <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">),),</span>
+</span><span data-line="569">                    <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_GRID_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="570">                    <span class="n">children</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">children</span><span class="p">),</span>
+</span><span data-line="571">                    <span class="n">source</span><span class="o">=</span><span class="s2">"grid-placed"</span><span class="p">,</span>
+</span><span data-line="572">                    <span class="n">evidence</span><span class="o">=</span><span class="p">{</span><span class="s2">"duration_units"</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span> <span class="s2">"offset_units"</span><span class="p">:</span> <span class="n">at_units</span><span class="p">},</span>
+</span><span data-line="573">                <span class="p">)</span>
+</span><span data-line="574">            <span class="p">)</span>
+</span><span data-line="575">            <span class="n">at_units</span> <span class="o">+=</span> <span class="n">duration</span>
+</span><span data-line="576">        <span class="k">return</span> <span class="n">placed</span><span class="p">,</span> <span class="n">at_units</span>
+</span><span data-line="577">
+</span><span data-line="578">    <span class="n">steps</span><span class="p">,</span> <span class="n">total_units</span> <span class="o">=</span> <span class="n">_place</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span>
+</span><span data-line="579">    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">origin</span> <span class="o">+</span> <span class="n">units</span> <span class="o">*</span> <span class="n">spu</span> <span class="k">for</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">_cumulative</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]))</span>
+</span><span data-line="580">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="581">        <span class="n">steps</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">steps</span><span class="p">),</span>
+</span><span data-line="582">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="583">        <span class="n">unit</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+</span><span data-line="584">        <span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span>
+</span><span data-line="585">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_GRID_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="586">    <span class="p">)</span>
+</span><span data-line="587">
+</span><span data-line="588">
+</span><span data-line="589"><span class="k">def</span><span class="w"> </span><span class="nf">_cumulative</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span data-line="590">    <span class="n">offsets</span><span class="p">,</span> <span class="n">at</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="mf">0.0</span>
+</span><span data-line="591">    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+</span><span data-line="592">        <span class="n">at</span> <span class="o">+=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span>
+</span><span data-line="593">        <span class="n">offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+</span><span data-line="594">    <span class="k">return</span> <span class="n">offsets</span>
+</span><span data-line="595">
+</span><span data-line="596">
+</span><span data-line="597"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_explicit</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="598"><span class="w">    </span><span class="sd">"""Adopt boundaries supplied explicitly (by a human or a prior run).</span>
+</span><span data-line="599">
+</span><span data-line="600"><span class="sd">    N boundaries make N-1 spans. Names zip on when a step list of the right</span>
+</span><span data-line="601"><span class="sd">    length was supplied; otherwise the result is honestly unnamed</span>
+</span><span data-line="602"><span class="sd">    (``naming-abstained``), never invented.</span>
+</span><span data-line="603"><span class="sd">    """</span>
+</span><span data-line="604">    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"boundaries"</span><span class="p">]))</span>
+</span><span data-line="605">    <span class="n">spans</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+</span><span data-line="606">    <span class="n">step_rows</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span>
+</span><span data-line="607">    <span class="n">flags</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</span><span data-line="608">    <span class="n">steps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SegStep</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</span><span data-line="609">    <span class="k">if</span> <span class="n">step_rows</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">spans</span><span class="p">):</span>
+</span><span data-line="610">        <span class="n">steps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+</span><span data-line="611">            <span class="n">SegStep</span><span class="p">(</span>
+</span><span data-line="612">                <span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+</span><span data-line="613">                <span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
+</span><span data-line="614">                <span class="n">spans</span><span class="o">=</span><span class="p">(</span><span class="n">span</span><span class="p">,),</span>
+</span><span data-line="615">                <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="616">                <span class="n">source</span><span class="o">=</span><span class="s2">"explicit"</span><span class="p">,</span>
+</span><span data-line="617">            <span class="p">)</span>
+</span><span data-line="618">            <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">step_rows</span><span class="p">,</span> <span class="n">spans</span><span class="p">)</span>
+</span><span data-line="619">        <span class="p">)</span>
+</span><span data-line="620">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="621">        <span class="k">if</span> <span class="n">step_rows</span><span class="p">:</span>
+</span><span data-line="622">            <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="623">                <span class="sa">f</span><span class="s2">"step-count-mismatch: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps vs </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">spans</span><span class="p">)</span><span class="si">}</span><span class="s2"> spans"</span><span class="p">,</span>
+</span><span data-line="624">            <span class="p">)</span>
+</span><span data-line="625">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="626">            <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"naming-abstained"</span><span class="p">,)</span>
+</span><span data-line="627">        <span class="n">steps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+</span><span data-line="628">            <span class="n">SegStep</span><span class="p">(</span>
+</span><span data-line="629">                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"seg-</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+</span><span data-line="630">                <span class="n">spans</span><span class="o">=</span><span class="p">(</span><span class="n">span</span><span class="p">,),</span>
+</span><span data-line="631">                <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="632">                <span class="n">source</span><span class="o">=</span><span class="s2">"explicit"</span><span class="p">,</span>
+</span><span data-line="633">            <span class="p">)</span>
+</span><span data-line="634">            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spans</span><span class="p">)</span>
+</span><span data-line="635">        <span class="p">)</span>
+</span><span data-line="636">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="637">        <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
+</span><span data-line="638">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="639">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="640">        <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span>
+</span><span data-line="641">    <span class="p">)</span>
+</span><span data-line="642">
+</span><span data-line="643">
+</span><span data-line="644"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_chapters</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="645"><span class="w">    </span><span class="sd">"""Adopt the author's own chapter list — names AND times, for ~0 cost.</span>
+</span><span data-line="646">
+</span><span data-line="647"><span class="sd">    External-explicit like ``explicit``, but the coordinates come from the</span>
+</span><span data-line="648"><span class="sd">    media's metadata rather than a human in this run. A caller-supplied step</span>
+</span><span data-line="649"><span class="sd">    list of matching length overrides the chapter titles (the human's</span>
+</span><span data-line="650"><span class="sd">    explicit input outranks the author's metadata); untitled chapters stay</span>
+</span><span data-line="651"><span class="sd">    honestly unnamed.</span>
+</span><span data-line="652"><span class="sd">    """</span>
+</span><span data-line="653">    <span class="n">chapters</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"chapters"</span><span class="p">]</span>  <span class="c1"># normalised, validated, sorted by start</span>
+</span><span data-line="654">    <span class="n">step_rows</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span>
+</span><span data-line="655">    <span class="n">user_names</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">chapters</span><span class="p">)</span>
+</span><span data-line="656">    <span class="n">flags</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</span><span data-line="657">    <span class="k">if</span> <span class="n">step_rows</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">user_names</span><span class="p">:</span>
+</span><span data-line="658">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span>
+</span><span data-line="659">            <span class="sa">f</span><span class="s2">"step-count-mismatch: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step_rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps vs "</span>
+</span><span data-line="660">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chapters</span><span class="p">)</span><span class="si">}</span><span class="s2"> chapters (using chapter titles)"</span><span class="p">,</span>
+</span><span data-line="661">        <span class="p">)</span>
+</span><span data-line="662">    <span class="n">chapter_ids</span> <span class="o">=</span> <span class="n">unique_slug_ids</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chapters</span><span class="p">],</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"chapter"</span><span class="p">)</span>
+</span><span data-line="663">
+</span><span data-line="664">    <span class="k">def</span><span class="w"> </span><span class="nf">_step</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">chapter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SegStep</span><span class="p">:</span>
+</span><span data-line="665">        <span class="k">if</span> <span class="n">user_names</span><span class="p">:</span>
+</span><span data-line="666">            <span class="n">row</span> <span class="o">=</span> <span class="n">step_rows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span><span data-line="667">            <span class="n">name</span><span class="p">,</span> <span class="n">step_id</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+</span><span data-line="668">            <span class="n">evidence</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"chapter_title"</span><span class="p">:</span> <span class="n">chapter</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]}</span>
+</span><span data-line="669">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="670">            <span class="n">name</span><span class="p">,</span> <span class="n">step_id</span> <span class="o">=</span> <span class="n">chapter</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span> <span class="n">chapter_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span><span data-line="671">            <span class="n">evidence</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span data-line="672">        <span class="k">return</span> <span class="n">SegStep</span><span class="p">(</span>
+</span><span data-line="673">            <span class="nb">id</span><span class="o">=</span><span class="n">step_id</span><span class="p">,</span>
+</span><span data-line="674">            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+</span><span data-line="675">            <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="n">chapter</span><span class="p">[</span><span class="s2">"start"</span><span class="p">],</span> <span class="n">chapter</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]),),</span>
+</span><span data-line="676">            <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_CHAPTERS_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="677">            <span class="n">source</span><span class="o">=</span><span class="s2">"chapters"</span><span class="p">,</span>
+</span><span data-line="678">            <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span><span class="p">,</span>
+</span><span data-line="679">        <span class="p">)</span>
+</span><span data-line="680">
+</span><span data-line="681">    <span class="n">steps</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">chapter</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chapter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chapters</span><span class="p">))</span>
+</span><span data-line="682">    <span class="c1"># Starts AND ends: a gap between chapters is real structure, and an</span>
+</span><span data-line="683">    <span class="c1"># unsorted source must not cost us the true final boundary.</span>
+</span><span data-line="684">    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+</span><span data-line="685">        <span class="nb">sorted</span><span class="p">(</span>
+</span><span data-line="686">            <span class="p">{</span><span class="n">chapter</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="k">for</span> <span class="n">chapter</span> <span class="ow">in</span> <span class="n">chapters</span><span class="p">}</span>
+</span><span data-line="687">            <span class="o">|</span> <span class="p">{</span><span class="n">chapter</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]</span> <span class="k">for</span> <span class="n">chapter</span> <span class="ow">in</span> <span class="n">chapters</span><span class="p">}</span>
+</span><span data-line="688">        <span class="p">)</span>
+</span><span data-line="689">    <span class="p">)</span>
+</span><span data-line="690">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
+</span><span data-line="691">        <span class="n">flags</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">"naming-abstained"</span><span class="p">,)</span>
+</span><span data-line="692">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="693">        <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
+</span><span data-line="694">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="695">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_CHAPTERS_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="696">        <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span>
+</span><span data-line="697">    <span class="p">)</span>
+</span><span data-line="698">
+</span><span data-line="699">
+</span><span data-line="700"><span class="n">GRID_PLACED</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
+</span><span data-line="701">    <span class="n">Capability</span><span class="p">(</span>
+</span><span data-line="702">        <span class="n">name</span><span class="o">=</span><span class="s2">"grid-placed"</span><span class="p">,</span>
+</span><span data-line="703">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
+</span><span data-line="704">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
+</span><span data-line="705">            <span class="s2">"Place an ordered step list with domain durations on the timeline "</span>
+</span><span data-line="706">            <span class="s2">"using a metric grid (tempo + origin). The que-calor path."</span>
+</span><span data-line="707">        <span class="p">),</span>
+</span><span data-line="708">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.segmenters:_segment_grid_placed"</span><span class="p">,</span>
+</span><span data-line="709">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">,</span> <span class="s2">"steps.durations"</span><span class="p">,</span> <span class="s2">"grid"</span><span class="p">}),</span>
+</span><span data-line="710">        <span class="n">base</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>  <span class="c1"># a caller who spelled out steps+grid meant them: top rank</span>
+</span><span data-line="711">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+</span><span data-line="712">    <span class="p">)</span>
+</span><span data-line="713"><span class="p">)</span>
+</span><span data-line="714">
+</span><span data-line="715"><span class="n">EXPLICIT</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
+</span><span data-line="716">    <span class="n">Capability</span><span class="p">(</span>
+</span><span data-line="717">        <span class="n">name</span><span class="o">=</span><span class="s2">"explicit"</span><span class="p">,</span>
+</span><span data-line="718">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
+</span><span data-line="719">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
+</span><span data-line="720">            <span class="s2">"Adopt boundaries supplied explicitly — by a human ('ask the "</span>
+</span><span data-line="721">            <span class="s2">"user' is first-class) or a previous run."</span>
+</span><span data-line="722">        <span class="p">),</span>
+</span><span data-line="723">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.segmenters:_segment_explicit"</span><span class="p">,</span>
+</span><span data-line="724">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"boundaries"</span><span class="p">}),</span>
+</span><span data-line="725">        <span class="n">reads</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">}),</span>  <span class="c1"># names zip on when the count matches</span>
+</span><span data-line="726">        <span class="c1"># Bare boundaries rank below chapters (which carry names), but a</span>
+</span><span data-line="727">        <span class="c1"># human who supplied boundaries AND a step list gave the full</span>
+</span><span data-line="728">        <span class="c1"># explicit picture — e.g. to CORRECT bad chapters — and outranks them.</span>
+</span><span data-line="729">        <span class="n">boosts</span><span class="o">=</span><span class="p">{</span><span class="s2">"steps"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
+</span><span data-line="730">        <span class="n">base</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+</span><span data-line="731">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+</span><span data-line="732">    <span class="p">)</span>
+</span><span data-line="733"><span class="p">)</span>
+</span><span data-line="734">
+</span><span data-line="735"><span class="n">CHAPTERS</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
+</span><span data-line="736">    <span class="n">Capability</span><span class="p">(</span>
+</span><span data-line="737">        <span class="n">name</span><span class="o">=</span><span class="s2">"chapters"</span><span class="p">,</span>
+</span><span data-line="738">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
+</span><span data-line="739">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
+</span><span data-line="740">            <span class="s2">"Adopt the media's own chapter metadata (yt-dlp info dict or "</span>
+</span><span data-line="741">            <span class="s2">"ffprobe -show_chapters): author-supplied names and times."</span>
+</span><span data-line="742">        <span class="p">),</span>
+</span><span data-line="743">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.segmenters:_segment_chapters"</span><span class="p">,</span>
+</span><span data-line="744">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"meta.chapters"</span><span class="p">}),</span>
+</span><span data-line="745">        <span class="n">reads</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">}),</span>  <span class="c1"># a matching user step list renames them</span>
+</span><span data-line="746">        <span class="n">base</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>  <span class="c1"># names beat bare boundaries; a user's steps+grid beat both</span>
+</span><span data-line="747">        <span class="n">resolution_s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+</span><span data-line="748">    <span class="p">)</span>
+</span><span data-line="749"><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -883,7 +923,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=f0357c94"></script>
+      <script src="../../_static/documentation_options.js?v=c7cdf6fe"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

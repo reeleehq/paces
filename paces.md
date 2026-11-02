@@ -1,4 +1,4 @@
-> built 2026-11-02 15:56 UTC from 786281b (main) · paces 0.0.15. Details: build_info.json
+> built 2026-11-02 16:29 UTC from 68a5e7d (main) · paces 0.0.16. Details: build_info.json
 
 # index.html.md
 
@@ -180,22 +180,23 @@ decisions, not measurements. Full table and rationale in
 
 ## The pieces
 
-| you want                                     | reach for                                                                                                                                                   |
-|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| cut media into steps                         | `segment(media, steps=..., grid=...)` → `Segmentation`                                                                                                      |
-| explicit/human boundaries                    | `segment(media, boundaries=[...], steps=[names])`                                                                                                           |
-| use the video’s own chapters                 | `segment(media, metadata=<yt-dlp info.json>)`                                                                                                               |
-| measure the grid from the media              | `segment(local_media, steps=[(name, counts), ...])` — no grid needed; tempo + structure measured, origin estimated and flagged (`pip install paces[audio]`) |
-| protect edits from regeneration              | `apply_edits(doc, patches, by="user:you")` + `merge_regenerated(committed, fresh)`                                                                          |
-| the committed artifact                       | `to_document(seg, ...)` → `StepDocument`                                                                                                                    |
-| real clips/gifs/posters for the page         | `derive_document(doc, media=..., doc_path=...)` / `paces derive` (`pip install paces[media]`)                                                               |
-| auto-crop those clips to the people in frame | `derive(..., subject_locator=paces.pose.rtmlib_pose)` / `--subject-locator paces.pose:rtmlib_pose` (`pip install paces[pose]`)                              |
-| persist the analysis behind a document       | `to_store(seg, store=..., asset_id=...)` / `from_store(store, asset_id=...)` (`pip install paces[lacing]`)                                                  |
-| a practice page                              | `render_html(doc)`                                                                                                                                          |
-| wall-clock times from counts                 | `resolve(doc)`                                                                                                                                              |
-| sanity checks                                | `validate_document(doc)`                                                                                                                                    |
-| what segmenters exist                        | `capabilities()` / `paces list-segmenters`                                                                                                                  |
-| add a segmenter                              | `register(Capability(name=..., gives="segmentation", target="mymod:fn", needs={...}))` — a new file, nothing edited                                         |
+| you want                                     | reach for                                                                                                                                                                                               |
+|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| cut media into steps                         | `segment(media, steps=..., grid=...)` → `Segmentation`                                                                                                                                                  |
+| explicit/human boundaries                    | `segment(media, boundaries=[...], steps=[names])`                                                                                                                                                       |
+| keep a human’s corrections across re-runs    | `segment(..., corrections=[split(t), merge(t), pin((s, e)), forbid(t, (s, e)), absent(t)])` — from `paces.corrections`; a time-keyed log, replayed as constraints, anything it could not honour flagged |
+| use the video’s own chapters                 | `segment(media, metadata=<yt-dlp info.json>)`                                                                                                                                                           |
+| measure the grid from the media              | `segment(local_media, steps=[(name, counts), ...])` — no grid needed; tempo + structure measured, origin estimated and flagged (`pip install paces[audio]`)                                             |
+| protect edits from regeneration              | `apply_edits(doc, patches, by="user:you")` + `merge_regenerated(committed, fresh)`                                                                                                                      |
+| the committed artifact                       | `to_document(seg, ...)` → `StepDocument`                                                                                                                                                                |
+| real clips/gifs/posters for the page         | `derive_document(doc, media=..., doc_path=...)` / `paces derive` (`pip install paces[media]`)                                                                                                           |
+| auto-crop those clips to the people in frame | `derive(..., subject_locator=paces.pose.rtmlib_pose)` / `--subject-locator paces.pose:rtmlib_pose` (`pip install paces[pose]`)                                                                          |
+| persist the analysis behind a document       | `to_store(seg, store=..., asset_id=...)` / `from_store(store, asset_id=...)` (`pip install paces[lacing]`)                                                                                              |
+| a practice page                              | `render_html(doc)`                                                                                                                                                                                      |
+| wall-clock times from counts                 | `resolve(doc)`                                                                                                                                                                                          |
+| sanity checks                                | `validate_document(doc)`                                                                                                                                                                                |
+| what segmenters exist                        | `capabilities()` / `paces list-segmenters`                                                                                                                                                              |
+| add a segmenter                              | `register(Capability(name=..., gives="segmentation", target="mymod:fn", needs={...}))` — a new file, nothing edited                                                                                     |
 
 ## Status
 
@@ -207,6 +208,212 @@ and the evidence layer have landed; intrinsic segmenters (scene/beat/speech
 detection) are designed (see `docs/`) and arrive next.
 
 <p class="epythet-aggregates">This documentation as a single file: <a href="paces.md">paces.md</a> (Markdown, for agents).</p>
+
+
+# _autosummary/paces.corrections.html.md
+
+# paces.corrections
+
+Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).
+
+“Ask the user” is a first-class segmenter, and this module is the half of it
+that decides how an answer *survives a re-run*: corrections re-enter as
+constraints for the next run, never as a patch on an output that the next run
+would overwrite (`docs/alignment/07 §7.5`).
+
+Two rules from that section shape everything here:
+
+- **Five verbs, constraints only.** `pin` (“it is HERE”), `forbid` (“it is
+  not there”), `absent` (“not in this media”), `split` (“that is two
+  steps”) and `merge` (“those are one step”). `rename` is deliberately not
+  a verb: a name is content and belongs in the document layer, which is what
+  lets the log be replayed against a completely different segmenter.
+- **Keyed by time, not by step id.** `anchor_t` is a point on the media clock;
+  a step id invented by one run may mean something else in the next, a time
+  does not.
+
+How the log is honoured is a seam on the segmenter, not here: a capability
+that lists `"corrections"` in `reads` receives the log as an input and
+treats it as solver constraints (the alignment engine, issue #9, will). For
+every other segmenter, `segment()` falls back to [`replay()`](_autosummary/paces.corrections.html.md#paces.corrections.replay), which
+applies the log to the result in order. A correction is \*\*never silently
+dropped\*\*: one that finds nothing to act on, or that would make the result
+infeasible, is reported in `Segmentation.flags`.
+
+```pycon
+>>> from paces.segmenters import segment
+>>> log = [split(15.0), merge(20.0)]
+>>> seg = segment(boundaries=[0, 10, 20, 30], corrections=log)
+>>> seg.boundaries
+(0.0, 10.0, 15.0, 30.0)
+>>> [s.spans for s in seg.steps]
+[((0.0, 10.0),), ((10.0, 15.0),), ((15.0, 30.0),)]
+```
+
+### Module Attributes
+
+| [`TIME_PLACES`](_autosummary/paces.corrections.html.md#paces.corrections.TIME_PLACES)            | milliseconds, the wire's resolution.                       |
+|-------------------------------------------------------------------------|------------------------------------------------------------|
+| [`DFLT_MERGE_TOLERANCE_S`](_autosummary/paces.corrections.html.md#paces.corrections.DFLT_MERGE_TOLERANCE_S) | How far a `merge` time may sit from the boundary it means. |
+| [`DFLT_MIN_STEP_S`](_autosummary/paces.corrections.html.md#paces.corrections.DFLT_MIN_STEP_S)        | The narrowest step a `split` may create.                   |
+
+### Functions
+
+| [`absent`](_autosummary/paces.corrections.html.md#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                 |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`forbid`](_autosummary/paces.corrections.html.md#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                            |
+| [`from_wire`](_autosummary/paces.corrections.html.md#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                           |
+| [`merge`](_autosummary/paces.corrections.html.md#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                          |
+| [`normalize_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.  |
+| [`pin`](_autosummary/paces.corrections.html.md#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`. |
+| [`replay`](_autosummary/paces.corrections.html.md#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                        |
+| [`split`](_autosummary/paces.corrections.html.md#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                      |
+| [`to_wire`](_autosummary/paces.corrections.html.md#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                 |
+
+### Classes
+
+| [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)(\*, verb, anchor_t[, span, ...])   | One thing a human said about a segmentation, keyed by media time.   |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+
+### *class* paces.corrections.Correction(, verb, anchor_t, span=None, step_id=None, author='', at='', media_key=None, reason='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One thing a human said about a segmentation, keyed by media time.
+
+`step_id` is for display only and is NEVER the join key: replay finds
+its target by `anchor_t`. `media_key` records which rendering of the
+media the correction was true of, so a later re-cut can migrate the log.
+Times are kept to the millisecond ([`TIME_PLACES`](_autosummary/paces.corrections.html.md#paces.corrections.TIME_PLACES)), so the wire form
+round-trips exactly.
+
+```pycon
+>>> split(0.8550444).anchor_t
+0.855
+```
+
+#### *property* label *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+`'split@95.8'` — how flags name this correction.
+
+### paces.corrections.DFLT_MERGE_TOLERANCE_S *= 1.5*
+
+How far a `merge` time may sit from the boundary it means. A human taps
+approximately; the machine finds the cut (`docs/alignment/07 §7.3` step 3
+snaps taps within ±1.5 s).
+
+### paces.corrections.DFLT_MIN_STEP_S *= 0.25*
+
+The narrowest step a `split` may create. A split closer than this to an
+existing cut is a tap on that cut, not a new step, so it is unmatched.
+
+### paces.corrections.TIME_PLACES *= 3*
+
+milliseconds, the wire’s
+resolution. Times are rounded to it at construction, so `to_wire` →
+`from_wire` is lossless (`decimal_str` writes exactly this many).
+
+* **Type:**
+  Decimal places a correction’s times keep
+
+### paces.corrections.absent(anchor_t, \*\*meta)
+
+Absent — “the step placed at `anchor_t` is not in this media”.
+
+* **Return type:**
+  [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.forbid(anchor_t, span, \*\*meta)
+
+Forbid — “the step at `anchor_t` is not in `span`”.
+
+* **Return type:**
+  [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.from_wire(wire)
+
+Parse one wire dict. Unknown or missing keys raise `ValueError` (a typo
+must not vanish, and a correction without a verb or a time is not one).
+
+```pycon
+>>> from_wire({"verb": "split", "anchorT": "95.8"}) == split(95.8)
+True
+```
+
+* **Return type:**
+  [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.merge(at_t, \*\*meta)
+
+Merge — “those are one step”: remove the cut nearest `at_t` (K -= 1).
+
+* **Return type:**
+  [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.normalize_corrections(corrections)
+
+Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.
+
+A log is a *sequence*: one correction passed bare (a mapping) is refused
+rather than iterated over its keys.
+
+```pycon
+>>> normalize_corrections({"verb": "split", "anchorT": "1"})
+Traceback (most recent call last):
+...
+ValueError: corrections must be a list of corrections, got a single mapping; wrap it in a list
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### paces.corrections.pin(span, , anchor_t=None, \*\*meta)
+
+Pin — “the step is HERE”: the step covering `anchor_t` (default: the span’s
+midpoint) occupies exactly `span`.
+
+* **Return type:**
+  [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.replay(seg, corrections, , merge_tolerance_s=1.5, min_step_s=0.25)
+
+Apply a correction log to a segmentation, in log order.
+
+Each correction acts on the result of the ones before it, as the human
+made them. Applied ones are flagged `corrected: <verb>@<t>`; one that
+finds nothing to act on is flagged `correction-unmatched`, one that
+would leave an empty, inverted or overlapping span
+`correction-infeasible` (and changes nothing). A `forbid` is judged
+against the *final* placement: `satisfied: forbid@<t>`, or
+`correction-unenforced` — moving a step elsewhere needs a solver, which
+replay is not. A pin that clips a child step out of existence says so
+(`correction-clipped`). A last consistency pass flags
+(`inconsistent:`) any empty span, any overlap between steps, and any
+step edge missing from `boundaries`.
+
+```pycon
+>>> seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),
+...                    boundaries=(0.0, 10.0))
+>>> replay(seg, [split(5), split(5.1)]).flags
+('corrected: split@5', 'correction-unmatched: split@5.1 (within 0.25 s of a cut)')
+```
+
+* **Return type:**
+  [`Segmentation`](_autosummary/paces.segmenters.html.md#paces.segmenters.Segmentation)
+
+### paces.corrections.split(at_t, \*\*meta)
+
+Split — “that is two steps”: cut the step covering `at_t` there (K += 1).
+
+* **Return type:**
+  [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.to_wire(correction)
+
+A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
 
 # _autosummary/paces.cues.html.md
@@ -1275,7 +1482,7 @@ Seconds one domain unit lasts under *grid*, or None without a tempo.
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### paces.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, catalog=None)
+### paces.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -1285,6 +1492,12 @@ result is the refused state (`flags=('no-signal', 'try: ...')`), not an
 exception.
 
 The seam: `segmenter=None` selects from what is present; a name pins it.
+
+`corrections` is a human’s correction log ([`paces.corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections)):
+constraints that survive re-runs. A segmenter that lists
+`"corrections"` in `reads` receives the log and honours it itself;
+for any other, the log is replayed over its result, and every correction
+that could not be honoured is flagged, never dropped.
 
 ```pycon
 >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
@@ -1346,19 +1559,20 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 
 ### Modules
 
-| [`cues`](_autosummary/paces.cues.html.md#module-paces.cues)             | Lexical cue segmenters: subtitles and transcripts → proposed named spans.                                                                            |
-|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`derivation`](_autosummary/paces.derivation.html.md#module-paces.derivation) | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                     |
-| [`edits`](_autosummary/paces.edits.html.md#module-paces.edits)           | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                 |
-| [`excerpts`](_autosummary/paces.excerpts.html.md#module-paces.excerpts)     | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                       |
-| [`measure`](_autosummary/paces.measure.html.md#module-paces.measure)       | Measure a [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid) from the media itself.                                  |
-| [`model`](_autosummary/paces.model.html.md#module-paces.model)           | The paces intermediate representation: the `StepDocument`.                                                                                           |
-| [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)             | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                            |
-| [`projection`](_autosummary/paces.projection.html.md#module-paces.projection) | The projection from analysis result to document: `to_document`.                                                                                      |
-| [`render`](_autosummary/paces.render.html.md#module-paces.render)         | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                              |
-| [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters) | Segmentation is a seam, not a stage (ADR-0003).                                                                                                      |
-| [`timed_text`](_autosummary/paces.timed_text.html.md#module-paces.timed_text) | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                 |
-| [`tools`](_autosummary/paces.tools.html.md#module-paces.tools)           | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic. |
+| [`corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections)   | Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).                                                                       |
+|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`cues`](_autosummary/paces.cues.html.md#module-paces.cues)                 | Lexical cue segmenters: subtitles and transcripts → proposed named spans.                                                                            |
+| [`derivation`](_autosummary/paces.derivation.html.md#module-paces.derivation)     | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                     |
+| [`edits`](_autosummary/paces.edits.html.md#module-paces.edits)               | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                 |
+| [`excerpts`](_autosummary/paces.excerpts.html.md#module-paces.excerpts)         | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                       |
+| [`measure`](_autosummary/paces.measure.html.md#module-paces.measure)           | Measure a [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid) from the media itself.                                  |
+| [`model`](_autosummary/paces.model.html.md#module-paces.model)               | The paces intermediate representation: the `StepDocument`.                                                                                           |
+| [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                            |
+| [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)     | The projection from analysis result to document: `to_document`.                                                                                      |
+| [`render`](_autosummary/paces.render.html.md#module-paces.render)             | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                              |
+| [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters)     | Segmentation is a seam, not a stage (ADR-0003).                                                                                                      |
+| [`timed_text`](_autosummary/paces.timed_text.html.md#module-paces.timed_text)     | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                 |
+| [`tools`](_autosummary/paces.tools.html.md#module-paces.tools)               | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic. |
 
 
 # _autosummary/paces.measure.html.md
@@ -2189,7 +2403,7 @@ Register a segmentation capability; returns it for assignment.
 * **Return type:**
   [`Capability`](_autosummary/paces.segmenters.html.md#paces.segmenters.Capability)
 
-### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, catalog=None)
+### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -2199,6 +2413,12 @@ result is the refused state (`flags=('no-signal', 'try: ...')`), not an
 exception.
 
 The seam: `segmenter=None` selects from what is present; a name pins it.
+
+`corrections` is a human’s correction log ([`paces.corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections)):
+constraints that survive re-runs. A segmenter that lists
+`"corrections"` in `reads` receives the log and honours it itself;
+for any other, the log is replayed over its result, and every correction
+that could not be honoured is flagged, never dropped.
 
 ```pycon
 >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
@@ -2374,7 +2594,7 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, output=None)
+### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, output=None)
 
 Cut media into steps using whatever else is present (ADR-0003).
 
@@ -2384,7 +2604,10 @@ yt-dlp `.info.json` (its `chapters` become a named segmentation) or
 `{"subtitles": <SRT text | .srt/.vtt path | cue list>}`. `transcript`
 is timed text — SRT text, an `.srt`/`.vtt` path, or JSON cues
 `[{"start", "end", "text"}]` — read for step markers (“now”, “next”).
-Returns the segmentation as a JSON-ready dict (also written to
+`corrections` is a human’s correction log — a JSON list of
+`{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}`
+(inline, or a path) — replayed as constraints; any it could not honour
+is reported in `flags`. Returns the segmentation as a JSON-ready dict (also written to
 `output=` when given) — honest about naming
 (`flags: ['naming-abstained']`) and about refusal
 (`flags: ['no-signal', 'try: ...']`); never a fabricated step list.
@@ -2428,7 +2651,7 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-02 15:56 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/786281bd00886c2038c350f61b17142c5a298e35"><code>786281b</code></a> on branch <code>main</code>, for **paces 0.0.15** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 16:29 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/68a5e7dff781c3653253d58c141fdd1bc9cb346f"><code>68a5e7d</code></a> on branch <code>main</code>, for **paces 0.0.16** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -2437,9 +2660,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/786281bd00886c2038c350f61b17142c5a298e35"><code>786281bd00886c2038c350f61b17142c5a298e35</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/68a5e7dff781c3653253d58c141fdd1bc9cb346f"><code>68a5e7dff781c3653253d58c141fdd1bc9cb346f</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.15</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.16</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -2448,9 +2671,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41475880152">41475880152</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41481081928">41481081928</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>24e0cca27dab5c2b2c07ac366425f7313861269f</code> (in the history of the built commit) |
+| Event commit | <code>f4882f63551f935c13c20d0d7b92e75c0cb5eb0c</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -2475,13 +2698,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.15/">0.0.15</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.16/">0.0.16</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 786281bd00886c2038c350f61b17142c5a298e35
+git checkout 68a5e7dff781c3653253d58c141fdd1bc9cb346f
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

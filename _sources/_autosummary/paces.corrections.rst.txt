@@ -1,0 +1,34 @@
+paces.corrections
+=================
+
+.. automodule:: paces.corrections
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TIME_PLACES
+      DFLT_MERGE_TOLERANCE_S
+      DFLT_MIN_STEP_S
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      absent
+      forbid
+      from_wire
+      merge
+      normalize_corrections
+      pin
+      replay
+      split
+      to_wire
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Correction
+   

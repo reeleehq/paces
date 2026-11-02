@@ -6,6 +6,7 @@
 ## Pages in this subsection
 
 - [paces](paces.html.md): Turn instructional media into structured, interactive learning material.
+- [paces.corrections](paces.corrections.html.md): Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).
 - [paces.cues](paces.cues.html.md): Lexical cue segmenters: subtitles and transcripts → proposed named spans.
 - [paces.derivation](paces.derivation.html.md): Media derivation: fill
 - [paces.edits](paces.edits.html.md): Document-layer edit protection: typed patches write Locks; regeneration

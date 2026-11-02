@@ -95,7 +95,7 @@ Register a segmentation capability; returns it for assignment.
 * **Return type:**
   [`Capability`](#paces.segmenters.Capability)
 
-### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, catalog=None)
+### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -105,6 +105,12 @@ result is the refused state (`flags=('no-signal', 'try: ...')`), not an
 exception.
 
 The seam: `segmenter=None` selects from what is present; a name pins it.
+
+`corrections` is a human’s correction log ([`paces.corrections`](paces.corrections.html.md#module-paces.corrections)):
+constraints that survive re-runs. A segmenter that lists
+`"corrections"` in `reads` receives the log and honours it itself;
+for any other, the log is replayed over its result, and every correction
+that could not be honoured is flagged, never dropped.
 
 ```pycon
 >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
