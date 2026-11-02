@@ -37,12 +37,13 @@ by an exception.
 
 ### Functions
 
-| [`capabilities`](#paces.segmenters.capabilities)()                          | The registered capability catalog (read-only view).                      |
-|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`place_on_grid`](#paces.segmenters.place_on_grid)(steps, grid)              | Place an ordered step list on the timeline using a metric grid.          |
-| [`register`](#paces.segmenters.register)(capability)                    | Register a segmentation capability; returns it for assignment.           |
-| [`segment`](#paces.segmenters.segment)([media, segmenter, steps, ...]) | Cut *media* into named steps, using whatever else is present.            |
-| [`unique_slug_ids`](#paces.segmenters.unique_slug_ids)(names, \*[, fallback])  | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`. |
+| [`capabilities`](#paces.segmenters.capabilities)()                                | The registered capability catalog (read-only view).                                                                                |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| [`check_step_durations`](#paces.segmenters.check_step_durations)(rows, \*[, who])         | Raise `ValueError` unless every (nested) row has a positive, finite duration — the precondition for placing a step list on a grid. |
+| [`place_on_grid`](#paces.segmenters.place_on_grid)(steps, grid)                    | Place an ordered step list on the timeline using a metric grid.                                                                    |
+| [`register`](#paces.segmenters.register)(capability)                          | Register a segmentation capability; returns it for assignment.                                                                     |
+| [`segment`](#paces.segmenters.segment)([media, segmenter, steps, ...])       | Cut *media* into named steps, using whatever else is present.                                                                      |
+| [`unique_slug_ids`](#paces.segmenters.unique_slug_ids)(names, \*[, fallback, taken]) | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.                                                           |
 
 ### Classes
 
@@ -66,6 +67,16 @@ The registered capability catalog (read-only view).
 
 * **Return type:**
   [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Capability`](#paces.segmenters.Capability)]
+
+### paces.segmenters.check_step_durations(rows, , who='place_on_grid')
+
+Raise `ValueError` unless every (nested) row has a positive, finite
+duration — the precondition for placing a step list on a grid. `rows`
+are normalised step rows (what [`segment()`](#paces.segmenters.segment) hands a segmenter in
+`inputs["steps"]`), not the raw forms [`segment()`](#paces.segmenters.segment) accepts.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### paces.segmenters.place_on_grid(steps, grid)
 
@@ -122,13 +133,20 @@ that could not be honoured is flagged, never dropped.
 * **Return type:**
   [`Segmentation`](paces.segmentation.html.md#paces.segmentation.Segmentation)
 
-### paces.segmenters.unique_slug_ids(names, , fallback='step')
+### paces.segmenters.unique_slug_ids(names, , fallback='step', taken=())
 
 One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.
+
+An id already in `taken` (or produced earlier in this call) gets a
+`-2`, `-3`… suffix — the first one free. `taken` is only read.
 
 ```pycon
 >>> unique_slug_ids(["Turn", "", "Turn"], fallback="cue")
 ['turn', 'cue-2', 'turn-2']
+>>> unique_slug_ids(["Turn", "Turn", "Turn 2"])
+['turn', 'turn-2', 'turn-2-2']
+>>> unique_slug_ids(["Turn"], taken={"turn"})
+['turn-2']
 ```
 
 * **Return type:**

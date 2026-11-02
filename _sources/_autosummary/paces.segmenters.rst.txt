@@ -9,6 +9,7 @@ paces.segmenters
    .. autosummary::
    
       capabilities
+      check_step_durations
       place_on_grid
       register
       segment
