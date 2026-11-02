@@ -12,11 +12,11 @@ working.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from paces.model import MetricGrid
+from paces.model import MetricGrid, decimal_str
 
 __all__ = [
     "DFLT_CHAPTERS_CONFIDENCE",
@@ -25,6 +25,9 @@ __all__ = [
     "SegStep",
     "Segmentation",
     "Span",
+    "edges",
+    "inconsistencies",
+    "overlaps",
 ]
 
 Span = tuple[float, float]  # seconds, half-open
@@ -72,3 +75,65 @@ class Segmentation:
     flags: tuple[str, ...] = ()  # 'naming-abstained', 'no-signal', 'try: ...'
     elapsed_s: float = 0.0
     spent_usd: float = 0.0
+
+
+# ── consistency: what no segmentation may contain ───────────────────────────
+
+
+def edges(steps: Iterable[SegStep]) -> set[float]:
+    """Every span start and end of ``steps`` (top level)."""
+    return {t for step in steps for span in step.spans for t in span}
+
+
+def overlaps(a: Span, b: Span) -> bool:
+    """True when the two spans share a positive length of time."""
+    return max(a[0], b[0]) < min(a[1], b[1])
+
+
+def inconsistencies(seg: Segmentation) -> tuple[str, ...]:
+    """What no segmentation may contain, as ``inconsistent:`` flags — never
+    repaired, never raised: empty spans, spans of different steps that
+    overlap, children outside their parent, and step edges missing from
+    ``boundaries``. :func:`paces.segmenters.segment` runs it on every result,
+    whichever segmenter produced it and whether or not a correction log ran.
+
+    >>> inconsistencies(Segmentation(
+    ...     steps=(SegStep(id="a", spans=((0.0, 10.0),)),
+    ...            SegStep(id="b", spans=((8.0, 20.0),))),
+    ...     boundaries=(0.0, 10.0, 20.0)))
+    ("inconsistent: steps 'a' and 'b' overlap (8–10)", 'inconsistent: step edges not in boundaries: 8')
+    """
+
+    def _t(t: float) -> str:
+        return decimal_str(t, places=3)
+
+    spans = sorted((span, step.id) for step in seg.steps for span in step.spans)
+    flags = [
+        f"inconsistent: step {step_id!r} has an empty span at {_t(span[0])}"
+        for span, step_id in spans
+        if span[0] >= span[1]
+    ]
+    # A sweep, not all pairs: it runs on every segmentation, and subtitle
+    # cues can make thousands of steps. Only spans still open can overlap.
+    active: list[tuple[Span, str]] = []
+    for b, b_id in spans:
+        active = [(a, a_id) for a, a_id in active if a[1] > b[0]]
+        flags += [
+            f"inconsistent: steps {a_id!r} and {b_id!r} overlap "
+            f"({_t(max(a[0], b[0]))}–{_t(min(a[1], b[1]))})"
+            for a, a_id in active
+            if a_id != b_id and overlaps(a, b)
+        ]
+        active.append((b, b_id))
+    flags += [
+        f"inconsistent: child {child.id!r} of {step.id!r} lies outside its parent"
+        for step in seg.steps
+        for child in step.children
+        for span in child.spans
+        if not any(p[0] <= span[0] and span[1] <= p[1] for p in step.spans)
+    ]
+    missing = sorted(edges(seg.steps) - set(seg.boundaries))
+    if missing:
+        listed = ", ".join(_t(t) for t in missing)
+        flags.append(f"inconsistent: step edges not in boundaries: {listed}")
+    return tuple(flags)

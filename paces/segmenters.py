@@ -53,6 +53,7 @@ from paces.segmentation import (  # noqa: F401 — re-exported; their home is th
     SegStep,
     Segmentation,
     Span,
+    inconsistencies,
 )
 from paces.timed_text import normalize_timed_text
 
@@ -589,7 +590,7 @@ def segment(
         grid=out_grid,
         confidence=result.confidence,
         method=capability.name,
-        flags=result.flags + extra_flags,
+        flags=result.flags + extra_flags + inconsistencies(result),
         elapsed_s=time.perf_counter() - started,
         spent_usd=result.spent_usd,
     )

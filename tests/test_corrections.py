@@ -19,6 +19,7 @@ from paces.corrections import (
     split,
     to_wire,
 )
+from paces.segmentation import inconsistencies
 from paces.segmenters import Capability, Segmentation, SegStep, segment
 
 CUTS = [0, 10, 20, 30]
@@ -336,7 +337,8 @@ def test_pin_moves_only_the_abutting_time_order_neighbours():
     out = replay(overlapping, [pin((5, 20), anchor_t=15)])
     assert [s.spans for s in out.steps] == [s.spans for s in overlapping.steps]
     assert _flagged(out, "correction-infeasible: pin@15 (would overlap step 'x')")
-    assert _flagged(out, "inconsistent: steps")  # the input itself overlapped
+    # the input itself overlapped: segment() says so, replay does not check
+    assert any(f.startswith("inconsistent: steps") for f in inconsistencies(out))
 
 
 def test_pin_clips_its_children_and_flags_any_it_drops():
@@ -468,15 +470,18 @@ def test_a_boundaries_only_segmentation_can_still_be_split_and_merged():
     assert out.flags == ("corrected: merge@10", "corrected: split@5")
 
 
-def test_the_consistency_pass_flags_what_replay_cannot_repair():
+def test_the_consistency_check_flags_what_replay_cannot_repair():
     seg = _seg(
         SegStep(id="a", spans=((0.0, 10.0),)),
         SegStep(id="b", spans=((8.0, 20.0),)),
         boundaries=(0.0, 10.0, 20.0),
     )
     out = replay(seg, [absent(25)])
-    assert "inconsistent: steps 'a' and 'b' overlap (8–10)" in out.flags
-    assert "inconsistent: step edges not in boundaries: 8" in out.flags
+    assert inconsistencies(out) == (
+        "inconsistent: steps 'a' and 'b' overlap (8–10)",
+        "inconsistent: step edges not in boundaries: 8",
+    )
+    assert not _flagged(out, "inconsistent")  # checking is segment()'s job
 
 
 def test_corrections_land_on_grid_placed_results():
@@ -563,7 +568,7 @@ def test_split_trims_a_child_that_straddles_the_cut():
     assert not _flagged(out, "inconsistent")
 
 
-def test_the_consistency_pass_flags_a_child_outside_its_parent():
+def test_the_consistency_check_flags_a_child_outside_its_parent():
     seg = _seg(
         SegStep(
             id="v",
@@ -572,7 +577,9 @@ def test_the_consistency_pass_flags_a_child_outside_its_parent():
         )
     )
     out = replay(seg, [absent(99)])
-    assert "inconsistent: child 'c' of 'v' lies outside its parent" in out.flags
+    assert "inconsistent: child 'c' of 'v' lies outside its parent" in (
+        inconsistencies(out)
+    )
 
 
 def test_merge_into_a_named_step_keeps_that_steps_record():
@@ -615,3 +622,46 @@ def test_merge_exactly_on_an_end_of_a_boundaries_only_segmentation_is_unmatched(
     assert out.flags == (
         "correction-unmatched: merge@11 (that is an end, not a cut between steps)",
     )
+
+
+# ── #36: a log that changes nothing leaves the output alone ─────────────────
+
+
+def test_a_no_op_log_leaves_the_output_exactly_as_without_one():
+    plain = segment(boundaries=[0, 10, 10, 20])  # a duplicate cut: an empty step
+    logged = segment(boundaries=[0, 10, 10, 20], corrections=[absent(99)])
+    assert logged.boundaries == plain.boundaries == (0.0, 10.0, 10.0, 20.0)
+    assert logged.steps == plain.steps
+    assert [f for f in logged.flags if not f.startswith("correction-")] == list(
+        plain.flags
+    )
+
+
+def test_every_segmentation_is_checked_log_or_not():
+    """The consistency check runs on every result, not only after a replay."""
+    plain = segment(boundaries=[0, 10, 10, 20])
+    assert "inconsistent: step 'seg-2' has an empty span at 10" in plain.flags
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"verb": "split", "anchor_t": True},
+        {"verb": "split", "anchor_t": 1.0, "author": 5},
+        {"verb": "split", "anchor_t": 1.0, "step_id": 3},
+    ],
+)
+def test_correction_fields_have_their_types(kwargs):
+    with pytest.raises(ValueError, match="must be"):
+        Correction(**kwargs)
+
+
+def test_the_overlap_check_scales_to_thousands_of_steps():
+    import time
+
+    n = 5000
+    steps = tuple(SegStep(id=f"s{i}", spans=((float(i), i + 1.0),)) for i in range(n))
+    seg = Segmentation(steps=steps, boundaries=tuple(float(i) for i in range(n + 1)))
+    started = time.perf_counter()
+    assert inconsistencies(seg) == ()
+    assert time.perf_counter() - started < 1.0  # all-pairs took ~seconds here
