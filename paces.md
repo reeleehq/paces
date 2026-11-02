@@ -1,4 +1,4 @@
-> built 2026-11-02 17:17 UTC from 787dd2a (main) · paces 0.0.18. Details: build_info.json
+> built 2026-11-02 17:30 UTC from 8436b0a (main) · paces 0.0.19. Details: build_info.json
 
 # index.html.md
 
@@ -535,7 +535,7 @@ step edge missing from `boundaries`.
 ```
 
 * **Return type:**
-  [`Segmentation`](_autosummary/paces.segmenters.html.md#paces.segmenters.Segmentation)
+  [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation)
 
 ### paces.corrections.split(at_t, \*\*meta)
 
@@ -1655,7 +1655,7 @@ that could not be honoured is flagged, never dropped.
 ```
 
 * **Return type:**
-  [`Segmentation`](_autosummary/paces.segmenters.html.md#paces.segmenters.Segmentation)
+  [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation)
 
 ### paces.suggest_excerpts(document, , units=None, role='performance', overwrite=False)
 
@@ -1708,21 +1708,22 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 
 ### Modules
 
-| [`ask`](_autosummary/paces.ask.html.md#module-paces.ask)                 | The ask segmenter's interaction half: what the machine proposes, and the page a human answers it on (issue #10, `docs/alignment/07 §7.2–7.4`).       |
-|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections) | Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).                                                                       |
-| [`cues`](_autosummary/paces.cues.html.md#module-paces.cues)               | Lexical cue segmenters: subtitles and transcripts → proposed named spans.                                                                            |
-| [`derivation`](_autosummary/paces.derivation.html.md#module-paces.derivation)   | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                     |
-| [`edits`](_autosummary/paces.edits.html.md#module-paces.edits)             | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                 |
-| [`excerpts`](_autosummary/paces.excerpts.html.md#module-paces.excerpts)       | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                       |
-| [`measure`](_autosummary/paces.measure.html.md#module-paces.measure)         | Measure a [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid) from the media itself.                                  |
-| [`model`](_autosummary/paces.model.html.md#module-paces.model)             | The paces intermediate representation: the `StepDocument`.                                                                                           |
-| [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)               | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                            |
-| [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)   | The projection from analysis result to document: `to_document`.                                                                                      |
-| [`render`](_autosummary/paces.render.html.md#module-paces.render)           | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                              |
-| [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters)   | Segmentation is a seam, not a stage (ADR-0003).                                                                                                      |
-| [`timed_text`](_autosummary/paces.timed_text.html.md#module-paces.timed_text)   | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                 |
-| [`tools`](_autosummary/paces.tools.html.md#module-paces.tools)             | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic. |
+| [`ask`](_autosummary/paces.ask.html.md#module-paces.ask)                   | The ask segmenter's interaction half: what the machine proposes, and the page a human answers it on (issue #10, `docs/alignment/07 §7.2–7.4`).                                                                                          |
+|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections)   | Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).                                                                                                                                                          |
+| [`cues`](_autosummary/paces.cues.html.md#module-paces.cues)                 | Lexical cue segmenters: subtitles and transcripts → proposed named spans.                                                                                                                                                               |
+| [`derivation`](_autosummary/paces.derivation.html.md#module-paces.derivation)     | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                                                                                                        |
+| [`edits`](_autosummary/paces.edits.html.md#module-paces.edits)               | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                                                                                                    |
+| [`excerpts`](_autosummary/paces.excerpts.html.md#module-paces.excerpts)         | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                                                                                                          |
+| [`measure`](_autosummary/paces.measure.html.md#module-paces.measure)           | Measure a [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid) from the media itself.                                                                                                                     |
+| [`model`](_autosummary/paces.model.html.md#module-paces.model)               | The paces intermediate representation: the `StepDocument`.                                                                                                                                                                              |
+| [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                                                                                                               |
+| [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)     | The projection from analysis result to document: `to_document`.                                                                                                                                                                         |
+| [`render`](_autosummary/paces.render.html.md#module-paces.render)             | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                                                                                                                 |
+| [`segmentation`](_autosummary/paces.segmentation.html.md#module-paces.segmentation) | What a segmenter returns: [`Segmentation`](_autosummary/paces.html.md#paces.Segmentation), its [`SegStep`](_autosummary/paces.html.md#paces.SegStep) records and the `Span` they cover — the analysis-result types, with nothing else. |
+| [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters)     | Segmentation is a seam, not a stage (ADR-0003).                                                                                                                                                                                         |
+| [`timed_text`](_autosummary/paces.timed_text.html.md#module-paces.timed_text)     | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                                                                                                    |
+| [`tools`](_autosummary/paces.tools.html.md#module-paces.tools)               | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic.                                                                                    |
 
 
 # _autosummary/paces.measure.html.md
@@ -2456,6 +2457,48 @@ derived clips arrive via `ArtifactRef` when the media layer exists.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
+# _autosummary/paces.segmentation.html.md
+
+# paces.segmentation
+
+What a segmenter returns: [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation), its [`SegStep`](_autosummary/paces.segmentation.html.md#paces.segmentation.SegStep) records and
+the `Span` they cover — the analysis-result types, with nothing else.
+
+They live apart from [`paces.segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters) (the registry and the
+`segment()` facade) so a module that only consumes or reshapes a result —
+[`paces.corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections), [`paces.projection`](_autosummary/paces.projection.html.md#module-paces.projection), [`paces.ask`](_autosummary/paces.ask.html.md#module-paces.ask), the
+evidence layer — depends on the types and not on the facade, and the facade
+can import those modules without a cycle. [`paces.segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters) re-exports
+every name here, so `from paces.segmenters import Segmentation` keeps
+working.
+
+### Classes
+
+| [`SegStep`](_autosummary/paces.segmentation.html.md#paces.segmentation.SegStep)(\*, id[, name, spans, confidence, ...])   | One named piece of the media, as an analysis result.   |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation)(\*[, steps, boundaries, unit, ...])  | What every segmenter returns.                          |
+
+### *class* paces.segmentation.SegStep(, id, name='', spans=(), confidence=0.0, children=(), source='', evidence=dict())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One named piece of the media, as an analysis result.
+
+`name=''` means “found, not named” — a VALID state, not an error.
+`spans` is a tuple because a step legitimately appears in several places
+(run-through AND breakdown).
+
+### *class* paces.segmentation.Segmentation(, steps=(), boundaries=(), unit='seconds', grid=None, confidence=0.0, method='', flags=(), elapsed_s=0.0, spent_usd=0.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What every segmenter returns. Reviewable, re-runnable, arguable.
+
+`boundaries` is separate from `steps` and populated even when naming
+failed: nine excellent unnamed cuts are a useful, honest result. `steps`
+may be empty while `boundaries` is not.
+
+
 # _autosummary/paces.segmenters.html.md
 
 # paces.segmenters
@@ -2505,10 +2548,8 @@ by an exception.
 
 ### Classes
 
-| [`Capability`](_autosummary/paces.segmenters.html.md#paces.segmenters.Capability)(\*, name, gives, summary, target)     | What one method needs, gives, and costs.             |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| [`SegStep`](_autosummary/paces.segmenters.html.md#paces.segmenters.SegStep)(\*, id[, name, spans, confidence, ...])  | One named piece of the media, as an analysis result. |
-| [`Segmentation`](_autosummary/paces.segmenters.html.md#paces.segmenters.Segmentation)(\*[, steps, boundaries, unit, ...]) | What every segmenter returns.                        |
+| [`Capability`](_autosummary/paces.segmenters.html.md#paces.segmenters.Capability)(\*, name, gives, summary, target)   | What one method needs, gives, and costs.   |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------|
 
 ### *class* paces.segmenters.Capability(, name, gives, summary, target, needs=frozenset({}), reads=frozenset({}), boosts=dict(), requires=(), licence='MIT', base=0.0, s_per_min=0.0, usd_per_hour=0.0, device='cpu', fixed_s=0.0, resolution_s=1.0, calibrated_on=None)
 
@@ -2520,26 +2561,6 @@ The record from `docs/alignment/06 §1.2`, reused unchanged so the
 eventual planner and the segmenter registry share one declaration format.
 `target` is a lazy `"module:func"` ref — listing a heavy capability
 must not import its dependencies.
-
-### *class* paces.segmenters.SegStep(, id, name='', spans=(), confidence=0.0, children=(), source='', evidence=dict())
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One named piece of the media, as an analysis result.
-
-`name=''` means “found, not named” — a VALID state, not an error.
-`spans` is a tuple because a step legitimately appears in several places
-(run-through AND breakdown).
-
-### *class* paces.segmenters.Segmentation(, steps=(), boundaries=(), unit='seconds', grid=None, confidence=0.0, method='', flags=(), elapsed_s=0.0, spent_usd=0.0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-What every segmenter returns. Reviewable, re-runnable, arguable.
-
-`boundaries` is separate from `steps` and populated even when naming
-failed: nine excellent unnamed cuts are a useful, honest result. `steps`
-may be empty while `boundaries` is not.
 
 ### paces.segmenters.capabilities()
 
@@ -2559,7 +2580,7 @@ Register a segmentation capability; returns it for assignment.
 
 Cut *media* into named steps, using whatever else is present.
 
-Returns a [`Segmentation`](_autosummary/paces.segmenters.html.md#paces.segmenters.Segmentation) ALWAYS. A segmenter that cannot name the
+Returns a `Segmentation` ALWAYS. A segmenter that cannot name the
 steps returns `boundaries` and `steps=()`; when nothing applies the
 result is the refused state (`flags=('no-signal', 'try: ...')`), not an
 exception.
@@ -2579,7 +2600,7 @@ that could not be honoured is flagged, never dropped.
 ```
 
 * **Return type:**
-  [`Segmentation`](_autosummary/paces.segmenters.html.md#paces.segmenters.Segmentation)
+  [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation)
 
 ### paces.segmenters.unique_slug_ids(names, , fallback='step')
 
@@ -2823,18 +2844,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-02 17:17 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/787dd2a36a0a49dd5efe81a3a481d8efb49ecf34"><code>787dd2a</code></a> on branch <code>main</code>, for **paces 0.0.18** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 17:30 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/8436b0ac9ef69a39635061c77bbdf494bed2a65e"><code>8436b0a</code></a> on branch <code>main</code>, for **paces 0.0.19** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.19) is ahead of the latest release on PyPI (0.0.18): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/787dd2a36a0a49dd5efe81a3a481d8efb49ecf34"><code>787dd2a36a0a49dd5efe81a3a481d8efb49ecf34</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/8436b0ac9ef69a39635061c77bbdf494bed2a65e"><code>8436b0ac9ef69a39635061c77bbdf494bed2a65e</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.18</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.19</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -2843,9 +2866,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41488968932">41488968932</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41490751038">41490751038</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>bd192f8e1393b0d47b94e7696f042e1d590797ce</code> (in the history of the built commit) |
+| Event commit | <code>93ff984ef4d0176ee958406c09907ba34efa5398</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -2870,13 +2893,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.18/">0.0.18</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.18/">0.0.18</a>, older than the documented version (0.0.19).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 787dd2a36a0a49dd5efe81a3a481d8efb49ecf34
+git checkout 8436b0ac9ef69a39635061c77bbdf494bed2a65e
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

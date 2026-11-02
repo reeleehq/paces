@@ -18,6 +18,4 @@ paces.segmenters
    .. autosummary::
    
       Capability
-      SegStep
-      Segmentation
    

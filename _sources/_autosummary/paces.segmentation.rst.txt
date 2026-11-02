@@ -1,0 +1,13 @@
+paces.segmentation
+==================
+
+.. automodule:: paces.segmentation
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SegStep
+      Segmentation
+   

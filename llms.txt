@@ -19,11 +19,12 @@
 - [paces.pose](_autosummary/paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.
 - [paces.projection](_autosummary/paces.projection.html.md): The projection from analysis result to document: &#96;to_document&#96;.
 - [paces.render](_autosummary/paces.render.html.md): Render a &#96;StepDocument&#96; into learning material.
+- [paces.segmentation](_autosummary/paces.segmentation.html.md): What a segmenter returns: &#96;Segmentation&#96;, its &#96;SegStep&#96; records and
 - [paces.segmenters](_autosummary/paces.segmenters.html.md): Segmentation is a seam, not a stage (ADR-0003).
 - [paces.timed_text](_autosummary/paces.timed_text.html.md): Timed-text normalisation: any subtitle/transcript shape → &#96;{start, end, text}&#96; rows.
 - [paces.tools](_autosummary/paces.tools.html.md): Agent-callable tool surface over &#96;paces&#96; — plain functions with JSON-able
 - [For AI agents](ai-agents.html.md): &#96;paces&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-02 17:17 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-02 17:30 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

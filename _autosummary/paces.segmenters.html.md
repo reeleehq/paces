@@ -45,10 +45,8 @@ by an exception.
 
 ### Classes
 
-| [`Capability`](#paces.segmenters.Capability)(\*, name, gives, summary, target)     | What one method needs, gives, and costs.             |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| [`SegStep`](#paces.segmenters.SegStep)(\*, id[, name, spans, confidence, ...])  | One named piece of the media, as an analysis result. |
-| [`Segmentation`](#paces.segmenters.Segmentation)(\*[, steps, boundaries, unit, ...]) | What every segmenter returns.                        |
+| [`Capability`](#paces.segmenters.Capability)(\*, name, gives, summary, target)   | What one method needs, gives, and costs.   |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------|
 
 ### *class* paces.segmenters.Capability(, name, gives, summary, target, needs=frozenset({}), reads=frozenset({}), boosts=dict(), requires=(), licence='MIT', base=0.0, s_per_min=0.0, usd_per_hour=0.0, device='cpu', fixed_s=0.0, resolution_s=1.0, calibrated_on=None)
 
@@ -60,26 +58,6 @@ The record from `docs/alignment/06 §1.2`, reused unchanged so the
 eventual planner and the segmenter registry share one declaration format.
 `target` is a lazy `"module:func"` ref — listing a heavy capability
 must not import its dependencies.
-
-### *class* paces.segmenters.SegStep(, id, name='', spans=(), confidence=0.0, children=(), source='', evidence=dict())
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-One named piece of the media, as an analysis result.
-
-`name=''` means “found, not named” — a VALID state, not an error.
-`spans` is a tuple because a step legitimately appears in several places
-(run-through AND breakdown).
-
-### *class* paces.segmenters.Segmentation(, steps=(), boundaries=(), unit='seconds', grid=None, confidence=0.0, method='', flags=(), elapsed_s=0.0, spent_usd=0.0)
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-What every segmenter returns. Reviewable, re-runnable, arguable.
-
-`boundaries` is separate from `steps` and populated even when naming
-failed: nine excellent unnamed cuts are a useful, honest result. `steps`
-may be empty while `boundaries` is not.
 
 ### paces.segmenters.capabilities()
 
@@ -99,7 +77,7 @@ Register a segmentation capability; returns it for assignment.
 
 Cut *media* into named steps, using whatever else is present.
 
-Returns a [`Segmentation`](#paces.segmenters.Segmentation) ALWAYS. A segmenter that cannot name the
+Returns a `Segmentation` ALWAYS. A segmenter that cannot name the
 steps returns `boundaries` and `steps=()`; when nothing applies the
 result is the refused state (`flags=('no-signal', 'try: ...')`), not an
 exception.
@@ -119,7 +97,7 @@ that could not be honoured is flagged, never dropped.
 ```
 
 * **Return type:**
-  [`Segmentation`](#paces.segmenters.Segmentation)
+  [`Segmentation`](paces.segmentation.html.md#paces.segmentation.Segmentation)
 
 ### paces.segmenters.unique_slug_ids(names, , fallback='step')
 

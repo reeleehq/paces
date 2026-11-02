@@ -72,6 +72,7 @@
    pose
    projection
    render
+   segmentation
    segmenters
    timed_text
    tools

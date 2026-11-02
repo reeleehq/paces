@@ -186,7 +186,7 @@ step edge missing from `boundaries`.
 ```
 
 * **Return type:**
-  [`Segmentation`](paces.segmenters.html.md#paces.segmenters.Segmentation)
+  [`Segmentation`](paces.segmentation.html.md#paces.segmentation.Segmentation)
 
 ### paces.corrections.split(at_t, \*\*meta)
 

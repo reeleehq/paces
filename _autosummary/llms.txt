@@ -17,6 +17,7 @@
 - [paces.pose](paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.
 - [paces.projection](paces.projection.html.md): The projection from analysis result to document: &#96;to_document&#96;.
 - [paces.render](paces.render.html.md): Render a &#96;StepDocument&#96; into learning material.
+- [paces.segmentation](paces.segmentation.html.md): What a segmenter returns: &#96;Segmentation&#96;, its &#96;SegStep&#96; records and
 - [paces.segmenters](paces.segmenters.html.md): Segmentation is a seam, not a stage (ADR-0003).
 - [paces.timed_text](paces.timed_text.html.md): Timed-text normalisation: any subtitle/transcript shape → &#96;{start, end, text}&#96; rows.
 - [paces.tools](paces.tools.html.md): Agent-callable tool surface over &#96;paces&#96; — plain functions with JSON-able
