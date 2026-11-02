@@ -66,6 +66,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="_autosummary/paces.html">paces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/paces.ask.html">paces.ask</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/paces.corrections.html">paces.corrections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="_autosummary/paces.derivation.html">paces.derivation</a></li>
@@ -303,40 +304,43 @@ decisions, not measurements. Full table and rationale in
 <tr class="row-even"><td><p>keep a human’s corrections across re-runs</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">segment(...,</span> <span class="pre">corrections=[split(t),</span> <span class="pre">merge(t),</span> <span class="pre">pin((s,</span> <span class="pre">e)),</span> <span class="pre">forbid(t,</span> <span class="pre">(s,</span> <span class="pre">e)),</span> <span class="pre">absent(t)])</span></code> — from <code class="docutils literal notranslate"><span class="pre">paces.corrections</span></code>; a time-keyed log, replayed as constraints, anything it could not honour flagged</p></td>
 </tr>
-<tr class="row-odd"><td><p>use the video’s own chapters</p></td>
+<tr class="row-odd"><td><p>ask a human to check a segmentation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paces</span> <span class="pre">ask</span> <span class="pre">seg.json</span> <span class="pre">--media</span> <span class="pre">video.mp4</span> <span class="pre">--output</span> <span class="pre">ask.html</span></code> → they confirm the step count, tap along to add cuts (or, when nothing was found, tap the cuts themselves), strike wrong ones → <code class="docutils literal notranslate"><span class="pre">answers.json</span></code> → <code class="docutils literal notranslate"><span class="pre">paces</span> <span class="pre">segment</span> <span class="pre">...</span> <span class="pre">--answers</span> <span class="pre">answers.json</span></code>. The versioned proposal/answers JSON (<code class="docutils literal notranslate"><span class="pre">load_answers</span></code> → <code class="docutils literal notranslate"><span class="pre">Answers(k,</span> <span class="pre">corrections,</span> <span class="pre">boundaries)</span></code>) is the contract any other UI (or an agent) can speak</p></td>
+</tr>
+<tr class="row-even"><td><p>use the video’s own chapters</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">segment(media,</span> <span class="pre">metadata=&lt;yt-dlp</span> <span class="pre">info.json&gt;)</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>measure the grid from the media</p></td>
+<tr class="row-odd"><td><p>measure the grid from the media</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">segment(local_media,</span> <span class="pre">steps=[(name,</span> <span class="pre">counts),</span> <span class="pre">...])</span></code> — no grid needed; tempo + structure measured, origin estimated and flagged (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">paces[audio]</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p>protect edits from regeneration</p></td>
+<tr class="row-even"><td><p>protect edits from regeneration</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">apply_edits(doc,</span> <span class="pre">patches,</span> <span class="pre">by=&quot;user:you&quot;)</span></code> + <code class="docutils literal notranslate"><span class="pre">merge_regenerated(committed,</span> <span class="pre">fresh)</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>the committed artifact</p></td>
+<tr class="row-odd"><td><p>the committed artifact</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">to_document(seg,</span> <span class="pre">...)</span></code> → <code class="docutils literal notranslate"><span class="pre">StepDocument</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>real clips/gifs/posters for the page</p></td>
+<tr class="row-even"><td><p>real clips/gifs/posters for the page</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derive_document(doc,</span> <span class="pre">media=...,</span> <span class="pre">doc_path=...)</span></code> / <code class="docutils literal notranslate"><span class="pre">paces</span> <span class="pre">derive</span></code> (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">paces[media]</span></code>)</p></td>
 </tr>
-<tr class="row-even"><td><p>auto-crop those clips to the people in frame</p></td>
+<tr class="row-odd"><td><p>auto-crop those clips to the people in frame</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derive(...,</span> <span class="pre">subject_locator=paces.pose.rtmlib_pose)</span></code> / <code class="docutils literal notranslate"><span class="pre">--subject-locator</span> <span class="pre">paces.pose:rtmlib_pose</span></code> (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">paces[pose]</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p>persist the analysis behind a document</p></td>
+<tr class="row-even"><td><p>persist the analysis behind a document</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">to_store(seg,</span> <span class="pre">store=...,</span> <span class="pre">asset_id=...)</span></code> / <code class="docutils literal notranslate"><span class="pre">from_store(store,</span> <span class="pre">asset_id=...)</span></code> (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">paces[lacing]</span></code>)</p></td>
 </tr>
-<tr class="row-even"><td><p>a practice page</p></td>
+<tr class="row-odd"><td><p>a practice page</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">render_html(doc)</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>wall-clock times from counts</p></td>
+<tr class="row-even"><td><p>wall-clock times from counts</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">resolve(doc)</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>sanity checks</p></td>
+<tr class="row-odd"><td><p>sanity checks</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">validate_document(doc)</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>what segmenters exist</p></td>
+<tr class="row-even"><td><p>what segmenters exist</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">capabilities()</span></code> / <code class="docutils literal notranslate"><span class="pre">paces</span> <span class="pre">list-segmenters</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>add a segmenter</p></td>
+<tr class="row-odd"><td><p>add a segmenter</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">register(Capability(name=...,</span> <span class="pre">gives=&quot;segmentation&quot;,</span> <span class="pre">target=&quot;mymod:fn&quot;,</span> <span class="pre">needs={...}))</span></code> — a new file, nothing edited</p></td>
 </tr>
 </tbody>
@@ -357,7 +361,7 @@ detection) are designed (see <code class="docutils literal notranslate"><span cl
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-02 16:29 UTC from <a href="https://github.com/reeleehq/paces/commit/68a5e7dff781c3653253d58c141fdd1bc9cb346f">68a5e7d</a> (main) · paces 0.0.16 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-02 17:08 UTC from <a href="https://github.com/reeleehq/paces/commit/863c50b865dff47bacc74c2c20ea91b119fd99d5">863c50b</a> (main) · paces 0.0.17 · <a href="about-this-build.html">about this build</a></p>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
@@ -392,7 +396,7 @@ detection) are designed (see <code class="docutils literal notranslate"><span cl
     </div>
   </div>
 </footer>
-      <script src="_static/documentation_options.js?v=c7cdf6fe"></script>
+      <script src="_static/documentation_options.js?v=63b572e7"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>

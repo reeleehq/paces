@@ -66,6 +66,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="paces.html">paces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="paces.ask.html">paces.ask</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.corrections.html">paces.corrections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
@@ -96,6 +97,7 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#paces.tools.ask"><code class="docutils literal notranslate"><span class="pre">ask()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.derive"><code class="docutils literal notranslate"><span class="pre">derive()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.edit"><code class="docutils literal notranslate"><span class="pre">edit()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.list_segmenters"><code class="docutils literal notranslate"><span class="pre">list_segmenters()</span></code></a></li>
@@ -158,42 +160,63 @@ a JSON file, so the same function serves the library, the shell, and an agent.</
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.derive" title="paces.tools.derive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">derive</span></code></a>(document, *, media[, output, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.ask" title="paces.tools.ask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ask</span></code></a>(segmentation, *[, media, title, author, ...])</p></td>
+<td><p>Write the page a human answers a segmentation on (the ask segmenter).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.derive" title="paces.tools.derive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">derive</span></code></a>(document, *, media[, output, ...])</p></td>
 <td><p>Derive real media (clip + gif + poster) for every excerpt-bearing span and write the refs into the document.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.edit" title="paces.tools.edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edit</span></code></a>(document, edits, *, by[, reason, output])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.edit" title="paces.tools.edit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edit</span></code></a>(document, edits, *, by[, reason, output])</p></td>
 <td><p>Apply typed patches to a document; every edit writes a Lock.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.list_segmenters" title="paces.tools.list_segmenters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list_segmenters</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.list_segmenters" title="paces.tools.list_segmenters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list_segmenters</span></code></a>()</p></td>
 <td><p>The registered segmentation capabilities: name → what it needs/gives.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.measure_grid" title="paces.tools.measure_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_grid</span></code></a>(media, *[, unit, subdivisions, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.measure_grid" title="paces.tools.measure_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_grid</span></code></a>(media, *[, unit, subdivisions, ...])</p></td>
 <td><p>Measure a metric grid (tempo, macro-structure, estimated origin) from a local media file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.merge" title="paces.tools.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(committed, fresh, *[, output])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.merge" title="paces.tools.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(committed, fresh, *[, output])</p></td>
 <td><p>Merge a fresh analysis projection against the committed document.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.render" title="paces.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(document, *[, output, renderer])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.render" title="paces.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(document, *[, output, renderer])</p></td>
 <td><p>Render a step document into learning material.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.resolve" title="paces.tools.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(document)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.resolve" title="paces.tools.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(document)</p></td>
 <td><p>Compute absolute offsets and wall-clock times for a document's steps.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.segment" title="paces.tools.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, steps, boundaries, grid, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.segment" title="paces.tools.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, steps, boundaries, grid, ...])</p></td>
 <td><p>Cut media into steps using whatever else is present (ADR-0003).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.suggest_excerpts" title="paces.tools.suggest_excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suggest_excerpts</span></code></a>(document, *[, units, role, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.suggest_excerpts" title="paces.tools.suggest_excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suggest_excerpts</span></code></a>(document, *[, units, role, ...])</p></td>
 <td><p>Mark each step's loopable sub-window (the <code class="docutils literal notranslate"><span class="pre">excerpt</span></code> derive cuts).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.to_document" title="paces.tools.to_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_document</span></code></a>(segmentation, *[, doc_id, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.to_document" title="paces.tools.to_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_document</span></code></a>(segmentation, *[, doc_id, ...])</p></td>
 <td><p>Project a segmentation into a step document (the committed artifact).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.validate" title="paces.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(document)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.validate" title="paces.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(document)</p></td>
 <td><p>Schema + semantic check of a step document; returns <code class="docutils literal notranslate"><span class="pre">{&quot;issues&quot;:</span> <span class="pre">[...]}</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.tools.ask">
+<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">ask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segmentation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#ask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.ask" title="Link to this definition">#</a></dt>
+<dd><p>Write the page a human answers a segmentation on (the ask segmenter).</p>
+<p>It asks how many steps there are (the machine’s guess pre-filled), lets
+them tap along with the media to add cuts, strike wrong cuts and mark
+steps that are not in the media, and exports <code class="docutils literal notranslate"><span class="pre">answers.json</span></code> for
+<code class="docutils literal notranslate"><span class="pre">segment</span> <span class="pre">--answers</span></code>. <code class="docutils literal notranslate"><span class="pre">media</span></code> is what the page plays (a path relative
+to the page, or a URL); without it the human opens the file on their
+device. Returns the output path when <code class="docutils literal notranslate"><span class="pre">output=</span></code> is given, otherwise the
+page itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.tools.derive">
 <span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">derive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject_locator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'clip,gif,poster'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#derive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.derive" title="Link to this definition">#</a></dt>
@@ -299,7 +322,7 @@ otherwise the rendered text itself.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.tools.segment">
-<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.segment" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">answers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.segment" title="Link to this definition">#</a></dt>
 <dd><p>Cut media into steps using whatever else is present (ADR-0003).</p>
 <p><code class="docutils literal notranslate"><span class="pre">steps</span></code>, <code class="docutils literal notranslate"><span class="pre">boundaries</span></code>, <code class="docutils literal notranslate"><span class="pre">grid</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata</span></code> accept JSON values,
 JSON strings, or paths to JSON files — <code class="docutils literal notranslate"><span class="pre">metadata</span></code> notably takes a
@@ -310,7 +333,11 @@ is timed text — SRT text, an <code class="docutils literal notranslate"><span 
 <code class="docutils literal notranslate"><span class="pre">corrections</span></code> is a human’s correction log — a JSON list of
 <code class="docutils literal notranslate"><span class="pre">{&quot;verb&quot;:</span> <span class="pre">&quot;split&quot;|&quot;merge&quot;|&quot;pin&quot;|&quot;forbid&quot;|&quot;absent&quot;,</span> <span class="pre">&quot;anchorT&quot;:</span> <span class="pre">&quot;95.8&quot;,</span> <span class="pre">...}</span></code>
 (inline, or a path) — replayed as constraints; any it could not honour
-is reported in <code class="docutils literal notranslate"><span class="pre">flags</span></code>. Returns the segmentation as a JSON-ready dict (also written to
+is reported in <code class="docutils literal notranslate"><span class="pre">flags</span></code>. <code class="docutils literal notranslate"><span class="pre">answers</span></code> is the JSON the <code class="docutils literal notranslate"><span class="pre">ask</span></code> page exports
+(inline, or a path): its step count fills <code class="docutils literal notranslate"><span class="pre">k</span></code> unless <code class="docutils literal notranslate"><span class="pre">k</span></code> is given, its
+boundaries (tapped on a page that had no cuts to correct) fill
+<code class="docutils literal notranslate"><span class="pre">boundaries</span></code> unless it is given, and its corrections run after
+<code class="docutils literal notranslate"><span class="pre">corrections</span></code>. Returns the segmentation as a JSON-ready dict (also written to
 <code class="docutils literal notranslate"><span class="pre">output=</span></code> when given) — honest about naming
 (<code class="docutils literal notranslate"><span class="pre">flags:</span> <span class="pre">['naming-abstained']</span></code>) and about refusal
 (<code class="docutils literal notranslate"><span class="pre">flags:</span> <span class="pre">['no-signal',</span> <span class="pre">'try:</span> <span class="pre">...']</span></code>); never a fabricated step list.</p>
@@ -402,7 +429,7 @@ canonical wire form is also written to that path.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=c7cdf6fe"></script>
+      <script src="../_static/documentation_options.js?v=63b572e7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="tomato" data-content_root="../">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.corrections - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.cues" href="paces.cues.html" /><link rel="prev" title="paces" href="paces.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.corrections - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.cues" href="paces.cues.html" /><link rel="prev" title="paces.ask" href="paces.ask.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d88b86f9" />
@@ -66,6 +66,7 @@ data-aria-dark="Switch to auto color mode">
         <div class="globaltoc" data-expand-depth="0"><ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="paces.html">paces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="paces.ask.html">paces.ask</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">paces.corrections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.cues.html">paces.cues</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
@@ -111,6 +112,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#paces.corrections.pin"><code class="docutils literal notranslate"><span class="pre">pin()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.replay"><code class="docutils literal notranslate"><span class="pre">replay()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.split"><code class="docutils literal notranslate"><span class="pre">split()</span></code></a></li>
+<li><a class="reference internal" href="#paces.corrections.time_str"><code class="docutils literal notranslate"><span class="pre">time_str()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.to_wire"><code class="docutils literal notranslate"><span class="pre">to_wire()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
@@ -228,7 +230,10 @@ infeasible, is reported in <code class="docutils literal notranslate"><span clas
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.split" title="paces.corrections.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code></a>(at_t, **meta)</p></td>
 <td><p>Split — &quot;that is two steps&quot;: cut the step covering <code class="docutils literal notranslate"><span class="pre">at_t</span></code> there (K += 1).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.to_wire" title="paces.corrections.to_wire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_wire</span></code></a>(correction)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.time_str" title="paces.corrections.time_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_str</span></code></a>(t)</p></td>
+<td><p>A time as paces' millisecond wire decimal — the one formatter every corrections producer shares (the ask page's <code class="docutils literal notranslate"><span class="pre">timeStr</span></code> mirrors it).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.to_wire" title="paces.corrections.to_wire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_wire</span></code></a>(correction)</p></td>
 <td><p>A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.</p></td>
 </tr>
 </tbody>
@@ -416,6 +421,22 @@ step edge missing from <code class="docutils literal notranslate"><span class="p
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="paces.corrections.time_str">
+<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">time_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#time_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.time_str" title="Link to this definition">#</a></dt>
+<dd><p>A time as paces’ millisecond wire decimal — the one formatter every
+corrections producer shares (the ask page’s <code class="docutils literal notranslate"><span class="pre">timeStr</span></code> mirrors it).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">time_str</span><span class="p">(</span><span class="mf">95.80000001</span><span class="p">),</span> <span class="n">time_str</span><span class="p">(</span><span class="mf">10.0625</span><span class="p">)</span>  <span class="c1"># exact binary ties round half-even</span>
+</span><span data-line="2"><span class="go">('95.8', '10.062')</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="paces.corrections.to_wire">
 <span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">to_wire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">correction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#to_wire"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.to_wire" title="Link to this definition">#</a></dt>
 <dd><p>A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.</p>
@@ -434,10 +455,10 @@ step edge missing from <code class="docutils literal notranslate"><span class="p
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="paces.html">
+    <a href="paces.ask.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">paces</div></div>
+        <span>Previous</span><div class="title">paces.ask</div></div>
     </a>
   </div><div class="navigation-next">
     <a href="paces.cues.html">
@@ -468,7 +489,7 @@ step edge missing from <code class="docutils literal notranslate"><span class="p
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=c7cdf6fe"></script>
+      <script src="../_static/documentation_options.js?v=63b572e7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

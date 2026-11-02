@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="tomato" data-content_root="../">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>paces.ask - paces</title><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="paces.corrections" href="paces.corrections.html" /><link rel="prev" title="paces" href="paces.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d88b86f9" />
+    <link rel="stylesheet" type="text/css" href="../_static/shibuya.css?v=2ceb65ce" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link media="print" rel="stylesheet" type="text/css" href="../_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    
+  <meta property="og:type" content="website"/><meta property="og:title" content="paces.ask"/>
+    <meta name="twitter:card" content="summary"/>
+  
+<link rel="alternate" type="text/markdown" href="paces.ask.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+</head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="../index.html">
+      
+      
+      <strong>paces</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/thorwhalen/paces" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="paces.html">paces</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">paces.ask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.corrections.html">paces.corrections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.cues.html">paces.cues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.edits.html">paces.edits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.excerpts.html">paces.excerpts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.measure.html">paces.measure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.model.html">paces.model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.pose.html">paces.pose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.projection.html">paces.projection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.render.html">paces.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.segmenters.html">paces.segmenters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.timed_text.html">paces.timed_text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.tools.html">paces.tools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ai-agents.html">For AI agents</a></li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#paces.ask.Answers"><code class="docutils literal notranslate"><span class="pre">Answers</span></code></a></li>
+<li><a class="reference internal" href="#paces.ask.CONTRACT_VERSION"><code class="docutils literal notranslate"><span class="pre">CONTRACT_VERSION</span></code></a></li>
+<li><a class="reference internal" href="#paces.ask.DFLT_MAX_GRID_TICKS"><code class="docutils literal notranslate"><span class="pre">DFLT_MAX_GRID_TICKS</span></code></a></li>
+<li><a class="reference internal" href="#paces.ask.DFLT_SNAP_S"><code class="docutils literal notranslate"><span class="pre">DFLT_SNAP_S</span></code></a></li>
+<li><a class="reference internal" href="#paces.ask.load_answers"><code class="docutils literal notranslate"><span class="pre">load_answers()</span></code></a></li>
+<li><a class="reference internal" href="#paces.ask.propose"><code class="docutils literal notranslate"><span class="pre">propose()</span></code></a></li>
+<li><a class="reference internal" href="#paces.ask.render_ask_page"><code class="docutils literal notranslate"><span class="pre">render_ask_page()</span></code></a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../index.html"><span itemprop="name">paces</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="../api.html"><span itemprop="name">API reference</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="2" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="paces.html"><span itemprop="name">paces</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="3" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">paces.ask</strong>
+        <meta itemprop="position" content="4" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <article class="yue dark-code" role="main">
+          <section id="module-paces.ask">
+<span id="paces-ask"></span><h1>paces.ask<a class="headerlink" href="#module-paces.ask" title="Link to this heading">#</a></h1>
+<p>The ask segmenter’s interaction half: what the machine proposes, and the page
+a human answers it on (issue #10, <code class="docutils literal notranslate"><span class="pre">docs/alignment/07</span> <span class="pre">§7.2–7.4</span></code>).</p>
+<p>“Ask the user” is first-class, and the gap between a 30-minute chore and a
+2-minute confirmation is the <em>proposal</em>. So this module is three pure pieces
+around one JSON contract:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#paces.ask.propose" title="paces.ask.propose"><code class="xref py py-func docutils literal notranslate"><span class="pre">propose()</span></code></a> — what the machine pre-computes from a <code class="xref py py-class docutils literal notranslate"><span class="pre">Segmentation</span></code>:
+a proposed step count K with the evidence for it (the cheapest, highest-value
+question comes first, §7.3 step 1), the candidate cuts, the steps, and the
+snap targets a tap lands on (the cuts, plus the grid’s unit ticks when there
+is a grid: on rhythmic content a boundary is a downbeat).</p></li>
+<li><p><a class="reference internal" href="#paces.ask.render_ask_page" title="paces.ask.render_ask_page"><code class="xref py py-func docutils literal notranslate"><span class="pre">render_ask_page()</span></code></a> — the default UI: one self-contained static HTML page
+(no server, no framework, no dependency) that asks for K, lets a human tap
+along with the media to add cuts, strike cuts that are wrong and mark steps
+that are not in the media, and exports the answers as JSON.</p></li>
+<li><p><a class="reference internal" href="#paces.ask.load_answers" title="paces.ask.load_answers"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_answers()</span></code></a> — reads those answers back as <a class="reference internal" href="#paces.ask.Answers" title="paces.ask.Answers"><code class="xref py py-class docutils literal notranslate"><span class="pre">Answers</span></code></a>: the
+step count (only when the human touched it), a <a class="reference internal" href="paces.corrections.html#module-paces.corrections" title="paces.corrections"><code class="xref py py-mod docutils literal notranslate"><span class="pre">paces.corrections</span></code></a>
+log, and — when the proposal had nothing to correct (the refused state) —
+the boundaries the human tapped, so the answers re-enter the next
+<a class="reference internal" href="paces.segmenters.html#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-func docutils literal notranslate"><span class="pre">segment()</span></code></a> run as constraints or as boundaries.</p></li>
+</ul>
+<p><strong>The seam is the contract, not a callback.</strong> Any other UI — the real
+frontend, a CLI prompt, a notebook widget, or an agent with the proposal in
+context (§7.4) — reads the proposal JSON and writes the answers JSON; nothing
+here has to change for it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">paces.segmenters</span><span class="w"> </span><span class="kn">import</span> <span class="n">segment</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">proposal</span> <span class="o">=</span> <span class="n">propose</span><span class="p">(</span><span class="n">segment</span><span class="p">(</span><span class="n">boundaries</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]))</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">proposal</span><span class="p">[</span><span class="s2">"k"</span><span class="p">],</span> <span class="n">proposal</span><span class="p">[</span><span class="s2">"cuts"</span><span class="p">]</span>
+</span><span data-line="4"><span class="go">(3, ['10', '20'])</span>
+</span></pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.ask.CONTRACT_VERSION" title="paces.ask.CONTRACT_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONTRACT_VERSION</span></code></a></p></td>
+<td><p>The proposal/answers contract version.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.ask.DFLT_SNAP_S" title="paces.ask.DFLT_SNAP_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_SNAP_S</span></code></a></p></td>
+<td><p>How far a tap may land from a snap target and still snap to it (§7.3 step 3).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.ask.DFLT_MAX_GRID_TICKS" title="paces.ask.DFLT_MAX_GRID_TICKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MAX_GRID_TICKS</span></code></a></p></td>
+<td><p>Above this many grid ticks the page snaps to cuts only — a dense tick list would make every tap snap somewhere and bloat the page.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.ask.load_answers" title="paces.ask.load_answers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_answers</span></code></a>(answers)</p></td>
+<td><p><a class="reference internal" href="#paces.ask.Answers" title="paces.ask.Answers"><code class="xref py py-class docutils literal notranslate"><span class="pre">Answers</span></code></a> from the page's answers JSON.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.ask.propose" title="paces.ask.propose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">propose</span></code></a>(seg, *[, media, title, snap_s, ...])</p></td>
+<td><p>What the machine pre-computes for a human to confirm — a JSON-ready dict.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.ask.render_ask_page" title="paces.ask.render_ask_page"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_ask_page</span></code></a>(proposal, *[, author])</p></td>
+<td><p>The default <code class="docutils literal notranslate"><span class="pre">ask</span></code> UI: a self-contained static HTML page.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.ask.Answers" title="paces.ask.Answers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Answers</span></code></a>(k[, corrections, boundaries])</p></td>
+<td><p>What a human answered on the ask page, ready for the next run.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="paces.ask.Answers">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">Answers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/ask.html#Answers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.ask.Answers" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What a human answered on the ask page, ready for the next run.</p>
+<p><code class="docutils literal notranslate"><span class="pre">k</span></code> is the step count they gave (<code class="docutils literal notranslate"><span class="pre">None</span></code> unless they touched it);
+<code class="docutils literal notranslate"><span class="pre">corrections</span></code> is a <a class="reference internal" href="paces.corrections.html#module-paces.corrections" title="paces.corrections"><code class="xref py py-mod docutils literal notranslate"><span class="pre">paces.corrections</span></code></a> log; <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> holds
+the cuts they tapped when the proposal had none to correct (the refused
+state), from 0 to the media’s end — <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="paces.ask.CONTRACT_VERSION">
+<span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">CONTRACT_VERSION</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#paces.ask.CONTRACT_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>The proposal/answers contract version. Both documents carry it; a reader
+refuses any other, so a page and a loader of different ages fail loudly.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="paces.ask.DFLT_MAX_GRID_TICKS">
+<span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">DFLT_MAX_GRID_TICKS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2000</span></span><a class="headerlink" href="#paces.ask.DFLT_MAX_GRID_TICKS" title="Link to this definition">#</a></dt>
+<dd><p>Above this many grid ticks the page snaps to cuts only — a dense tick list
+would make every tap snap somewhere and bloat the page.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="paces.ask.DFLT_SNAP_S">
+<span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">DFLT_SNAP_S</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.5</span></span><a class="headerlink" href="#paces.ask.DFLT_SNAP_S" title="Link to this definition">#</a></dt>
+<dd><p>How far a tap may land from a snap target and still snap to it (§7.3 step
+3). It is the merge tolerance on purpose: both absorb the same thing, the
+imprecision of a human tapping along, so one number serves both.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.ask.load_answers">
+<span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">load_answers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">answers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/ask.html#load_answers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.ask.load_answers" title="Link to this definition">#</a></dt>
+<dd><p><a class="reference internal" href="#paces.ask.Answers" title="paces.ask.Answers"><code class="xref py py-class docutils literal notranslate"><span class="pre">Answers</span></code></a> from the page’s answers JSON.</p>
+<p>Validated here, so a bad file fails now and not halfway through a re-run:
+the kind, the contract <code class="docutils literal notranslate"><span class="pre">version</span></code> (required), <code class="docutils literal notranslate"><span class="pre">k</span></code>, every correction,
+and the boundaries.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">load_answers</span><span class="p">({</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"PacesAskAnswers"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"k"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+</span><span data-line="2"><span class="gp">... </span>              <span class="s2">"corrections"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"verb"</span><span class="p">:</span> <span class="s2">"split"</span><span class="p">,</span> <span class="s2">"anchorT"</span><span class="p">:</span> <span class="s2">"15"</span><span class="p">}]})</span>
+</span><span data-line="3"><span class="go">Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason=''),), boundaries=None)</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#paces.ask.Answers" title="paces.ask.Answers"><code class="xref py py-class docutils literal notranslate"><span class="pre">Answers</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.ask.propose">
+<span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snap_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_step_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_grid_ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/ask.html#propose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.ask.propose" title="Link to this definition">#</a></dt>
+<dd><p>What the machine pre-computes for a human to confirm — a JSON-ready dict.</p>
+<p><code class="docutils literal notranslate"><span class="pre">k</span></code> is the proposed step count (<code class="docutils literal notranslate"><span class="pre">None</span></code> when the segmentation has
+nothing to count) and <code class="docutils literal notranslate"><span class="pre">k_evidence</span></code> says where it came from, so the human
+confirms a number they can see the reasoning for. Times are decimal
+strings, as everywhere on paces’ wire; cuts that are the same millisecond
+are one cut. <code class="docutils literal notranslate"><span class="pre">minStepS</span></code> is the narrowest step a split may make
+(<a class="reference internal" href="paces.corrections.html#paces.corrections.DFLT_MIN_STEP_S" title="paces.corrections.DFLT_MIN_STEP_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_MIN_STEP_S</span></code></a>): the page ignores a tap
+closer than that to a cut, as replay would.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">propose</span><span class="p">(</span><span class="n">Segmentation</span><span class="p">(</span><span class="n">boundaries</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">10.0001</span><span class="p">,</span> <span class="mi">20</span><span class="p">)))[</span><span class="s2">"cuts"</span><span class="p">]</span>
+</span><span data-line="2"><span class="go">['10']</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.ask.render_ask_page">
+<span class="sig-prename descclassname"><span class="pre">paces.ask.</span></span><span class="sig-name descname"><span class="pre">render_ask_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proposal</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/ask.html#render_ask_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.ask.render_ask_page" title="Link to this definition">#</a></dt>
+<dd><p>The default <code class="docutils literal notranslate"><span class="pre">ask</span></code> UI: a self-contained static HTML page.</p>
+<p>It posts nothing. The human’s answers autosave in the browser (so a
+closed tab loses nothing) and leave as a downloaded <code class="docutils literal notranslate"><span class="pre">answers.json</span></code> or
+copied text, which <a class="reference internal" href="#paces.ask.load_answers" title="paces.ask.load_answers"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_answers()</span></code></a> reads. <code class="docutils literal notranslate"><span class="pre">author</span></code> is stamped on
+every correction the page emits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="paces.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">paces</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="paces.corrections.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">paces.corrections</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright">
+  <p>
+    Made with
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+  <a href="https://github.com/thorwhalen/paces" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div>
+    </div>
+  </div>
+</footer>
+      <script src="../_static/documentation_options.js?v=63b572e7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=fd10adb8"></script>
+      <script src="../_static/shibuya.js?v=50760d75"></script></body>
+</html>

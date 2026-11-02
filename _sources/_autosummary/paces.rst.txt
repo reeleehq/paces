@@ -59,6 +59,7 @@
    :toctree:
    :recursive:
 
+   ask
    bodies
    corrections
    cues

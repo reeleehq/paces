@@ -24,6 +24,7 @@ paces.corrections
       pin
       replay
       split
+      time_str
       to_wire
    
    .. rubric:: Classes

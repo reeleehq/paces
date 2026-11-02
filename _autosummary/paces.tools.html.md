@@ -11,18 +11,34 @@ a JSON file, so the same function serves the library, the shell, and an agent.
 
 ### Functions
 
-| [`derive`](#paces.tools.derive)(document, \*, media[, output, ...])         | Derive real media (clip + gif + poster) for every excerpt-bearing span and write the refs into the document.   |
-|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| [`edit`](#paces.tools.edit)(document, edits, \*, by[, reason, output])    | Apply typed patches to a document; every edit writes a Lock.                                                   |
-| [`list_segmenters`](#paces.tools.list_segmenters)()                                  | The registered segmentation capabilities: name → what it needs/gives.                                          |
-| [`measure_grid`](#paces.tools.measure_grid)(media, \*[, unit, subdivisions, ...]) | Measure a metric grid (tempo, macro-structure, estimated origin) from a local media file.                      |
-| [`merge`](#paces.tools.merge)(committed, fresh, \*[, output])              | Merge a fresh analysis projection against the committed document.                                              |
-| [`render`](#paces.tools.render)(document, \*[, output, renderer])           | Render a step document into learning material.                                                                 |
-| [`resolve`](#paces.tools.resolve)(document)                                  | Compute absolute offsets and wall-clock times for a document's steps.                                          |
-| [`segment`](#paces.tools.segment)([media, steps, boundaries, grid, ...])     | Cut media into steps using whatever else is present (ADR-0003).                                                |
-| [`suggest_excerpts`](#paces.tools.suggest_excerpts)(document, \*[, units, role, ...]) | Mark each step's loopable sub-window (the `excerpt` derive cuts).                                              |
-| [`to_document`](#paces.tools.to_document)(segmentation, \*[, doc_id, ...])       | Project a segmentation into a step document (the committed artifact).                                          |
-| [`validate`](#paces.tools.validate)(document)                                 | Schema + semantic check of a step document; returns `{"issues": [...]}`.                                       |
+| [`ask`](#paces.tools.ask)(segmentation, \*[, media, title, author, ...])   | Write the page a human answers a segmentation on (the ask segmenter).                                        |
+|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| [`derive`](#paces.tools.derive)(document, \*, media[, output, ...])           | Derive real media (clip + gif + poster) for every excerpt-bearing span and write the refs into the document. |
+| [`edit`](#paces.tools.edit)(document, edits, \*, by[, reason, output])      | Apply typed patches to a document; every edit writes a Lock.                                                 |
+| [`list_segmenters`](#paces.tools.list_segmenters)()                                    | The registered segmentation capabilities: name → what it needs/gives.                                        |
+| [`measure_grid`](#paces.tools.measure_grid)(media, \*[, unit, subdivisions, ...])   | Measure a metric grid (tempo, macro-structure, estimated origin) from a local media file.                    |
+| [`merge`](#paces.tools.merge)(committed, fresh, \*[, output])                | Merge a fresh analysis projection against the committed document.                                            |
+| [`render`](#paces.tools.render)(document, \*[, output, renderer])             | Render a step document into learning material.                                                               |
+| [`resolve`](#paces.tools.resolve)(document)                                    | Compute absolute offsets and wall-clock times for a document's steps.                                        |
+| [`segment`](#paces.tools.segment)([media, steps, boundaries, grid, ...])       | Cut media into steps using whatever else is present (ADR-0003).                                              |
+| [`suggest_excerpts`](#paces.tools.suggest_excerpts)(document, \*[, units, role, ...])   | Mark each step's loopable sub-window (the `excerpt` derive cuts).                                            |
+| [`to_document`](#paces.tools.to_document)(segmentation, \*[, doc_id, ...])         | Project a segmentation into a step document (the committed artifact).                                        |
+| [`validate`](#paces.tools.validate)(document)                                   | Schema + semantic check of a step document; returns `{"issues": [...]}`.                                     |
+
+### paces.tools.ask(segmentation, , media=None, title='', author='', output=None)
+
+Write the page a human answers a segmentation on (the ask segmenter).
+
+It asks how many steps there are (the machine’s guess pre-filled), lets
+them tap along with the media to add cuts, strike wrong cuts and mark
+steps that are not in the media, and exports `answers.json` for
+`segment --answers`. `media` is what the page plays (a path relative
+to the page, or a URL); without it the human opens the file on their
+device. Returns the output path when `output=` is given, otherwise the
+page itself.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### paces.tools.derive(document, , media, output=None, subject_locator=None, roles='clip,gif,poster', aspect=None, pad=None)
 
@@ -104,7 +120,7 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, output=None)
+### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, answers=None, output=None)
 
 Cut media into steps using whatever else is present (ADR-0003).
 
@@ -117,7 +133,11 @@ is timed text — SRT text, an `.srt`/`.vtt` path, or JSON cues
 `corrections` is a human’s correction log — a JSON list of
 `{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}`
 (inline, or a path) — replayed as constraints; any it could not honour
-is reported in `flags`. Returns the segmentation as a JSON-ready dict (also written to
+is reported in `flags`. `answers` is the JSON the `ask` page exports
+(inline, or a path): its step count fills `k` unless `k` is given, its
+boundaries (tapped on a page that had no cuts to correct) fill
+`boundaries` unless it is given, and its corrections run after
+`corrections`. Returns the segmentation as a JSON-ready dict (also written to
 `output=` when given) — honest about naming
 (`flags: ['naming-abstained']`) and about refusal
 (`flags: ['no-signal', 'try: ...']`); never a fabricated step list.

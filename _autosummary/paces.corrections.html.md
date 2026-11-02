@@ -45,16 +45,17 @@ infeasible, is reported in `Segmentation.flags`.
 
 ### Functions
 
-| [`absent`](#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                 |
-|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| [`forbid`](#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                            |
-| [`from_wire`](#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                           |
-| [`merge`](#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                          |
-| [`normalize_corrections`](#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](#paces.corrections.Correction) objects or their wire dicts, in log order.  |
-| [`pin`](#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`. |
-| [`replay`](#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                        |
-| [`split`](#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                      |
-| [`to_wire`](#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                 |
+| [`absent`](#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                                         |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| [`forbid`](#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                                                    |
+| [`from_wire`](#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                                                   |
+| [`merge`](#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                                                  |
+| [`normalize_corrections`](#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](#paces.corrections.Correction) objects or their wire dicts, in log order.                          |
+| [`pin`](#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`.                         |
+| [`replay`](#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                                                |
+| [`split`](#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                                              |
+| [`time_str`](#paces.corrections.time_str)(t)                         | A time as paces' millisecond wire decimal — the one formatter every corrections producer shares (the ask page's `timeStr` mirrors it). |
+| [`to_wire`](#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                                         |
 
 ### Classes
 
@@ -193,6 +194,19 @@ Split — “that is two steps”: cut the step covering `at_t` there (K += 1).
 
 * **Return type:**
   [`Correction`](#paces.corrections.Correction)
+
+### paces.corrections.time_str(t)
+
+A time as paces’ millisecond wire decimal — the one formatter every
+corrections producer shares (the ask page’s `timeStr` mirrors it).
+
+```pycon
+>>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
+('95.8', '10.062')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### paces.corrections.to_wire(correction)
 

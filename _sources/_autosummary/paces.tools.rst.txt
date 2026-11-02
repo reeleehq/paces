@@ -8,6 +8,7 @@ paces.tools
 
    .. autosummary::
    
+      ask
       derive
       edit
       list_segmenters

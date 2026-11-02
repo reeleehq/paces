@@ -1,0 +1,28 @@
+paces.ask
+=========
+
+.. automodule:: paces.ask
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CONTRACT_VERSION
+      DFLT_SNAP_S
+      DFLT_MAX_GRID_TICKS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      load_answers
+      propose
+      render_ask_page
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Answers
+   
