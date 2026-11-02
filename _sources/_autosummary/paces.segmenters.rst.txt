@@ -4,6 +4,12 @@ paces.segmenters
 .. automodule:: paces.segmenters
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      UNIT_PLACES
+   
    .. rubric:: Functions
 
    .. autosummary::

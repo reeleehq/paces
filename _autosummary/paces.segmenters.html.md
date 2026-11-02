@@ -35,6 +35,11 @@ step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
 by an exception.
 
+### Module Attributes
+
+| [`UNIT_PLACES`](#paces.segmenters.UNIT_PLACES)   | Places a unit offset (cumulative eights, reps…) is rounded to before it becomes seconds: far below any real duration, far above float noise.   |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`capabilities`](#paces.segmenters.capabilities)()                                | The registered capability catalog (read-only view).                                                                                |
@@ -60,6 +65,11 @@ The record from `docs/alignment/06 §1.2`, reused unchanged so the
 eventual planner and the segmenter registry share one declaration format.
 `target` is a lazy `"module:func"` ref — listing a heavy capability
 must not import its dependencies.
+
+### paces.segmenters.UNIT_PLACES *= 9*
+
+Places a unit offset (cumulative eights, reps…) is rounded to before it
+becomes seconds: far below any real duration, far above float noise.
 
 ### paces.segmenters.capabilities()
 

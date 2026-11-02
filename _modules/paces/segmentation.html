@@ -142,11 +142,11 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="12">
 </span><span data-line="13"><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span data-line="14">
-</span><span data-line="15"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+</span><span data-line="15"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 </span><span data-line="16"><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 </span><span data-line="17"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 </span><span data-line="18">
-</span><span data-line="19"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricGrid</span>
+</span><span data-line="19"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricGrid</span><span class="p">,</span> <span class="n">decimal_str</span>
 </span><span data-line="20">
 </span><span data-line="21"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
 </span><span data-line="22">    <span class="s2">"DFLT_CHAPTERS_CONFIDENCE"</span><span class="p">,</span>
@@ -155,58 +155,165 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="25">    <span class="s2">"SegStep"</span><span class="p">,</span>
 </span><span data-line="26">    <span class="s2">"Segmentation"</span><span class="p">,</span>
 </span><span data-line="27">    <span class="s2">"Span"</span><span class="p">,</span>
-</span><span data-line="28"><span class="p">]</span>
-</span><span data-line="29">
-</span><span data-line="30"><span class="n">Span</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>  <span class="c1"># seconds, half-open</span>
-</span><span data-line="31">
-</span><span data-line="32"><span class="c1"># Confidence constants: placement from user-supplied inputs is arithmetic, so</span>
-</span><span data-line="33"><span class="c1"># what these grade is trust in the inputs, not in any inference.</span>
-</span><span data-line="34"><span class="n">DFLT_EXPLICIT_CONFIDENCE</span> <span class="o">=</span> <span class="mf">0.95</span>  <span class="c1"># a human said so</span>
-</span><span data-line="35"><span class="n">DFLT_GRID_CONFIDENCE</span> <span class="o">=</span> <span class="mf">0.9</span>  <span class="c1"># exact given the grid; the grid itself may drift</span>
-</span><span data-line="36"><span class="n">DFLT_CHAPTERS_CONFIDENCE</span> <span class="o">=</span> <span class="mf">0.9</span>  <span class="c1"># the author said so, in metadata</span>
-</span><span data-line="37">
-</span><span data-line="38">
+</span><span data-line="28">    <span class="s2">"TIME_PLACES"</span><span class="p">,</span>
+</span><span data-line="29">    <span class="s2">"edges"</span><span class="p">,</span>
+</span><span data-line="30">    <span class="s2">"inconsistencies"</span><span class="p">,</span>
+</span><span data-line="31">    <span class="s2">"overlaps"</span><span class="p">,</span>
+</span><span data-line="32">    <span class="s2">"time_str"</span><span class="p">,</span>
+</span><span data-line="33"><span class="p">]</span>
+</span><span data-line="34">
+</span><span data-line="35"><span class="c1">#: Decimal places every computed time keeps (spans, boundaries, corrections): milliseconds, the wire's</span>
+</span><span data-line="36"><span class="c1">#: resolution. Corrections round to it at construction, so their wire round trip</span>
+</span><span data-line="37"><span class="c1">#: is lossless (``decimal_str`` writes exactly this many).</span>
+</span><span data-line="38"><span class="n">TIME_PLACES</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span data-line="39">
+</span><span data-line="40">
+</span><span data-line="41"><span class="n">Span</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>  <span class="c1"># seconds, half-open</span>
+</span><span data-line="42">
+</span><span data-line="43"><span class="c1"># Confidence constants: placement from user-supplied inputs is arithmetic, so</span>
+</span><span data-line="44"><span class="c1"># what these grade is trust in the inputs, not in any inference.</span>
+</span><span data-line="45"><span class="n">DFLT_EXPLICIT_CONFIDENCE</span> <span class="o">=</span> <span class="mf">0.95</span>  <span class="c1"># a human said so</span>
+</span><span data-line="46"><span class="n">DFLT_GRID_CONFIDENCE</span> <span class="o">=</span> <span class="mf">0.9</span>  <span class="c1"># exact given the grid; the grid itself may drift</span>
+</span><span data-line="47"><span class="n">DFLT_CHAPTERS_CONFIDENCE</span> <span class="o">=</span> <span class="mf">0.9</span>  <span class="c1"># the author said so, in metadata</span>
+</span><span data-line="48">
+</span><span data-line="49">
 <div class="viewcode-block" id="SegStep">
 <a class="viewcode-back" href="../../_autosummary/paces.segmentation.html#paces.SegStep">[docs]</a>
-</span><span data-line="39"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="40"><span class="k">class</span><span class="w"> </span><span class="nc">SegStep</span><span class="p">:</span>
-</span><span data-line="41"><span class="w">    </span><span class="sd">"""One named piece of the media, as an analysis result.</span>
-</span><span data-line="42">
-</span><span data-line="43"><span class="sd">    ``name=''`` means "found, not named" — a VALID state, not an error.</span>
-</span><span data-line="44"><span class="sd">    ``spans`` is a tuple because a step legitimately appears in several places</span>
-</span><span data-line="45"><span class="sd">    (run-through AND breakdown).</span>
-</span><span data-line="46"><span class="sd">    """</span>
-</span><span data-line="47">
-</span><span data-line="48">    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="49">    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-</span><span data-line="50">    <span class="n">spans</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Span</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-</span><span data-line="51">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span data-line="52">    <span class="n">children</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="s2">"SegStep"</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-</span><span data-line="53">    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># which capability produced it</span>
-</span><span data-line="54">    <span class="n">evidence</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="50"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="51"><span class="k">class</span><span class="w"> </span><span class="nc">SegStep</span><span class="p">:</span>
+</span><span data-line="52"><span class="w">    </span><span class="sd">"""One named piece of the media, as an analysis result.</span>
+</span><span data-line="53">
+</span><span data-line="54"><span class="sd">    ``name=''`` means "found, not named" — a VALID state, not an error.</span>
+</span><span data-line="55"><span class="sd">    ``spans`` is a tuple because a step legitimately appears in several places</span>
+</span><span data-line="56"><span class="sd">    (run-through AND breakdown).</span>
+</span><span data-line="57"><span class="sd">    """</span>
+</span><span data-line="58">
+</span><span data-line="59">    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="60">    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+</span><span data-line="61">    <span class="n">spans</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Span</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</span><span data-line="62">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span data-line="63">    <span class="n">children</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="s2">"SegStep"</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</span><span data-line="64">    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># which capability produced it</span>
+</span><span data-line="65">    <span class="n">evidence</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="55">
-</span><span data-line="56">
+</span><span data-line="66">
+</span><span data-line="67">
 <div class="viewcode-block" id="Segmentation">
 <a class="viewcode-back" href="../../_autosummary/paces.segmentation.html#paces.Segmentation">[docs]</a>
-</span><span data-line="57"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="58"><span class="k">class</span><span class="w"> </span><span class="nc">Segmentation</span><span class="p">:</span>
-</span><span data-line="59"><span class="w">    </span><span class="sd">"""What every segmenter returns. Reviewable, re-runnable, arguable.</span>
-</span><span data-line="60">
-</span><span data-line="61"><span class="sd">    ``boundaries`` is separate from ``steps`` and populated even when naming</span>
-</span><span data-line="62"><span class="sd">    failed: nine excellent unnamed cuts are a useful, honest result. ``steps``</span>
-</span><span data-line="63"><span class="sd">    may be empty while ``boundaries`` is not.</span>
-</span><span data-line="64"><span class="sd">    """</span>
-</span><span data-line="65">
-</span><span data-line="66">    <span class="n">steps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SegStep</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># ordered; MAY be empty while boundaries is not</span>
-</span><span data-line="67">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># the raw cut set, always</span>
-</span><span data-line="68">    <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"seconds"</span>  <span class="c1"># "eight" | "rep" | "seconds"</span>
-</span><span data-line="69">    <span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="70">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span data-line="71">    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># which capability ran (the ADR's "reported default")</span>
-</span><span data-line="72">    <span class="n">flags</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># 'naming-abstained', 'no-signal', 'try: ...'</span>
-</span><span data-line="73">    <span class="n">elapsed_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span data-line="74">    <span class="n">spent_usd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+</span><span data-line="68"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="69"><span class="k">class</span><span class="w"> </span><span class="nc">Segmentation</span><span class="p">:</span>
+</span><span data-line="70"><span class="w">    </span><span class="sd">"""What every segmenter returns. Reviewable, re-runnable, arguable.</span>
+</span><span data-line="71">
+</span><span data-line="72"><span class="sd">    ``boundaries`` is separate from ``steps`` and populated even when naming</span>
+</span><span data-line="73"><span class="sd">    failed: nine excellent unnamed cuts are a useful, honest result. ``steps``</span>
+</span><span data-line="74"><span class="sd">    may be empty while ``boundaries`` is not.</span>
+</span><span data-line="75"><span class="sd">    """</span>
+</span><span data-line="76">
+</span><span data-line="77">    <span class="n">steps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SegStep</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># ordered; MAY be empty while boundaries is not</span>
+</span><span data-line="78">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># the raw cut set, always</span>
+</span><span data-line="79">    <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"seconds"</span>  <span class="c1"># "eight" | "rep" | "seconds"</span>
+</span><span data-line="80">    <span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="81">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span data-line="82">    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># which capability ran (the ADR's "reported default")</span>
+</span><span data-line="83">    <span class="n">flags</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># 'naming-abstained', 'no-signal', 'try: ...'</span>
+</span><span data-line="84">    <span class="n">elapsed_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span data-line="85">    <span class="n">spent_usd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+</span><span data-line="86">
+</span><span data-line="87">
+</span><span data-line="88"><span class="c1"># ── consistency: what no segmentation may contain ───────────────────────────</span>
+</span><span data-line="89">
+</span><span data-line="90">
+<div class="viewcode-block" id="edges">
+<a class="viewcode-back" href="../../_autosummary/paces.segmentation.html#paces.edges">[docs]</a>
+</span><span data-line="91"><span class="k">def</span><span class="w"> </span><span class="nf">edges</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">SegStep</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span data-line="92"><span class="w">    </span><span class="sd">"""Every span start and end of ``steps`` (top level)."""</span>
+</span><span data-line="93">    <span class="k">return</span> <span class="p">{</span><span class="n">t</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span> <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">span</span><span class="p">}</span></div>
+
+</span><span data-line="94">
+</span><span data-line="95">
+<div class="viewcode-block" id="overlaps">
+<a class="viewcode-back" href="../../_autosummary/paces.segmentation.html#paces.overlaps">[docs]</a>
+</span><span data-line="96"><span class="k">def</span><span class="w"> </span><span class="nf">overlaps</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Span</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">Span</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span data-line="97"><span class="w">    </span><span class="sd">"""True when the two spans share a positive length of time."""</span>
+</span><span data-line="98">    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+</span><span data-line="99">
+</span><span data-line="100">
+</span><span data-line="101"><span class="c1">#: Overlap flags listed one per pair before the rest are summarised: the</span>
+</span><span data-line="102"><span class="c1">#: check runs on every segmentation, and dense overlaps make pairs by the</span>
+</span><span data-line="103"><span class="c1">#: hundred thousand.</span>
+</span><span data-line="104"><span class="n">DFLT_MAX_OVERLAP_FLAGS</span> <span class="o">=</span> <span class="mi">20</span>
+</span><span data-line="105">
+</span><span data-line="106">
+<div class="viewcode-block" id="inconsistencies">
+<a class="viewcode-back" href="../../_autosummary/paces.segmentation.html#paces.inconsistencies">[docs]</a>
+</span><span data-line="107"><span class="k">def</span><span class="w"> </span><span class="nf">inconsistencies</span><span class="p">(</span>
+</span><span data-line="108">    <span class="n">seg</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_overlap_flags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_OVERLAP_FLAGS</span>
+</span><span data-line="109"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+</span><span data-line="110"><span class="w">    </span><span class="sd">"""What no segmentation may contain, as ``inconsistent:`` flags — never</span>
+</span><span data-line="111"><span class="sd">    repaired, never raised: empty spans, spans of different steps that</span>
+</span><span data-line="112"><span class="sd">    overlap, children outside their parent, and step edges missing from</span>
+</span><span data-line="113"><span class="sd">    ``boundaries``. :func:`paces.segmenters.segment` runs it on every result,</span>
+</span><span data-line="114"><span class="sd">    whichever segmenter produced it and whether or not a correction log ran.</span>
+</span><span data-line="115">
+</span><span data-line="116"><span class="sd">    &gt;&gt;&gt; inconsistencies(Segmentation(</span>
+</span><span data-line="117"><span class="sd">    ...     steps=(SegStep(id="a", spans=((0.0, 10.0),)),</span>
+</span><span data-line="118"><span class="sd">    ...            SegStep(id="b", spans=((8.0, 20.0),))),</span>
+</span><span data-line="119"><span class="sd">    ...     boundaries=(0.0, 10.0, 20.0)))</span>
+</span><span data-line="120"><span class="sd">    ("inconsistent: steps 'a' and 'b' overlap (8–10)", 'inconsistent: step edges not in boundaries: 8')</span>
+</span><span data-line="121"><span class="sd">    """</span>
+</span><span data-line="122">
+</span><span data-line="123">    <span class="n">spans</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">span</span><span class="p">,</span> <span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span> <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span>
+</span><span data-line="124">    <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="125">        <span class="sa">f</span><span class="s2">"inconsistent: step </span><span class="si">{</span><span class="n">step_id</span><span class="si">!r}</span><span class="s2"> has an empty span at </span><span class="si">{</span><span class="n">time_str</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="126">        <span class="k">for</span> <span class="n">span</span><span class="p">,</span> <span class="n">step_id</span> <span class="ow">in</span> <span class="n">spans</span>
+</span><span data-line="127">        <span class="k">if</span> <span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span data-line="128">    <span class="p">]</span>
+</span><span data-line="129">    <span class="c1"># A sweep, not all pairs: it runs on every segmentation, and subtitle</span>
+</span><span data-line="130">    <span class="c1"># cues can make thousands of steps. Only spans still open can overlap.</span>
+</span><span data-line="131">    <span class="n">active</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Span</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="132">    <span class="n">overlap_flags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="133">    <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">b_id</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">:</span>
+</span><span data-line="134">        <span class="n">active</span> <span class="o">=</span> <span class="p">[(</span><span class="n">a</span><span class="p">,</span> <span class="n">a_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">a_id</span> <span class="ow">in</span> <span class="n">active</span> <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+</span><span data-line="135">        <span class="n">overlap_flags</span> <span class="o">+=</span> <span class="p">[</span>
+</span><span data-line="136">            <span class="sa">f</span><span class="s2">"inconsistent: steps </span><span class="si">{</span><span class="n">a_id</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">b_id</span><span class="si">!r}</span><span class="s2"> overlap "</span>
+</span><span data-line="137">            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">time_str</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">time_str</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="si">}</span><span class="s2">)"</span>
+</span><span data-line="138">            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">a_id</span> <span class="ow">in</span> <span class="n">active</span>
+</span><span data-line="139">            <span class="k">if</span> <span class="n">a_id</span> <span class="o">!=</span> <span class="n">b_id</span> <span class="ow">and</span> <span class="n">overlaps</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</span><span data-line="140">        <span class="p">]</span>
+</span><span data-line="141">        <span class="n">active</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">b</span><span class="p">,</span> <span class="n">b_id</span><span class="p">))</span>
+</span><span data-line="142">    <span class="n">flags</span> <span class="o">+=</span> <span class="n">overlap_flags</span><span class="p">[:</span><span class="n">max_overlap_flags</span><span class="p">]</span>
+</span><span data-line="143">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlap_flags</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_overlap_flags</span><span class="p">:</span>
+</span><span data-line="144">        <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="145">            <span class="sa">f</span><span class="s2">"inconsistent: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">overlap_flags</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">max_overlap_flags</span><span class="si">}</span><span class="s2"> more "</span>
+</span><span data-line="146">            <span class="s2">"overlapping pairs not listed"</span>
+</span><span data-line="147">        <span class="p">)</span>
+</span><span data-line="148">    <span class="n">flags</span> <span class="o">+=</span> <span class="p">[</span>
+</span><span data-line="149">        <span class="sa">f</span><span class="s2">"inconsistent: child </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> of </span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> lies outside its parent"</span>
+</span><span data-line="150">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span>
+</span><span data-line="151">        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">children</span>
+</span><span data-line="152">        <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">spans</span>
+</span><span data-line="153">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span>
+</span><span data-line="154">    <span class="p">]</span>
+</span><span data-line="155">    <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">edges</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span><span class="p">))</span>
+</span><span data-line="156">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+</span><span data-line="157">        <span class="n">listed</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
+</span><span data-line="158">        <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"inconsistent: step edges not in boundaries: </span><span class="si">{</span><span class="n">listed</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="159">    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span></div>
+
+</span><span data-line="160">
+</span><span data-line="161">
+<div class="viewcode-block" id="time_str">
+<a class="viewcode-back" href="../../_autosummary/paces.segmentation.html#paces.time_str">[docs]</a>
+</span><span data-line="162"><span class="k">def</span><span class="w"> </span><span class="nf">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="163"><span class="w">    </span><span class="sd">"""A time as paces' millisecond wire decimal — the one formatter every</span>
+</span><span data-line="164"><span class="sd">    time producer shares (the ask page's ``timeStr`` mirrors it).</span>
+</span><span data-line="165">
+</span><span data-line="166"><span class="sd">    &gt;&gt;&gt; time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even</span>
+</span><span data-line="167"><span class="sd">    ('95.8', '10.062')</span>
+</span><span data-line="168"><span class="sd">    """</span>
+</span><span data-line="169">    <span class="k">return</span> <span class="n">decimal_str</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="n">TIME_PLACES</span><span class="p">)</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -235,7 +342,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=3294188c"></script>
+      <script src="../../_static/documentation_options.js?v=f91d8841"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

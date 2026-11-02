@@ -104,7 +104,6 @@ data-aria-dark="Switch to auto color mode">
 </li>
 <li><a class="reference internal" href="#paces.corrections.DFLT_MERGE_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">DFLT_MERGE_TOLERANCE_S</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.DFLT_MIN_STEP_S"><code class="docutils literal notranslate"><span class="pre">DFLT_MIN_STEP_S</span></code></a></li>
-<li><a class="reference internal" href="#paces.corrections.TIME_PLACES"><code class="docutils literal notranslate"><span class="pre">TIME_PLACES</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.absent"><code class="docutils literal notranslate"><span class="pre">absent()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.forbid"><code class="docutils literal notranslate"><span class="pre">forbid()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.from_wire"><code class="docutils literal notranslate"><span class="pre">from_wire()</span></code></a></li>
@@ -113,7 +112,6 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#paces.corrections.pin"><code class="docutils literal notranslate"><span class="pre">pin()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.replay"><code class="docutils literal notranslate"><span class="pre">replay()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.split"><code class="docutils literal notranslate"><span class="pre">split()</span></code></a></li>
-<li><a class="reference internal" href="#paces.corrections.time_str"><code class="docutils literal notranslate"><span class="pre">time_str()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.to_wire"><code class="docutils literal notranslate"><span class="pre">to_wire()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
@@ -191,13 +189,10 @@ infeasible, is reported in <code class="docutils literal notranslate"><span clas
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.TIME_PLACES" title="paces.corrections.TIME_PLACES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TIME_PLACES</span></code></a></p></td>
-<td><p>milliseconds, the wire's resolution.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.DFLT_MERGE_TOLERANCE_S" title="paces.corrections.DFLT_MERGE_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MERGE_TOLERANCE_S</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.DFLT_MERGE_TOLERANCE_S" title="paces.corrections.DFLT_MERGE_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MERGE_TOLERANCE_S</span></code></a></p></td>
 <td><p>How far a <code class="docutils literal notranslate"><span class="pre">merge</span></code> time may sit from the boundary it means.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.DFLT_MIN_STEP_S" title="paces.corrections.DFLT_MIN_STEP_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MIN_STEP_S</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.DFLT_MIN_STEP_S" title="paces.corrections.DFLT_MIN_STEP_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_MIN_STEP_S</span></code></a></p></td>
 <td><p>The narrowest step a <code class="docutils literal notranslate"><span class="pre">split</span></code> may create.</p></td>
 </tr>
 </tbody>
@@ -231,10 +226,7 @@ infeasible, is reported in <code class="docutils literal notranslate"><span clas
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.split" title="paces.corrections.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code></a>(at_t, **meta)</p></td>
 <td><p>Split — &quot;that is two steps&quot;: cut the step covering <code class="docutils literal notranslate"><span class="pre">at_t</span></code> there (K += 1).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.time_str" title="paces.corrections.time_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_str</span></code></a>(t)</p></td>
-<td><p>A time as paces' millisecond wire decimal — the one formatter every corrections producer shares (the ask page's <code class="docutils literal notranslate"><span class="pre">timeStr</span></code> mirrors it).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.to_wire" title="paces.corrections.to_wire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_wire</span></code></a>(correction)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.to_wire" title="paces.corrections.to_wire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_wire</span></code></a>(correction)</p></td>
 <td><p>A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.</p></td>
 </tr>
 </tbody>
@@ -258,7 +250,7 @@ infeasible, is reported in <code class="docutils literal notranslate"><span clas
 <p><code class="docutils literal notranslate"><span class="pre">step_id</span></code> is for display only and is NEVER the join key: replay finds
 its target by <code class="docutils literal notranslate"><span class="pre">anchor_t</span></code>. <code class="docutils literal notranslate"><span class="pre">media_key</span></code> records which rendering of the
 media the correction was true of, so a later re-cut can migrate the log.
-Times are kept to the millisecond (<a class="reference internal" href="#paces.corrections.TIME_PLACES" title="paces.corrections.TIME_PLACES"><code class="xref py py-data docutils literal notranslate"><span class="pre">TIME_PLACES</span></code></a>), so the wire form
+Times are kept to the millisecond (<code class="xref py py-data docutils literal notranslate"><span class="pre">TIME_PLACES</span></code>), so the wire form
 round-trips exactly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">split</span><span class="p">(</span><span class="mf">0.8550444</span><span class="p">)</span><span class="o">.</span><span class="n">anchor_t</span>
 </span><span data-line="2"><span class="go">0.855</span>
@@ -287,19 +279,6 @@ snaps taps within ±1.5 s).</p>
 <span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">DFLT_MIN_STEP_S</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.25</span></span><a class="headerlink" href="#paces.corrections.DFLT_MIN_STEP_S" title="Link to this definition">#</a></dt>
 <dd><p>The narrowest step a <code class="docutils literal notranslate"><span class="pre">split</span></code> may create. A split closer than this to an
 existing cut is a tap on that cut, not a new step, so it is unmatched.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="paces.corrections.TIME_PLACES">
-<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">TIME_PLACES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#paces.corrections.TIME_PLACES" title="Link to this definition">#</a></dt>
-<dd><p>milliseconds, the wire’s
-resolution. Times are rounded to it at construction, so <code class="docutils literal notranslate"><span class="pre">to_wire</span></code> →
-<code class="docutils literal notranslate"><span class="pre">from_wire</span></code> is lossless (<code class="docutils literal notranslate"><span class="pre">decimal_str</span></code> writes exactly this many).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Decimal places a correction’s times keep</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -394,9 +373,11 @@ would leave an empty, inverted or overlapping span
 against the <em>final</em> placement: <code class="docutils literal notranslate"><span class="pre">satisfied:</span> <span class="pre">forbid&#64;&lt;t&gt;</span></code>, or
 <code class="docutils literal notranslate"><span class="pre">correction-unenforced</span></code> — moving a step elsewhere needs a solver, which
 replay is not. A pin that clips a child step out of existence says so
-(<code class="docutils literal notranslate"><span class="pre">correction-clipped</span></code>). A last consistency pass flags
-(<code class="docutils literal notranslate"><span class="pre">inconsistent:</span></code>) any empty span, any overlap between steps, and any
-step edge missing from <code class="docutils literal notranslate"><span class="pre">boundaries</span></code>.</p>
+(<code class="docutils literal notranslate"><span class="pre">correction-clipped</span></code>). Checking the result is not replay’s job:
+<a class="reference internal" href="paces.segmenters.html#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-func docutils literal notranslate"><span class="pre">paces.segmenters.segment()</span></code></a> runs
+<a class="reference internal" href="paces.segmentation.html#paces.segmentation.inconsistencies" title="paces.segmentation.inconsistencies"><code class="xref py py-func docutils literal notranslate"><span class="pre">inconsistencies()</span></code></a> on every segmentation. A log
+in which no correction edits the cut set leaves <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> exactly as
+given (duplicates included); once one does, they are rebuilt from it.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">seg</span> <span class="o">=</span> <span class="n">Segmentation</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="p">(</span><span class="n">SegStep</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),)),),</span>
 </span><span data-line="2"><span class="gp">... </span>                   <span class="n">boundaries</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">))</span>
 </span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="n">replay</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="p">[</span><span class="n">split</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">split</span><span class="p">(</span><span class="mf">5.1</span><span class="p">)])</span><span class="o">.</span><span class="n">flags</span>
@@ -417,22 +398,6 @@ step edge missing from <code class="docutils literal notranslate"><span class="p
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#paces.corrections.Correction" title="paces.corrections.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="paces.corrections.time_str">
-<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">time_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#time_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.time_str" title="Link to this definition">#</a></dt>
-<dd><p>A time as paces’ millisecond wire decimal — the one formatter every
-corrections producer shares (the ask page’s <code class="docutils literal notranslate"><span class="pre">timeStr</span></code> mirrors it).</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">time_str</span><span class="p">(</span><span class="mf">95.80000001</span><span class="p">),</span> <span class="n">time_str</span><span class="p">(</span><span class="mf">10.0625</span><span class="p">)</span>  <span class="c1"># exact binary ties round half-even</span>
-</span><span data-line="2"><span class="go">('95.8', '10.062')</span>
-</span></pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -490,7 +455,7 @@ corrections producer shares (the ask page’s <code class="docutils literal notr
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=3294188c"></script>
+      <script src="../_static/documentation_options.js?v=f91d8841"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

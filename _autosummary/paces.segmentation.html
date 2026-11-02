@@ -100,6 +100,11 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#paces.segmentation.SegStep"><code class="docutils literal notranslate"><span class="pre">SegStep</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmentation.Segmentation"><code class="docutils literal notranslate"><span class="pre">Segmentation</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmentation.TIME_PLACES"><code class="docutils literal notranslate"><span class="pre">TIME_PLACES</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmentation.edges"><code class="docutils literal notranslate"><span class="pre">edges()</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmentation.inconsistencies"><code class="docutils literal notranslate"><span class="pre">inconsistencies()</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmentation.overlaps"><code class="docutils literal notranslate"><span class="pre">overlaps()</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmentation.time_str"><code class="docutils literal notranslate"><span class="pre">time_str()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -149,6 +154,35 @@ evidence layer — depends on the types and not on the facade, and the facade
 can import those modules without a cycle. <a class="reference internal" href="paces.segmenters.html#module-paces.segmenters" title="paces.segmenters"><code class="xref py py-mod docutils literal notranslate"><span class="pre">paces.segmenters</span></code></a> re-exports
 every name here, so <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">paces.segmenters</span> <span class="pre">import</span> <span class="pre">Segmentation</span></code> keeps
 working.</p>
+<p class="rubric">Module Attributes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmentation.TIME_PLACES" title="paces.segmentation.TIME_PLACES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TIME_PLACES</span></code></a></p></td>
+<td><p>milliseconds, the wire's resolution.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmentation.edges" title="paces.segmentation.edges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edges</span></code></a>(steps)</p></td>
+<td><p>Every span start and end of <code class="docutils literal notranslate"><span class="pre">steps</span></code> (top level).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmentation.inconsistencies" title="paces.segmentation.inconsistencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inconsistencies</span></code></a>(seg, *[, max_overlap_flags])</p></td>
+<td><p>What no segmentation may contain, as <code class="docutils literal notranslate"><span class="pre">inconsistent:</span></code> flags — never repaired, never raised: empty spans, spans of different steps that overlap, children outside their parent, and step edges missing from <code class="docutils literal notranslate"><span class="pre">boundaries</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmentation.overlaps" title="paces.segmentation.overlaps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlaps</span></code></a>(a, b)</p></td>
+<td><p>True when the two spans share a positive length of time.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmentation.time_str" title="paces.segmentation.time_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_str</span></code></a>(t)</p></td>
+<td><p>A time as paces' millisecond wire decimal — the one formatter every time producer shares (the ask page's <code class="docutils literal notranslate"><span class="pre">timeStr</span></code> mirrors it).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -183,6 +217,79 @@ working.</p>
 failed: nine excellent unnamed cuts are a useful, honest result. <code class="docutils literal notranslate"><span class="pre">steps</span></code>
 may be empty while <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> is not.</p>
 <dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="paces.segmentation.TIME_PLACES">
+<span class="sig-prename descclassname"><span class="pre">paces.segmentation.</span></span><span class="sig-name descname"><span class="pre">TIME_PLACES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#paces.segmentation.TIME_PLACES" title="Link to this definition">#</a></dt>
+<dd><p>milliseconds, the wire’s
+resolution. Corrections round to it at construction, so their wire round trip
+is lossless (<code class="docutils literal notranslate"><span class="pre">decimal_str</span></code> writes exactly this many).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Decimal places every computed time keeps (spans, boundaries, corrections)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmentation.edges">
+<span class="sig-prename descclassname"><span class="pre">paces.segmentation.</span></span><span class="sig-name descname"><span class="pre">edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmentation.html#edges"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmentation.edges" title="Link to this definition">#</a></dt>
+<dd><p>Every span start and end of <code class="docutils literal notranslate"><span class="pre">steps</span></code> (top level).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#set" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmentation.inconsistencies">
+<span class="sig-prename descclassname"><span class="pre">paces.segmentation.</span></span><span class="sig-name descname"><span class="pre">inconsistencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_overlap_flags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmentation.html#inconsistencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmentation.inconsistencies" title="Link to this definition">#</a></dt>
+<dd><p>What no segmentation may contain, as <code class="docutils literal notranslate"><span class="pre">inconsistent:</span></code> flags — never
+repaired, never raised: empty spans, spans of different steps that
+overlap, children outside their parent, and step edges missing from
+<code class="docutils literal notranslate"><span class="pre">boundaries</span></code>. <a class="reference internal" href="paces.segmenters.html#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-func docutils literal notranslate"><span class="pre">paces.segmenters.segment()</span></code></a> runs it on every result,
+whichever segmenter produced it and whether or not a correction log ran.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">inconsistencies</span><span class="p">(</span><span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="2"><span class="gp">... </span>    <span class="n">steps</span><span class="o">=</span><span class="p">(</span><span class="n">SegStep</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),)),</span>
+</span><span data-line="3"><span class="gp">... </span>           <span class="n">SegStep</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"b"</span><span class="p">,</span> <span class="n">spans</span><span class="o">=</span><span class="p">((</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),))),</span>
+</span><span data-line="4"><span class="gp">... </span>    <span class="n">boundaries</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">)))</span>
+</span><span data-line="5"><span class="go">("inconsistent: steps 'a' and 'b' overlap (8–10)", 'inconsistent: step edges not in boundaries: 8')</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmentation.overlaps">
+<span class="sig-prename descclassname"><span class="pre">paces.segmentation.</span></span><span class="sig-name descname"><span class="pre">overlaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmentation.html#overlaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmentation.overlaps" title="Link to this definition">#</a></dt>
+<dd><p>True when the two spans share a positive length of time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmentation.time_str">
+<span class="sig-prename descclassname"><span class="pre">paces.segmentation.</span></span><span class="sig-name descname"><span class="pre">time_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmentation.html#time_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmentation.time_str" title="Link to this definition">#</a></dt>
+<dd><p>A time as paces’ millisecond wire decimal — the one formatter every
+time producer shares (the ask page’s <code class="docutils literal notranslate"><span class="pre">timeStr</span></code> mirrors it).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">time_str</span><span class="p">(</span><span class="mf">95.80000001</span><span class="p">),</span> <span class="n">time_str</span><span class="p">(</span><span class="mf">10.0625</span><span class="p">)</span>  <span class="c1"># exact binary ties round half-even</span>
+</span><span data-line="2"><span class="go">('95.8', '10.062')</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -228,7 +335,7 @@ may be empty while <code class="docutils literal notranslate"><span class="pre">
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=3294188c"></script>
+      <script src="../_static/documentation_options.js?v=f91d8841"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

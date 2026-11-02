@@ -99,6 +99,7 @@ data-aria-dark="Switch to auto color mode">
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#paces.segmenters.Capability"><code class="docutils literal notranslate"><span class="pre">Capability</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmenters.UNIT_PLACES"><code class="docutils literal notranslate"><span class="pre">UNIT_PLACES</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.capabilities"><code class="docutils literal notranslate"><span class="pre">capabilities()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.check_step_durations"><code class="docutils literal notranslate"><span class="pre">check_step_durations()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.place_on_grid"><code class="docutils literal notranslate"><span class="pre">place_on_grid()</span></code></a></li>
@@ -175,6 +176,16 @@ spans. Like <code class="docutils literal notranslate"><span class="pre">grid-me
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
 by an exception.</p>
+<p class="rubric">Module Attributes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.UNIT_PLACES" title="paces.segmenters.UNIT_PLACES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNIT_PLACES</span></code></a></p></td>
+<td><p>Places a unit offset (cumulative eights, reps…) is rounded to before it becomes seconds: far below any real duration, far above float noise.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -221,6 +232,13 @@ eventual planner and the segmenter registry share one declaration format.
 must not import its dependencies.</p>
 <dl class="field-list simple">
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="paces.segmenters.UNIT_PLACES">
+<span class="sig-prename descclassname"><span class="pre">paces.segmenters.</span></span><span class="sig-name descname"><span class="pre">UNIT_PLACES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></span><a class="headerlink" href="#paces.segmenters.UNIT_PLACES" title="Link to this definition">#</a></dt>
+<dd><p>Places a unit offset (cumulative eights, reps…) is rounded to before it
+becomes seconds: far below any real duration, far above float noise.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -372,7 +390,7 @@ that could not be honoured is flagged, never dropped.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=3294188c"></script>
+      <script src="../_static/documentation_options.js?v=f91d8841"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

@@ -1,4 +1,4 @@
-> built 2026-11-02 18:26 UTC from 79ead07 (main) · paces 0.0.23. Details: build_info.json
+> built 2026-11-02 18:49 UTC from 8316aa7 (main) · paces 0.0.24. Details: build_info.json
 
 # index.html.md
 
@@ -387,24 +387,22 @@ infeasible, is reported in `Segmentation.flags`.
 
 ### Module Attributes
 
-| [`TIME_PLACES`](_autosummary/paces.corrections.html.md#paces.corrections.TIME_PLACES)            | milliseconds, the wire's resolution.                       |
-|-------------------------------------------------------------------------|------------------------------------------------------------|
-| [`DFLT_MERGE_TOLERANCE_S`](_autosummary/paces.corrections.html.md#paces.corrections.DFLT_MERGE_TOLERANCE_S) | How far a `merge` time may sit from the boundary it means. |
-| [`DFLT_MIN_STEP_S`](_autosummary/paces.corrections.html.md#paces.corrections.DFLT_MIN_STEP_S)        | The narrowest step a `split` may create.                   |
+| [`DFLT_MERGE_TOLERANCE_S`](_autosummary/paces.corrections.html.md#paces.corrections.DFLT_MERGE_TOLERANCE_S)   | How far a `merge` time may sit from the boundary it means.   |
+|---------------------------------------------------------------------------|--------------------------------------------------------------|
+| [`DFLT_MIN_STEP_S`](_autosummary/paces.corrections.html.md#paces.corrections.DFLT_MIN_STEP_S)          | The narrowest step a `split` may create.                     |
 
 ### Functions
 
-| [`absent`](_autosummary/paces.corrections.html.md#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                                         |
-|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| [`forbid`](_autosummary/paces.corrections.html.md#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                                                    |
-| [`from_wire`](_autosummary/paces.corrections.html.md#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                                                   |
-| [`merge`](_autosummary/paces.corrections.html.md#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                                                  |
-| [`normalize_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.                          |
-| [`pin`](_autosummary/paces.corrections.html.md#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`.                         |
-| [`replay`](_autosummary/paces.corrections.html.md#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                                                |
-| [`split`](_autosummary/paces.corrections.html.md#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                                              |
-| [`time_str`](_autosummary/paces.corrections.html.md#paces.corrections.time_str)(t)                         | A time as paces' millisecond wire decimal — the one formatter every corrections producer shares (the ask page's `timeStr` mirrors it). |
-| [`to_wire`](_autosummary/paces.corrections.html.md#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                                         |
+| [`absent`](_autosummary/paces.corrections.html.md#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                 |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`forbid`](_autosummary/paces.corrections.html.md#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                            |
+| [`from_wire`](_autosummary/paces.corrections.html.md#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                           |
+| [`merge`](_autosummary/paces.corrections.html.md#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                          |
+| [`normalize_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.  |
+| [`pin`](_autosummary/paces.corrections.html.md#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`. |
+| [`replay`](_autosummary/paces.corrections.html.md#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                        |
+| [`split`](_autosummary/paces.corrections.html.md#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                      |
+| [`to_wire`](_autosummary/paces.corrections.html.md#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                 |
 
 ### Classes
 
@@ -420,7 +418,7 @@ One thing a human said about a segmentation, keyed by media time.
 `step_id` is for display only and is NEVER the join key: replay finds
 its target by `anchor_t`. `media_key` records which rendering of the
 media the correction was true of, so a later re-cut can migrate the log.
-Times are kept to the millisecond ([`TIME_PLACES`](_autosummary/paces.corrections.html.md#paces.corrections.TIME_PLACES)), so the wire form
+Times are kept to the millisecond (`TIME_PLACES`), so the wire form
 round-trips exactly.
 
 ```pycon
@@ -442,15 +440,6 @@ snaps taps within ±1.5 s).
 
 The narrowest step a `split` may create. A split closer than this to an
 existing cut is a tap on that cut, not a new step, so it is unmatched.
-
-### paces.corrections.TIME_PLACES *= 3*
-
-milliseconds, the wire’s
-resolution. Times are rounded to it at construction, so `to_wire` →
-`from_wire` is lossless (`decimal_str` writes exactly this many).
-
-* **Type:**
-  Decimal places a correction’s times keep
 
 ### paces.corrections.absent(anchor_t, \*\*meta)
 
@@ -523,9 +512,11 @@ would leave an empty, inverted or overlapping span
 against the *final* placement: `satisfied: forbid@<t>`, or
 `correction-unenforced` — moving a step elsewhere needs a solver, which
 replay is not. A pin that clips a child step out of existence says so
-(`correction-clipped`). A last consistency pass flags
-(`inconsistent:`) any empty span, any overlap between steps, and any
-step edge missing from `boundaries`.
+(`correction-clipped`). Checking the result is not replay’s job:
+[`paces.segmenters.segment()`](_autosummary/paces.segmenters.html.md#paces.segmenters.segment) runs
+[`inconsistencies()`](_autosummary/paces.segmentation.html.md#paces.segmentation.inconsistencies) on every segmentation. A log
+in which no correction edits the cut set leaves `boundaries` exactly as
+given (duplicates included); once one does, they are rebuilt from it.
 
 ```pycon
 >>> seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),
@@ -543,19 +534,6 @@ Split — “that is two steps”: cut the step covering `at_t` there (K += 1).
 
 * **Return type:**
   [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
-
-### paces.corrections.time_str(t)
-
-A time as paces’ millisecond wire decimal — the one formatter every
-corrections producer shares (the ask page’s `timeStr` mirrors it).
-
-```pycon
->>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
-('95.8', '10.062')
-```
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### paces.corrections.to_wire(correction)
 
@@ -2472,6 +2450,19 @@ can import those modules without a cycle. [`paces.segmenters`](_autosummary/pace
 every name here, so `from paces.segmenters import Segmentation` keeps
 working.
 
+### Module Attributes
+
+| [`TIME_PLACES`](_autosummary/paces.segmentation.html.md#paces.segmentation.TIME_PLACES)   | milliseconds, the wire's resolution.   |
+|----------------------------------------------------------------|----------------------------------------|
+
+### Functions
+
+| [`edges`](_autosummary/paces.segmentation.html.md#paces.segmentation.edges)(steps)                                  | Every span start and end of `steps` (top level).                                                                                                                                                                        |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`inconsistencies`](_autosummary/paces.segmentation.html.md#paces.segmentation.inconsistencies)(seg, \*[, max_overlap_flags]) | What no segmentation may contain, as `inconsistent:` flags — never repaired, never raised: empty spans, spans of different steps that overlap, children outside their parent, and step edges missing from `boundaries`. |
+| [`overlaps`](_autosummary/paces.segmentation.html.md#paces.segmentation.overlaps)(a, b)                                | True when the two spans share a positive length of time.                                                                                                                                                                |
+| [`time_str`](_autosummary/paces.segmentation.html.md#paces.segmentation.time_str)(t)                                   | A time as paces' millisecond wire decimal — the one formatter every time producer shares (the ask page's `timeStr` mirrors it).                                                                                         |
+
 ### Classes
 
 | [`SegStep`](_autosummary/paces.segmentation.html.md#paces.segmentation.SegStep)(\*, id[, name, spans, confidence, ...])   | One named piece of the media, as an analysis result.   |
@@ -2497,6 +2488,61 @@ What every segmenter returns. Reviewable, re-runnable, arguable.
 `boundaries` is separate from `steps` and populated even when naming
 failed: nine excellent unnamed cuts are a useful, honest result. `steps`
 may be empty while `boundaries` is not.
+
+### paces.segmentation.TIME_PLACES *= 3*
+
+milliseconds, the wire’s
+resolution. Corrections round to it at construction, so their wire round trip
+is lossless (`decimal_str` writes exactly this many).
+
+* **Type:**
+  Decimal places every computed time keeps (spans, boundaries, corrections)
+
+### paces.segmentation.edges(steps)
+
+Every span start and end of `steps` (top level).
+
+* **Return type:**
+  [`set`](https://docs.python.org/3/builtins/stdtypes.html#set)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### paces.segmentation.inconsistencies(seg, , max_overlap_flags=20)
+
+What no segmentation may contain, as `inconsistent:` flags — never
+repaired, never raised: empty spans, spans of different steps that
+overlap, children outside their parent, and step edges missing from
+`boundaries`. [`paces.segmenters.segment()`](_autosummary/paces.segmenters.html.md#paces.segmenters.segment) runs it on every result,
+whichever segmenter produced it and whether or not a correction log ran.
+
+```pycon
+>>> inconsistencies(Segmentation(
+...     steps=(SegStep(id="a", spans=((0.0, 10.0),)),
+...            SegStep(id="b", spans=((8.0, 20.0),))),
+...     boundaries=(0.0, 10.0, 20.0)))
+("inconsistent: steps 'a' and 'b' overlap (8–10)", 'inconsistent: step edges not in boundaries: 8')
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### paces.segmentation.overlaps(a, b)
+
+True when the two spans share a positive length of time.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### paces.segmentation.time_str(t)
+
+A time as paces’ millisecond wire decimal — the one formatter every
+time producer shares (the ask page’s `timeStr` mirrors it).
+
+```pycon
+>>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
+('95.8', '10.062')
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/paces.segmenters.html.md
@@ -2538,6 +2584,11 @@ step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
 by an exception.
 
+### Module Attributes
+
+| [`UNIT_PLACES`](_autosummary/paces.segmenters.html.md#paces.segmenters.UNIT_PLACES)   | Places a unit offset (cumulative eights, reps…) is rounded to before it becomes seconds: far below any real duration, far above float noise.   |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`capabilities`](_autosummary/paces.segmenters.html.md#paces.segmenters.capabilities)()                                | The registered capability catalog (read-only view).                                                                                |
@@ -2563,6 +2614,11 @@ The record from `docs/alignment/06 §1.2`, reused unchanged so the
 eventual planner and the segmenter registry share one declaration format.
 `target` is a lazy `"module:func"` ref — listing a heavy capability
 must not import its dependencies.
+
+### paces.segmenters.UNIT_PLACES *= 9*
+
+Places a unit offset (cumulative eights, reps…) is rounded to before it
+becomes seconds: far below any real duration, far above float noise.
 
 ### paces.segmenters.capabilities()
 
@@ -2885,18 +2941,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-02 18:26 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/79ead0700c61382d5d9f1f1bc24013ac286881a0"><code>79ead07</code></a> on branch <code>main</code>, for **paces 0.0.23** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 18:49 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd"><code>8316aa7</code></a> on branch <code>main</code>, for **paces 0.0.24** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.24) is ahead of the latest release on PyPI (0.0.23): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/79ead0700c61382d5d9f1f1bc24013ac286881a0"><code>79ead0700c61382d5d9f1f1bc24013ac286881a0</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd"><code>8316aa740559e039da53b34423578b183bfdc9dd</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.23</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.24</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -2905,9 +2963,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41500019680">41500019680</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41503553254">41503553254</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>04bc4efc3118569004fcfe2ce369bcdb489bdc7f</code> (in the history of the built commit) |
+| Event commit | <code>02312223006c6d0734ff5af97f98604c8d7122c7</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -2932,13 +2990,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.23/">0.0.23</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.23/">0.0.23</a>, older than the documented version (0.0.24).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 79ead0700c61382d5d9f1f1bc24013ac286881a0
+git checkout 8316aa740559e039da53b34423578b183bfdc9dd
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -4,6 +4,21 @@ paces.segmentation
 .. automodule:: paces.segmentation
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TIME_PLACES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      edges
+      inconsistencies
+      overlaps
+      time_str
+   
    .. rubric:: Classes
 
    .. autosummary::

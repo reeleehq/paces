@@ -172,355 +172,352 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="42"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">get_args</span>
 </span><span data-line="43">
 </span><span data-line="44"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">decimal_str</span>
-</span><span data-line="45"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span data-line="45"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># noqa: F401 — TIME_PLACES/time_str re-exported</span>
 </span><span data-line="46">    <span class="n">DFLT_EXPLICIT_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="47">    <span class="n">SegStep</span><span class="p">,</span>
-</span><span data-line="48">    <span class="n">Segmentation</span><span class="p">,</span>
-</span><span data-line="49">    <span class="n">Span</span><span class="p">,</span>
-</span><span data-line="50"><span class="p">)</span>
-</span><span data-line="51">
-</span><span data-line="52"><span class="n">Verb</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"pin"</span><span class="p">,</span> <span class="s2">"forbid"</span><span class="p">,</span> <span class="s2">"absent"</span><span class="p">,</span> <span class="s2">"split"</span><span class="p">,</span> <span class="s2">"merge"</span><span class="p">]</span>
-</span><span data-line="53"><span class="n">VERBS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">Verb</span><span class="p">)</span>
-</span><span data-line="54">
-</span><span data-line="55"><span class="c1">#: Decimal places a correction's times keep: milliseconds, the wire's</span>
-</span><span data-line="56"><span class="c1">#: resolution. Times are rounded to it at construction, so ``to_wire`` →</span>
-</span><span data-line="57"><span class="c1">#: ``from_wire`` is lossless (``decimal_str`` writes exactly this many).</span>
-</span><span data-line="58"><span class="n">TIME_PLACES</span> <span class="o">=</span> <span class="mi">3</span>
-</span><span data-line="59">
-</span><span data-line="60"><span class="c1">#: How far a ``merge`` time may sit from the boundary it means. A human taps</span>
-</span><span data-line="61"><span class="c1">#: approximately; the machine finds the cut (``docs/alignment/07 §7.3`` step 3</span>
-</span><span data-line="62"><span class="c1">#: snaps taps within ±1.5 s).</span>
-</span><span data-line="63"><span class="n">DFLT_MERGE_TOLERANCE_S</span> <span class="o">=</span> <span class="mf">1.5</span>
-</span><span data-line="64">
-</span><span data-line="65"><span class="c1">#: The narrowest step a ``split`` may create. A split closer than this to an</span>
-</span><span data-line="66"><span class="c1">#: existing cut is a tap on that cut, not a new step, so it is unmatched.</span>
-</span><span data-line="67"><span class="n">DFLT_MIN_STEP_S</span> <span class="o">=</span> <span class="mf">0.25</span>
+</span><span data-line="47">    <span class="n">TIME_PLACES</span><span class="p">,</span>
+</span><span data-line="48">    <span class="n">SegStep</span><span class="p">,</span>
+</span><span data-line="49">    <span class="n">Segmentation</span><span class="p">,</span>
+</span><span data-line="50">    <span class="n">Span</span><span class="p">,</span>
+</span><span data-line="51">    <span class="n">time_str</span><span class="p">,</span>
+</span><span data-line="52"><span class="p">)</span>
+</span><span data-line="53"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">edges</span> <span class="k">as</span> <span class="n">_edges</span>
+</span><span data-line="54"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">overlaps</span> <span class="k">as</span> <span class="n">_overlaps</span>
+</span><span data-line="55">
+</span><span data-line="56"><span class="n">Verb</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"pin"</span><span class="p">,</span> <span class="s2">"forbid"</span><span class="p">,</span> <span class="s2">"absent"</span><span class="p">,</span> <span class="s2">"split"</span><span class="p">,</span> <span class="s2">"merge"</span><span class="p">]</span>
+</span><span data-line="57"><span class="n">VERBS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">Verb</span><span class="p">)</span>
+</span><span data-line="58">
+</span><span data-line="59"><span class="c1">#: How far a ``merge`` time may sit from the boundary it means. A human taps</span>
+</span><span data-line="60"><span class="c1">#: approximately; the machine finds the cut (``docs/alignment/07 §7.3`` step 3</span>
+</span><span data-line="61"><span class="c1">#: snaps taps within ±1.5 s).</span>
+</span><span data-line="62"><span class="n">DFLT_MERGE_TOLERANCE_S</span> <span class="o">=</span> <span class="mf">1.5</span>
+</span><span data-line="63">
+</span><span data-line="64"><span class="c1">#: The narrowest step a ``split`` may create. A split closer than this to an</span>
+</span><span data-line="65"><span class="c1">#: existing cut is a tap on that cut, not a new step, so it is unmatched.</span>
+</span><span data-line="66"><span class="n">DFLT_MIN_STEP_S</span> <span class="o">=</span> <span class="mf">0.25</span>
+</span><span data-line="67">
 </span><span data-line="68">
-</span><span data-line="69">
-</span><span data-line="70"><span class="k">def</span><span class="w"> </span><span class="nf">_to_ms</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span data-line="71"><span class="w">    </span><span class="sd">"""A finite time rounded to :data:`TIME_PLACES`, or a ``ValueError``."""</span>
-</span><span data-line="72">    <span class="k">try</span><span class="p">:</span>
-</span><span data-line="73">        <span class="n">t</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-</span><span data-line="74">    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-</span><span data-line="75">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be a time in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
-</span><span data-line="76">    <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
-</span><span data-line="77">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be a finite time, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="78">    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">TIME_PLACES</span><span class="p">)</span>
-</span><span data-line="79">
+</span><span data-line="69"><span class="k">def</span><span class="w"> </span><span class="nf">_to_ms</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span data-line="70"><span class="w">    </span><span class="sd">"""A finite time rounded to :data:`TIME_PLACES`, or a ``ValueError``."""</span>
+</span><span data-line="71">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>  <span class="c1"># True is 1.0 to float(); never a time</span>
+</span><span data-line="72">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be a time in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="73">    <span class="k">try</span><span class="p">:</span>
+</span><span data-line="74">        <span class="n">t</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span data-line="75">    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+</span><span data-line="76">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be a time in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+</span><span data-line="77">    <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+</span><span data-line="78">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be a finite time, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="79">    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">TIME_PLACES</span><span class="p">)</span>
 </span><span data-line="80">
+</span><span data-line="81">
 <div class="viewcode-block" id="Correction">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.Correction">[docs]</a>
-</span><span data-line="81"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="82"><span class="k">class</span><span class="w"> </span><span class="nc">Correction</span><span class="p">:</span>
-</span><span data-line="83"><span class="w">    </span><span class="sd">"""One thing a human said about a segmentation, keyed by media time.</span>
-</span><span data-line="84">
-</span><span data-line="85"><span class="sd">    ``step_id`` is for display only and is NEVER the join key: replay finds</span>
-</span><span data-line="86"><span class="sd">    its target by ``anchor_t``. ``media_key`` records which rendering of the</span>
-</span><span data-line="87"><span class="sd">    media the correction was true of, so a later re-cut can migrate the log.</span>
-</span><span data-line="88"><span class="sd">    Times are kept to the millisecond (:data:`TIME_PLACES`), so the wire form</span>
-</span><span data-line="89"><span class="sd">    round-trips exactly.</span>
-</span><span data-line="90">
-</span><span data-line="91"><span class="sd">    &gt;&gt;&gt; split(0.8550444).anchor_t</span>
-</span><span data-line="92"><span class="sd">    0.855</span>
-</span><span data-line="93"><span class="sd">    """</span>
-</span><span data-line="94">
-</span><span data-line="95">    <span class="n">verb</span><span class="p">:</span> <span class="n">Verb</span>
-</span><span data-line="96">    <span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># WHERE on the media clock — the durable key</span>
-</span><span data-line="97">    <span class="n">span</span><span class="p">:</span> <span class="n">Span</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># pin: where it is; forbid: where it is not</span>
-</span><span data-line="98">    <span class="n">step_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="99">    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-</span><span data-line="100">    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># ISO-8601 timestamp</span>
-</span><span data-line="101">    <span class="n">media_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="102">    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-</span><span data-line="103">
-</span><span data-line="104">    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span data-line="105">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VERBS</span><span class="p">:</span>
-</span><span data-line="106">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown verb </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">verb</span><span class="si">!r}</span><span class="s2">; expected one of </span><span class="si">{</span><span class="n">VERBS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="107">        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"anchor_t"</span><span class="p">,</span> <span class="n">_to_ms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"anchor_t"</span><span class="p">))</span>
-</span><span data-line="108">        <span class="n">needs_span</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verb</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pin"</span><span class="p">,</span> <span class="s2">"forbid"</span><span class="p">)</span>
-</span><span data-line="109">        <span class="k">if</span> <span class="n">needs_span</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-</span><span data-line="110">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="111">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">verb</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'needs'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">needs_span</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'takes no'</span><span class="si">}</span><span class="s2"> span="</span>
-</span><span data-line="112">            <span class="p">)</span>
-</span><span data-line="113">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="114">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-</span><span data-line="115">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"span must be (start, end), got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="116">            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="p">(</span><span class="n">_to_ms</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"span"</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="p">)</span>
-</span><span data-line="117">            <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
-</span><span data-line="118">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="119">                    <span class="sa">f</span><span class="s2">"span must be (start, end) with start &lt; end: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="120">                <span class="p">)</span>
-</span><span data-line="121">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verb</span> <span class="o">==</span> <span class="s2">"pin"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
-</span><span data-line="122">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="123">                    <span class="sa">f</span><span class="s2">"a pin's anchor_t (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span><span class="si">}</span><span class="s2">) must lie inside its span </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="124">                <span class="p">)</span>
-</span><span data-line="125">            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"span"</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
-</span><span data-line="126">
-</span><span data-line="127">    <span class="nd">@property</span>
-</span><span data-line="128">    <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="129"><span class="w">        </span><span class="sd">"""``'split@95.8'`` — how flags name this correction."""</span>
-</span><span data-line="130">        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">verb</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">decimal_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span><span class="p">,</span><span class="w"> </span><span class="n">places</span><span class="o">=</span><span class="n">TIME_PLACES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span></div>
+</span><span data-line="82"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="83"><span class="k">class</span><span class="w"> </span><span class="nc">Correction</span><span class="p">:</span>
+</span><span data-line="84"><span class="w">    </span><span class="sd">"""One thing a human said about a segmentation, keyed by media time.</span>
+</span><span data-line="85">
+</span><span data-line="86"><span class="sd">    ``step_id`` is for display only and is NEVER the join key: replay finds</span>
+</span><span data-line="87"><span class="sd">    its target by ``anchor_t``. ``media_key`` records which rendering of the</span>
+</span><span data-line="88"><span class="sd">    media the correction was true of, so a later re-cut can migrate the log.</span>
+</span><span data-line="89"><span class="sd">    Times are kept to the millisecond (:data:`TIME_PLACES`), so the wire form</span>
+</span><span data-line="90"><span class="sd">    round-trips exactly.</span>
+</span><span data-line="91">
+</span><span data-line="92"><span class="sd">    &gt;&gt;&gt; split(0.8550444).anchor_t</span>
+</span><span data-line="93"><span class="sd">    0.855</span>
+</span><span data-line="94"><span class="sd">    """</span>
+</span><span data-line="95">
+</span><span data-line="96">    <span class="n">verb</span><span class="p">:</span> <span class="n">Verb</span>
+</span><span data-line="97">    <span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># WHERE on the media clock — the durable key</span>
+</span><span data-line="98">    <span class="n">span</span><span class="p">:</span> <span class="n">Span</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># pin: where it is; forbid: where it is not</span>
+</span><span data-line="99">    <span class="n">step_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="100">    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+</span><span data-line="101">    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>  <span class="c1"># ISO-8601 timestamp</span>
+</span><span data-line="102">    <span class="n">media_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="103">    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+</span><span data-line="104">
+</span><span data-line="105">    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span data-line="106">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"author"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">):</span>
+</span><span data-line="107">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="108">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="109">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be a string, got </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="110">                <span class="p">)</span>
+</span><span data-line="111">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"step_id"</span><span class="p">,</span> <span class="s2">"media_key"</span><span class="p">):</span>
+</span><span data-line="112">            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+</span><span data-line="113">                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="nb">str</span>
+</span><span data-line="114">            <span class="p">):</span>
+</span><span data-line="115">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="116">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be a string or None, got </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="117">                <span class="p">)</span>
+</span><span data-line="118">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VERBS</span><span class="p">:</span>
+</span><span data-line="119">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown verb </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">verb</span><span class="si">!r}</span><span class="s2">; expected one of </span><span class="si">{</span><span class="n">VERBS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="120">        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"anchor_t"</span><span class="p">,</span> <span class="n">_to_ms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"anchor_t"</span><span class="p">))</span>
+</span><span data-line="121">        <span class="n">needs_span</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verb</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pin"</span><span class="p">,</span> <span class="s2">"forbid"</span><span class="p">)</span>
+</span><span data-line="122">        <span class="k">if</span> <span class="n">needs_span</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+</span><span data-line="123">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="124">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">verb</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'needs'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">needs_span</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'takes no'</span><span class="si">}</span><span class="s2"> span="</span>
+</span><span data-line="125">            <span class="p">)</span>
+</span><span data-line="126">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="127">            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span data-line="128">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"span must be (start, end), got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="129">            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="p">(</span><span class="n">_to_ms</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"span"</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="p">)</span>
+</span><span data-line="130">            <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+</span><span data-line="131">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="132">                    <span class="sa">f</span><span class="s2">"span must be (start, end) with start &lt; end: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="133">                <span class="p">)</span>
+</span><span data-line="134">            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verb</span> <span class="o">==</span> <span class="s2">"pin"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+</span><span data-line="135">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="136">                    <span class="sa">f</span><span class="s2">"a pin's anchor_t (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span><span class="si">}</span><span class="s2">) must lie inside its span </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">span</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="137">                <span class="p">)</span>
+</span><span data-line="138">            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"span"</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+</span><span data-line="139">
+</span><span data-line="140">    <span class="nd">@property</span>
+</span><span data-line="141">    <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="142"><span class="w">        </span><span class="sd">"""``'split@95.8'`` — how flags name this correction."""</span>
+</span><span data-line="143">        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">verb</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">decimal_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor_t</span><span class="p">,</span><span class="w"> </span><span class="n">places</span><span class="o">=</span><span class="n">TIME_PLACES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span></div>
 
-</span><span data-line="131">
-</span><span data-line="132">
-</span><span data-line="133"><span class="c1"># ── the five verbs ──────────────────────────────────────────────────────────</span>
-</span><span data-line="134">
-</span><span data-line="135">
+</span><span data-line="144">
+</span><span data-line="145">
+</span><span data-line="146"><span class="c1"># ── the five verbs ──────────────────────────────────────────────────────────</span>
+</span><span data-line="147">
+</span><span data-line="148">
 <div class="viewcode-block" id="pin">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.pin">[docs]</a>
-</span><span data-line="136"><span class="k">def</span><span class="w"> </span><span class="nf">pin</span><span class="p">(</span><span class="n">span</span><span class="p">:</span> <span class="n">Span</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
-</span><span data-line="137"><span class="w">    </span><span class="sd">"""Pin — "the step is HERE": the step covering ``anchor_t`` (default: the span's</span>
-</span><span data-line="138"><span class="sd">    midpoint) occupies exactly ``span``."""</span>
-</span><span data-line="139">    <span class="n">span</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">span</span><span class="p">)</span>
-</span><span data-line="140">    <span class="k">if</span> <span class="n">anchor_t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">span</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-</span><span data-line="141">        <span class="n">anchor_t</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span>
-</span><span data-line="142">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"pin"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">anchor_t</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="n">span</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
+</span><span data-line="149"><span class="k">def</span><span class="w"> </span><span class="nf">pin</span><span class="p">(</span><span class="n">span</span><span class="p">:</span> <span class="n">Span</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
+</span><span data-line="150"><span class="w">    </span><span class="sd">"""Pin — "the step is HERE": the step covering ``anchor_t`` (default: the span's</span>
+</span><span data-line="151"><span class="sd">    midpoint) occupies exactly ``span``."""</span>
+</span><span data-line="152">    <span class="n">span</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">span</span><span class="p">)</span>
+</span><span data-line="153">    <span class="k">if</span> <span class="n">anchor_t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">span</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+</span><span data-line="154">        <span class="n">anchor_t</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span>
+</span><span data-line="155">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"pin"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">anchor_t</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="n">span</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
 
-</span><span data-line="143">
-</span><span data-line="144">
+</span><span data-line="156">
+</span><span data-line="157">
 <div class="viewcode-block" id="forbid">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.forbid">[docs]</a>
-</span><span data-line="145"><span class="k">def</span><span class="w"> </span><span class="nf">forbid</span><span class="p">(</span><span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">span</span><span class="p">:</span> <span class="n">Span</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
-</span><span data-line="146"><span class="w">    </span><span class="sd">"""Forbid — "the step at ``anchor_t`` is not in ``span``"."""</span>
-</span><span data-line="147">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"forbid"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">anchor_t</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">span</span><span class="p">),</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
+</span><span data-line="158"><span class="k">def</span><span class="w"> </span><span class="nf">forbid</span><span class="p">(</span><span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">span</span><span class="p">:</span> <span class="n">Span</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
+</span><span data-line="159"><span class="w">    </span><span class="sd">"""Forbid — "the step at ``anchor_t`` is not in ``span``"."""</span>
+</span><span data-line="160">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"forbid"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">anchor_t</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">span</span><span class="p">),</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
 
-</span><span data-line="148">
-</span><span data-line="149">
+</span><span data-line="161">
+</span><span data-line="162">
 <div class="viewcode-block" id="absent">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.absent">[docs]</a>
-</span><span data-line="150"><span class="k">def</span><span class="w"> </span><span class="nf">absent</span><span class="p">(</span><span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
-</span><span data-line="151"><span class="w">    </span><span class="sd">"""Absent — "the step placed at ``anchor_t`` is not in this media"."""</span>
-</span><span data-line="152">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"absent"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">anchor_t</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
+</span><span data-line="163"><span class="k">def</span><span class="w"> </span><span class="nf">absent</span><span class="p">(</span><span class="n">anchor_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
+</span><span data-line="164"><span class="w">    </span><span class="sd">"""Absent — "the step placed at ``anchor_t`` is not in this media"."""</span>
+</span><span data-line="165">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"absent"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">anchor_t</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
 
-</span><span data-line="153">
-</span><span data-line="154">
+</span><span data-line="166">
+</span><span data-line="167">
 <div class="viewcode-block" id="split">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.split">[docs]</a>
-</span><span data-line="155"><span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="n">at_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
-</span><span data-line="156"><span class="w">    </span><span class="sd">"""Split — "that is two steps": cut the step covering ``at_t`` there (K += 1)."""</span>
-</span><span data-line="157">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"split"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">at_t</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
+</span><span data-line="168"><span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="n">at_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
+</span><span data-line="169"><span class="w">    </span><span class="sd">"""Split — "that is two steps": cut the step covering ``at_t`` there (K += 1)."""</span>
+</span><span data-line="170">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"split"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">at_t</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
 
-</span><span data-line="158">
-</span><span data-line="159">
+</span><span data-line="171">
+</span><span data-line="172">
 <div class="viewcode-block" id="merge">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.merge">[docs]</a>
-</span><span data-line="160"><span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="n">at_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
-</span><span data-line="161"><span class="w">    </span><span class="sd">"""Merge — "those are one step": remove the cut nearest ``at_t`` (K -= 1)."""</span>
-</span><span data-line="162">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"merge"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">at_t</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
+</span><span data-line="173"><span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="n">at_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
+</span><span data-line="174"><span class="w">    </span><span class="sd">"""Merge — "those are one step": remove the cut nearest ``at_t`` (K -= 1)."""</span>
+</span><span data-line="175">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="n">verb</span><span class="o">=</span><span class="s2">"merge"</span><span class="p">,</span> <span class="n">anchor_t</span><span class="o">=</span><span class="n">at_t</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span></div>
 
-</span><span data-line="163">
-</span><span data-line="164">
-</span><span data-line="165"><span class="c1"># ── wire form (no floats on the wire, docs/07 §6.5) ─────────────────────────</span>
-</span><span data-line="166">
-</span><span data-line="167"><span class="n">_WIRE_KEYS</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="168">    <span class="s2">"verb"</span><span class="p">:</span> <span class="s2">"verb"</span><span class="p">,</span>
-</span><span data-line="169">    <span class="s2">"anchor_t"</span><span class="p">:</span> <span class="s2">"anchorT"</span><span class="p">,</span>
-</span><span data-line="170">    <span class="s2">"span"</span><span class="p">:</span> <span class="s2">"span"</span><span class="p">,</span>
-</span><span data-line="171">    <span class="s2">"step_id"</span><span class="p">:</span> <span class="s2">"stepId"</span><span class="p">,</span>
-</span><span data-line="172">    <span class="s2">"author"</span><span class="p">:</span> <span class="s2">"author"</span><span class="p">,</span>
-</span><span data-line="173">    <span class="s2">"at"</span><span class="p">:</span> <span class="s2">"at"</span><span class="p">,</span>
-</span><span data-line="174">    <span class="s2">"media_key"</span><span class="p">:</span> <span class="s2">"mediaKey"</span><span class="p">,</span>
-</span><span data-line="175">    <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"reason"</span><span class="p">,</span>
-</span><span data-line="176"><span class="p">}</span>
-</span><span data-line="177"><span class="n">_REQUIRED_WIRE_KEYS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"verb"</span><span class="p">,</span> <span class="s2">"anchorT"</span><span class="p">)</span>
-</span><span data-line="178">
+</span><span data-line="176">
+</span><span data-line="177">
+</span><span data-line="178"><span class="c1"># ── wire form (no floats on the wire, docs/07 §6.5) ─────────────────────────</span>
 </span><span data-line="179">
-<div class="viewcode-block" id="time_str">
-<a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.time_str">[docs]</a>
-</span><span data-line="180"><span class="k">def</span><span class="w"> </span><span class="nf">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="181"><span class="w">    </span><span class="sd">"""A time as paces' millisecond wire decimal — the one formatter every</span>
-</span><span data-line="182"><span class="sd">    corrections producer shares (the ask page's ``timeStr`` mirrors it).</span>
-</span><span data-line="183">
-</span><span data-line="184"><span class="sd">    &gt;&gt;&gt; time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even</span>
-</span><span data-line="185"><span class="sd">    ('95.8', '10.062')</span>
-</span><span data-line="186"><span class="sd">    """</span>
-</span><span data-line="187">    <span class="k">return</span> <span class="n">decimal_str</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="n">TIME_PLACES</span><span class="p">)</span></div>
-
-</span><span data-line="188">
-</span><span data-line="189">
+</span><span data-line="180"><span class="n">_WIRE_KEYS</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="181">    <span class="s2">"verb"</span><span class="p">:</span> <span class="s2">"verb"</span><span class="p">,</span>
+</span><span data-line="182">    <span class="s2">"anchor_t"</span><span class="p">:</span> <span class="s2">"anchorT"</span><span class="p">,</span>
+</span><span data-line="183">    <span class="s2">"span"</span><span class="p">:</span> <span class="s2">"span"</span><span class="p">,</span>
+</span><span data-line="184">    <span class="s2">"step_id"</span><span class="p">:</span> <span class="s2">"stepId"</span><span class="p">,</span>
+</span><span data-line="185">    <span class="s2">"author"</span><span class="p">:</span> <span class="s2">"author"</span><span class="p">,</span>
+</span><span data-line="186">    <span class="s2">"at"</span><span class="p">:</span> <span class="s2">"at"</span><span class="p">,</span>
+</span><span data-line="187">    <span class="s2">"media_key"</span><span class="p">:</span> <span class="s2">"mediaKey"</span><span class="p">,</span>
+</span><span data-line="188">    <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"reason"</span><span class="p">,</span>
+</span><span data-line="189"><span class="p">}</span>
+</span><span data-line="190"><span class="n">_REQUIRED_WIRE_KEYS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"verb"</span><span class="p">,</span> <span class="s2">"anchorT"</span><span class="p">)</span>
+</span><span data-line="191">
+</span><span data-line="192">
 <div class="viewcode-block" id="to_wire">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.to_wire">[docs]</a>
-</span><span data-line="190"><span class="k">def</span><span class="w"> </span><span class="nf">to_wire</span><span class="p">(</span><span class="n">correction</span><span class="p">:</span> <span class="n">Correction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="191"><span class="w">    </span><span class="sd">"""A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted."""</span>
-</span><span data-line="192">    <span class="n">wire</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"verb"</span><span class="p">:</span> <span class="n">correction</span><span class="o">.</span><span class="n">verb</span><span class="p">,</span> <span class="s2">"anchorT"</span><span class="p">:</span> <span class="n">time_str</span><span class="p">(</span><span class="n">correction</span><span class="o">.</span><span class="n">anchor_t</span><span class="p">)}</span>
-</span><span data-line="193">    <span class="k">if</span> <span class="n">correction</span><span class="o">.</span><span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="194">        <span class="n">wire</span><span class="p">[</span><span class="s2">"span"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">correction</span><span class="o">.</span><span class="n">span</span><span class="p">]</span>
-</span><span data-line="195">    <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"step_id"</span><span class="p">,</span> <span class="s2">"author"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">,</span> <span class="s2">"media_key"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">):</span>
-</span><span data-line="196">        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">correction</span><span class="p">,</span> <span class="n">field_name</span><span class="p">)</span>
-</span><span data-line="197">        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-</span><span data-line="198">            <span class="n">wire</span><span class="p">[</span><span class="n">_WIRE_KEYS</span><span class="p">[</span><span class="n">field_name</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
-</span><span data-line="199">    <span class="k">return</span> <span class="n">wire</span></div>
+</span><span data-line="193"><span class="k">def</span><span class="w"> </span><span class="nf">to_wire</span><span class="p">(</span><span class="n">correction</span><span class="p">:</span> <span class="n">Correction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="194"><span class="w">    </span><span class="sd">"""A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted."""</span>
+</span><span data-line="195">    <span class="n">wire</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"verb"</span><span class="p">:</span> <span class="n">correction</span><span class="o">.</span><span class="n">verb</span><span class="p">,</span> <span class="s2">"anchorT"</span><span class="p">:</span> <span class="n">time_str</span><span class="p">(</span><span class="n">correction</span><span class="o">.</span><span class="n">anchor_t</span><span class="p">)}</span>
+</span><span data-line="196">    <span class="k">if</span> <span class="n">correction</span><span class="o">.</span><span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="197">        <span class="n">wire</span><span class="p">[</span><span class="s2">"span"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">correction</span><span class="o">.</span><span class="n">span</span><span class="p">]</span>
+</span><span data-line="198">    <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"step_id"</span><span class="p">,</span> <span class="s2">"author"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">,</span> <span class="s2">"media_key"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">):</span>
+</span><span data-line="199">        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">correction</span><span class="p">,</span> <span class="n">field_name</span><span class="p">)</span>
+</span><span data-line="200">        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+</span><span data-line="201">            <span class="n">wire</span><span class="p">[</span><span class="n">_WIRE_KEYS</span><span class="p">[</span><span class="n">field_name</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span data-line="202">    <span class="k">return</span> <span class="n">wire</span></div>
 
-</span><span data-line="200">
-</span><span data-line="201">
+</span><span data-line="203">
+</span><span data-line="204">
 <div class="viewcode-block" id="from_wire">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.from_wire">[docs]</a>
-</span><span data-line="202"><span class="k">def</span><span class="w"> </span><span class="nf">from_wire</span><span class="p">(</span><span class="n">wire</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
-</span><span data-line="203"><span class="w">    </span><span class="sd">"""Parse one wire dict. Unknown or missing keys raise ``ValueError`` (a typo</span>
-</span><span data-line="204"><span class="sd">    must not vanish, and a correction without a verb or a time is not one).</span>
-</span><span data-line="205">
-</span><span data-line="206"><span class="sd">    &gt;&gt;&gt; from_wire({"verb": "split", "anchorT": "95.8"}) == split(95.8)</span>
-</span><span data-line="207"><span class="sd">    True</span>
-</span><span data-line="208"><span class="sd">    """</span>
-</span><span data-line="209">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wire</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-</span><span data-line="210">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a correction must be a mapping, got </span><span class="si">{</span><span class="n">wire</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="211">    <span class="n">by_wire</span> <span class="o">=</span> <span class="p">{</span><span class="n">w</span><span class="p">:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_WIRE_KEYS</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-</span><span data-line="212">    <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wire</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">by_wire</span><span class="p">))</span>
-</span><span data-line="213">    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
-</span><span data-line="214">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown correction keys </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">by_wire</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="215">    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_REQUIRED_WIRE_KEYS</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">wire</span><span class="p">]</span>
-</span><span data-line="216">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-</span><span data-line="217">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"correction </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">wire</span><span class="p">)</span><span class="si">}</span><span class="s2"> is missing </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="218">    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">by_wire</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">wire</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-</span><span data-line="219">    <span class="n">span</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"span"</span><span class="p">)</span>
-</span><span data-line="220">    <span class="k">if</span> <span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="221">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-</span><span data-line="222">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"span must be a [start, end] list, got </span><span class="si">{</span><span class="n">span</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="223">        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"span"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">span</span><span class="p">)</span>
-</span><span data-line="224">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</span><span data-line="205"><span class="k">def</span><span class="w"> </span><span class="nf">from_wire</span><span class="p">(</span><span class="n">wire</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Correction</span><span class="p">:</span>
+</span><span data-line="206"><span class="w">    </span><span class="sd">"""Parse one wire dict. Unknown or missing keys raise ``ValueError`` (a typo</span>
+</span><span data-line="207"><span class="sd">    must not vanish, and a correction without a verb or a time is not one).</span>
+</span><span data-line="208">
+</span><span data-line="209"><span class="sd">    &gt;&gt;&gt; from_wire({"verb": "split", "anchorT": "95.8"}) == split(95.8)</span>
+</span><span data-line="210"><span class="sd">    True</span>
+</span><span data-line="211"><span class="sd">    """</span>
+</span><span data-line="212">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wire</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+</span><span data-line="213">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a correction must be a mapping, got </span><span class="si">{</span><span class="n">wire</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="214">    <span class="n">by_wire</span> <span class="o">=</span> <span class="p">{</span><span class="n">w</span><span class="p">:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_WIRE_KEYS</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span data-line="215">    <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wire</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">by_wire</span><span class="p">))</span>
+</span><span data-line="216">    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+</span><span data-line="217">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown correction keys </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">by_wire</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="218">    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_REQUIRED_WIRE_KEYS</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">wire</span><span class="p">]</span>
+</span><span data-line="219">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+</span><span data-line="220">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"correction </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">wire</span><span class="p">)</span><span class="si">}</span><span class="s2"> is missing </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="221">    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">by_wire</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">wire</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span data-line="222">    <span class="n">span</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"span"</span><span class="p">)</span>
+</span><span data-line="223">    <span class="k">if</span> <span class="n">span</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="224">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+</span><span data-line="225">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"span must be a [start, end] list, got </span><span class="si">{</span><span class="n">span</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="226">        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"span"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">span</span><span class="p">)</span>
+</span><span data-line="227">    <span class="k">return</span> <span class="n">Correction</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-</span><span data-line="225">
-</span><span data-line="226">
+</span><span data-line="228">
+</span><span data-line="229">
 <div class="viewcode-block" id="normalize_corrections">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.normalize_corrections">[docs]</a>
-</span><span data-line="227"><span class="k">def</span><span class="w"> </span><span class="nf">normalize_corrections</span><span class="p">(</span>
-</span><span data-line="228">    <span class="n">corrections</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Correction</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="229"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Correction</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span data-line="230"><span class="w">    </span><span class="sd">"""Accept :class:`Correction` objects or their wire dicts, in log order.</span>
-</span><span data-line="231">
-</span><span data-line="232"><span class="sd">    A log is a *sequence*: one correction passed bare (a mapping) is refused</span>
-</span><span data-line="233"><span class="sd">    rather than iterated over its keys.</span>
+</span><span data-line="230"><span class="k">def</span><span class="w"> </span><span class="nf">normalize_corrections</span><span class="p">(</span>
+</span><span data-line="231">    <span class="n">corrections</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Correction</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="232"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Correction</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+</span><span data-line="233"><span class="w">    </span><span class="sd">"""Accept :class:`Correction` objects or their wire dicts, in log order.</span>
 </span><span data-line="234">
-</span><span data-line="235"><span class="sd">    &gt;&gt;&gt; normalize_corrections({"verb": "split", "anchorT": "1"})</span>
-</span><span data-line="236"><span class="sd">    Traceback (most recent call last):</span>
-</span><span data-line="237"><span class="sd">    ...</span>
-</span><span data-line="238"><span class="sd">    ValueError: corrections must be a list of corrections, got a single mapping; wrap it in a list</span>
-</span><span data-line="239"><span class="sd">    """</span>
-</span><span data-line="240">    <span class="k">if</span> <span class="n">corrections</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="241">        <span class="k">return</span> <span class="p">()</span>
-</span><span data-line="242">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="p">(</span><span class="n">Mapping</span><span class="p">,</span> <span class="n">Correction</span><span class="p">)):</span>
-</span><span data-line="243">        <span class="n">kind</span> <span class="o">=</span> <span class="s2">"mapping"</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"Correction"</span>
-</span><span data-line="244">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="245">            <span class="sa">f</span><span class="s2">"corrections must be a list of corrections, got a single </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">; "</span>
-</span><span data-line="246">            <span class="s2">"wrap it in a list"</span>
-</span><span data-line="247">        <span class="p">)</span>
-</span><span data-line="248">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
-</span><span data-line="249">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="250">            <span class="sa">f</span><span class="s2">"corrections must be a list of corrections, got </span><span class="si">{</span><span class="n">corrections</span><span class="si">!r:</span><span class="s2">.80</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="251">        <span class="p">)</span>
-</span><span data-line="252">    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Correction</span><span class="p">)</span> <span class="k">else</span> <span class="n">from_wire</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrections</span><span class="p">)</span></div>
+</span><span data-line="235"><span class="sd">    A log is a *sequence*: one correction passed bare (a mapping) is refused</span>
+</span><span data-line="236"><span class="sd">    rather than iterated over its keys.</span>
+</span><span data-line="237">
+</span><span data-line="238"><span class="sd">    &gt;&gt;&gt; normalize_corrections({"verb": "split", "anchorT": "1"})</span>
+</span><span data-line="239"><span class="sd">    Traceback (most recent call last):</span>
+</span><span data-line="240"><span class="sd">    ...</span>
+</span><span data-line="241"><span class="sd">    ValueError: corrections must be a list of corrections, got a single mapping; wrap it in a list</span>
+</span><span data-line="242"><span class="sd">    """</span>
+</span><span data-line="243">    <span class="k">if</span> <span class="n">corrections</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="244">        <span class="k">return</span> <span class="p">()</span>
+</span><span data-line="245">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="p">(</span><span class="n">Mapping</span><span class="p">,</span> <span class="n">Correction</span><span class="p">)):</span>
+</span><span data-line="246">        <span class="n">kind</span> <span class="o">=</span> <span class="s2">"mapping"</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"Correction"</span>
+</span><span data-line="247">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="248">            <span class="sa">f</span><span class="s2">"corrections must be a list of corrections, got a single </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">; "</span>
+</span><span data-line="249">            <span class="s2">"wrap it in a list"</span>
+</span><span data-line="250">        <span class="p">)</span>
+</span><span data-line="251">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">corrections</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+</span><span data-line="252">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="253">            <span class="sa">f</span><span class="s2">"corrections must be a list of corrections, got </span><span class="si">{</span><span class="n">corrections</span><span class="si">!r:</span><span class="s2">.80</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="254">        <span class="p">)</span>
+</span><span data-line="255">    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Correction</span><span class="p">)</span> <span class="k">else</span> <span class="n">from_wire</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrections</span><span class="p">)</span></div>
 
-</span><span data-line="253">
-</span><span data-line="254">
-</span><span data-line="255"><span class="c1"># ── replay: the fallback for segmenters that do not read the log ────────────</span>
 </span><span data-line="256">
 </span><span data-line="257">
-</span><span data-line="258"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="259"><span class="k">class</span><span class="w"> </span><span class="nc">_State</span><span class="p">:</span>
-</span><span data-line="260"><span class="w">    </span><span class="sd">"""What replay threads through the log: the steps and the cut set."""</span>
-</span><span data-line="261">
-</span><span data-line="262">    <span class="n">steps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SegStep</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-</span><span data-line="263">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span data-line="264">    <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>  <span class="c1"># never reused: a forbid names one</span>
-</span><span data-line="265">
-</span><span data-line="266">
-</span><span data-line="267"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="268"><span class="k">class</span><span class="w"> </span><span class="nc">_Options</span><span class="p">:</span>
-</span><span data-line="269">    <span class="n">merge_tolerance_s</span><span class="p">:</span> <span class="nb">float</span>
-</span><span data-line="270">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">float</span>
-</span><span data-line="271">    <span class="n">cuts_only</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># decided once, from the input: no steps, only boundaries</span>
-</span><span data-line="272">
-</span><span data-line="273">
-</span><span data-line="274"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="275"><span class="k">class</span><span class="w"> </span><span class="nc">_PendingForbid</span><span class="p">:</span>
-</span><span data-line="276"><span class="w">    </span><span class="sd">"""A forbid's target, resolved at its log position, judged after the log."""</span>
-</span><span data-line="277">
-</span><span data-line="278">    <span class="n">correction</span><span class="p">:</span> <span class="n">Correction</span>
-</span><span data-line="279">    <span class="n">step_id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="258"><span class="c1"># ── replay: the fallback for segmenters that do not read the log ────────────</span>
+</span><span data-line="259">
+</span><span data-line="260">
+</span><span data-line="261"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="262"><span class="k">class</span><span class="w"> </span><span class="nc">_State</span><span class="p">:</span>
+</span><span data-line="263"><span class="w">    </span><span class="sd">"""What replay threads through the log: the steps and the cut set."""</span>
+</span><span data-line="264">
+</span><span data-line="265">    <span class="n">steps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">SegStep</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+</span><span data-line="266">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span data-line="267">    <span class="n">seen_ids</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>  <span class="c1"># never reused: a forbid names one</span>
+</span><span data-line="268">
+</span><span data-line="269">
+</span><span data-line="270"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="271"><span class="k">class</span><span class="w"> </span><span class="nc">_Options</span><span class="p">:</span>
+</span><span data-line="272">    <span class="n">merge_tolerance_s</span><span class="p">:</span> <span class="nb">float</span>
+</span><span data-line="273">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">float</span>
+</span><span data-line="274">    <span class="n">cuts_only</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># decided once, from the input: no steps, only boundaries</span>
+</span><span data-line="275">
+</span><span data-line="276">
+</span><span data-line="277"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="278"><span class="k">class</span><span class="w"> </span><span class="nc">_PendingForbid</span><span class="p">:</span>
+</span><span data-line="279"><span class="w">    </span><span class="sd">"""A forbid's target, resolved at its log position, judged after the log."""</span>
 </span><span data-line="280">
-</span><span data-line="281">
+</span><span data-line="281">    <span class="n">correction</span><span class="p">:</span> <span class="n">Correction</span>
+</span><span data-line="282">    <span class="n">step_id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="283">
+</span><span data-line="284">
 <div class="viewcode-block" id="replay">
 <a class="viewcode-back" href="../../_autosummary/paces.corrections.html#paces.corrections.replay">[docs]</a>
-</span><span data-line="282"><span class="k">def</span><span class="w"> </span><span class="nf">replay</span><span class="p">(</span>
-</span><span data-line="283">    <span class="n">seg</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span>
-</span><span data-line="284">    <span class="n">corrections</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Correction</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">],</span>
-</span><span data-line="285">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="286">    <span class="n">merge_tolerance_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MERGE_TOLERANCE_S</span><span class="p">,</span>
-</span><span data-line="287">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MIN_STEP_S</span><span class="p">,</span>
-</span><span data-line="288"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="289"><span class="w">    </span><span class="sd">"""Apply a correction log to a segmentation, in log order.</span>
-</span><span data-line="290">
-</span><span data-line="291"><span class="sd">    Each correction acts on the result of the ones before it, as the human</span>
-</span><span data-line="292"><span class="sd">    made them. Applied ones are flagged ``corrected: &lt;verb&gt;@&lt;t&gt;``; one that</span>
-</span><span data-line="293"><span class="sd">    finds nothing to act on is flagged ``correction-unmatched``, one that</span>
-</span><span data-line="294"><span class="sd">    would leave an empty, inverted or overlapping span</span>
-</span><span data-line="295"><span class="sd">    ``correction-infeasible`` (and changes nothing). A ``forbid`` is judged</span>
-</span><span data-line="296"><span class="sd">    against the *final* placement: ``satisfied: forbid@&lt;t&gt;``, or</span>
-</span><span data-line="297"><span class="sd">    ``correction-unenforced`` — moving a step elsewhere needs a solver, which</span>
-</span><span data-line="298"><span class="sd">    replay is not. A pin that clips a child step out of existence says so</span>
-</span><span data-line="299"><span class="sd">    (``correction-clipped``). A last consistency pass flags</span>
-</span><span data-line="300"><span class="sd">    (``inconsistent:``) any empty span, any overlap between steps, and any</span>
-</span><span data-line="301"><span class="sd">    step edge missing from ``boundaries``.</span>
-</span><span data-line="302">
-</span><span data-line="303"><span class="sd">    &gt;&gt;&gt; seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),</span>
-</span><span data-line="304"><span class="sd">    ...                    boundaries=(0.0, 10.0))</span>
-</span><span data-line="305"><span class="sd">    &gt;&gt;&gt; replay(seg, [split(5), split(5.1)]).flags</span>
-</span><span data-line="306"><span class="sd">    ('corrected: split@5', 'correction-unmatched: split@5.1 (within 0.25 s of a cut)')</span>
-</span><span data-line="307"><span class="sd">    """</span>
-</span><span data-line="308">    <span class="n">options</span> <span class="o">=</span> <span class="n">_Options</span><span class="p">(</span>
-</span><span data-line="309">        <span class="n">merge_tolerance_s</span><span class="o">=</span><span class="n">merge_tolerance_s</span><span class="p">,</span>
-</span><span data-line="310">        <span class="n">min_step_s</span><span class="o">=</span><span class="n">min_step_s</span><span class="p">,</span>
-</span><span data-line="311">        <span class="n">cuts_only</span><span class="o">=</span><span class="ow">not</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="312">    <span class="p">)</span>
-</span><span data-line="313">    <span class="n">state</span> <span class="o">=</span> <span class="n">_State</span><span class="p">(</span>
-</span><span data-line="314">        <span class="n">steps</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">),</span>
-</span><span data-line="315">        <span class="n">boundaries</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span><span class="p">),</span>
-</span><span data-line="316">        <span class="n">seen_ids</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">),</span>
+</span><span data-line="285"><span class="k">def</span><span class="w"> </span><span class="nf">replay</span><span class="p">(</span>
+</span><span data-line="286">    <span class="n">seg</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span>
+</span><span data-line="287">    <span class="n">corrections</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Correction</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">],</span>
+</span><span data-line="288">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="289">    <span class="n">merge_tolerance_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MERGE_TOLERANCE_S</span><span class="p">,</span>
+</span><span data-line="290">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MIN_STEP_S</span><span class="p">,</span>
+</span><span data-line="291"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="292"><span class="w">    </span><span class="sd">"""Apply a correction log to a segmentation, in log order.</span>
+</span><span data-line="293">
+</span><span data-line="294"><span class="sd">    Each correction acts on the result of the ones before it, as the human</span>
+</span><span data-line="295"><span class="sd">    made them. Applied ones are flagged ``corrected: &lt;verb&gt;@&lt;t&gt;``; one that</span>
+</span><span data-line="296"><span class="sd">    finds nothing to act on is flagged ``correction-unmatched``, one that</span>
+</span><span data-line="297"><span class="sd">    would leave an empty, inverted or overlapping span</span>
+</span><span data-line="298"><span class="sd">    ``correction-infeasible`` (and changes nothing). A ``forbid`` is judged</span>
+</span><span data-line="299"><span class="sd">    against the *final* placement: ``satisfied: forbid@&lt;t&gt;``, or</span>
+</span><span data-line="300"><span class="sd">    ``correction-unenforced`` — moving a step elsewhere needs a solver, which</span>
+</span><span data-line="301"><span class="sd">    replay is not. A pin that clips a child step out of existence says so</span>
+</span><span data-line="302"><span class="sd">    (``correction-clipped``). Checking the result is not replay's job:</span>
+</span><span data-line="303"><span class="sd">    :func:`paces.segmenters.segment` runs</span>
+</span><span data-line="304"><span class="sd">    :func:`~paces.segmentation.inconsistencies` on every segmentation. A log</span>
+</span><span data-line="305"><span class="sd">    in which no correction edits the cut set leaves ``boundaries`` exactly as</span>
+</span><span data-line="306"><span class="sd">    given (duplicates included); once one does, they are rebuilt from it.</span>
+</span><span data-line="307">
+</span><span data-line="308"><span class="sd">    &gt;&gt;&gt; seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),</span>
+</span><span data-line="309"><span class="sd">    ...                    boundaries=(0.0, 10.0))</span>
+</span><span data-line="310"><span class="sd">    &gt;&gt;&gt; replay(seg, [split(5), split(5.1)]).flags</span>
+</span><span data-line="311"><span class="sd">    ('corrected: split@5', 'correction-unmatched: split@5.1 (within 0.25 s of a cut)')</span>
+</span><span data-line="312"><span class="sd">    """</span>
+</span><span data-line="313">    <span class="n">options</span> <span class="o">=</span> <span class="n">_Options</span><span class="p">(</span>
+</span><span data-line="314">        <span class="n">merge_tolerance_s</span><span class="o">=</span><span class="n">merge_tolerance_s</span><span class="p">,</span>
+</span><span data-line="315">        <span class="n">min_step_s</span><span class="o">=</span><span class="n">min_step_s</span><span class="p">,</span>
+</span><span data-line="316">        <span class="n">cuts_only</span><span class="o">=</span><span class="ow">not</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
 </span><span data-line="317">    <span class="p">)</span>
-</span><span data-line="318">    <span class="n">outcomes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="319">    <span class="k">for</span> <span class="n">correction</span> <span class="ow">in</span> <span class="n">normalize_corrections</span><span class="p">(</span><span class="n">corrections</span><span class="p">):</span>
-</span><span data-line="320">        <span class="n">state</span><span class="p">,</span> <span class="n">outcome</span> <span class="o">=</span> <span class="n">_APPLY</span><span class="p">[</span><span class="n">correction</span><span class="o">.</span><span class="n">verb</span><span class="p">](</span><span class="n">state</span><span class="p">,</span> <span class="n">correction</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
-</span><span data-line="321">        <span class="n">outcomes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
-</span><span data-line="322">    <span class="n">flags</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_final_flags</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">outcomes</span><span class="p">))</span> <span class="o">+</span> <span class="n">_inconsistencies</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-</span><span data-line="323">    <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
-</span><span data-line="324">        <span class="n">seg</span><span class="p">,</span>
-</span><span data-line="325">        <span class="n">steps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="326">        <span class="n">boundaries</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">boundaries</span><span class="p">)),</span>
-</span><span data-line="327">        <span class="n">flags</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">flags</span> <span class="o">+</span> <span class="n">flags</span><span class="p">,</span>
-</span><span data-line="328">    <span class="p">)</span></div>
+</span><span data-line="318">    <span class="n">state</span> <span class="o">=</span> <span class="n">_State</span><span class="p">(</span>
+</span><span data-line="319">        <span class="n">steps</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">),</span>
+</span><span data-line="320">        <span class="n">boundaries</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span><span class="p">),</span>
+</span><span data-line="321">        <span class="n">seen_ids</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">),</span>
+</span><span data-line="322">    <span class="p">)</span>
+</span><span data-line="323">    <span class="n">outcomes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="324">    <span class="n">cuts_touched</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># once a correction edits the cut set, it is rebuilt</span>
+</span><span data-line="325">    <span class="k">for</span> <span class="n">correction</span> <span class="ow">in</span> <span class="n">normalize_corrections</span><span class="p">(</span><span class="n">corrections</span><span class="p">):</span>
+</span><span data-line="326">        <span class="n">before</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">boundaries</span>
+</span><span data-line="327">        <span class="n">state</span><span class="p">,</span> <span class="n">outcome</span> <span class="o">=</span> <span class="n">_APPLY</span><span class="p">[</span><span class="n">correction</span><span class="o">.</span><span class="n">verb</span><span class="p">](</span><span class="n">state</span><span class="p">,</span> <span class="n">correction</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+</span><span data-line="328">        <span class="n">cuts_touched</span> <span class="o">=</span> <span class="n">cuts_touched</span> <span class="ow">or</span> <span class="n">state</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">!=</span> <span class="n">before</span>
+</span><span data-line="329">        <span class="n">outcomes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
+</span><span data-line="330">    <span class="n">flags</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_final_flags</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">outcomes</span><span class="p">))</span>
+</span><span data-line="331">    <span class="n">unchanged</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">cuts_touched</span>
+</span><span data-line="332">    <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+</span><span data-line="333">        <span class="n">seg</span><span class="p">,</span>
+</span><span data-line="334">        <span class="n">steps</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
+</span><span data-line="335">        <span class="n">boundaries</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span> <span class="k">if</span> <span class="n">unchanged</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">boundaries</span><span class="p">)),</span>
+</span><span data-line="336">        <span class="n">flags</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">flags</span> <span class="o">+</span> <span class="n">flags</span><span class="p">,</span>
+</span><span data-line="337">    <span class="p">)</span></div>
 
-</span><span data-line="329">
-</span><span data-line="330">
-</span><span data-line="331"><span class="c1"># ── small pure helpers over spans ───────────────────────────────────────────</span>
-</span><span data-line="332">
-</span><span data-line="333">
-</span><span data-line="334"><span class="k">def</span><span class="w"> </span><span class="nf">_covering</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SegStep</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="335"><span class="w">    </span><span class="sd">"""(step index, span index) of the first span with ``start &lt;= t &lt; end``."""</span>
-</span><span data-line="336">    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
-</span><span data-line="337">        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">):</span>
-</span><span data-line="338">            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
-</span><span data-line="339">                <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
-</span><span data-line="340">    <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="338">
+</span><span data-line="339">
+</span><span data-line="340"><span class="c1"># ── small pure helpers over spans ───────────────────────────────────────────</span>
 </span><span data-line="341">
 </span><span data-line="342">
-</span><span data-line="343"><span class="k">def</span><span class="w"> </span><span class="nf">_edges_at</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SegStep</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
-</span><span data-line="344"><span class="w">    </span><span class="sd">"""(step, span) indices of every span whose start (``side=0``) or end</span>
-</span><span data-line="345"><span class="sd">    (``side=1``) is exactly ``t``."""</span>
-</span><span data-line="346">    <span class="k">return</span> <span class="p">[</span>
-</span><span data-line="347">        <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
-</span><span data-line="348">        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="349">        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span>
-</span><span data-line="350">        <span class="k">if</span> <span class="n">span</span><span class="p">[</span><span class="n">side</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span>
-</span><span data-line="351">    <span class="p">]</span>
-</span><span data-line="352">
-</span><span data-line="353">
-</span><span data-line="354"><span class="k">def</span><span class="w"> </span><span class="nf">_edges</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">SegStep</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-</span><span data-line="355">    <span class="k">return</span> <span class="p">{</span><span class="n">t</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span> <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">span</span><span class="p">}</span>
-</span><span data-line="356">
-</span><span data-line="357">
-</span><span data-line="358"><span class="k">def</span><span class="w"> </span><span class="nf">_overlaps</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Span</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">Span</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span data-line="359"><span class="w">    </span><span class="sd">"""True when the two spans share a positive length of time."""</span>
-</span><span data-line="360">    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span><span data-line="343"><span class="k">def</span><span class="w"> </span><span class="nf">_covering</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SegStep</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="344"><span class="w">    </span><span class="sd">"""(step index, span index) of the first span with ``start &lt;= t &lt; end``."""</span>
+</span><span data-line="345">    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+</span><span data-line="346">        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">):</span>
+</span><span data-line="347">            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+</span><span data-line="348">                <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+</span><span data-line="349">    <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="350">
+</span><span data-line="351">
+</span><span data-line="352"><span class="k">def</span><span class="w"> </span><span class="nf">_edges_at</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">SegStep</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+</span><span data-line="353"><span class="w">    </span><span class="sd">"""(step, span) indices of every span whose start (``side=0``) or end</span>
+</span><span data-line="354"><span class="sd">    (``side=1``) is exactly ``t``."""</span>
+</span><span data-line="355">    <span class="k">return</span> <span class="p">[</span>
+</span><span data-line="356">        <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+</span><span data-line="357">        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="358">        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span>
+</span><span data-line="359">        <span class="k">if</span> <span class="n">span</span><span class="p">[</span><span class="n">side</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span>
+</span><span data-line="360">    <span class="p">]</span>
 </span><span data-line="361">
 </span><span data-line="362">
 </span><span data-line="363"><span class="k">def</span><span class="w"> </span><span class="nf">_falls_in</span><span class="p">(</span><span class="n">child</span><span class="p">:</span> <span class="n">SegStep</span><span class="p">,</span> <span class="n">span</span><span class="p">:</span> <span class="n">Span</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -844,37 +841,6 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="681">            <span class="k">yield</span> <span class="n">_forbid_flag</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span>
 </span><span data-line="682">        <span class="k">else</span><span class="p">:</span>
 </span><span data-line="683">            <span class="k">yield from</span> <span class="n">outcome</span>
-</span><span data-line="684">
-</span><span data-line="685">
-</span><span data-line="686"><span class="k">def</span><span class="w"> </span><span class="nf">_inconsistencies</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">_State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span data-line="687"><span class="w">    </span><span class="sd">"""What no segmentation may contain, flagged rather than repaired: empty</span>
-</span><span data-line="688"><span class="sd">    spans, spans of different steps that overlap, and step edges missing from</span>
-</span><span data-line="689"><span class="sd">    ``boundaries``."""</span>
-</span><span data-line="690">    <span class="n">spans</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">span</span><span class="p">,</span> <span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">steps</span> <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span>
-</span><span data-line="691">    <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="692">        <span class="sa">f</span><span class="s2">"inconsistent: step </span><span class="si">{</span><span class="n">step_id</span><span class="si">!r}</span><span class="s2"> has an empty span at </span><span class="si">{</span><span class="n">time_str</span><span class="p">(</span><span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="693">        <span class="k">for</span> <span class="n">span</span><span class="p">,</span> <span class="n">step_id</span> <span class="ow">in</span> <span class="n">spans</span>
-</span><span data-line="694">        <span class="k">if</span> <span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span data-line="695">    <span class="p">]</span>
-</span><span data-line="696">    <span class="n">flags</span> <span class="o">+=</span> <span class="p">[</span>
-</span><span data-line="697">        <span class="sa">f</span><span class="s2">"inconsistent: steps </span><span class="si">{</span><span class="n">a_id</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">b_id</span><span class="si">!r}</span><span class="s2"> overlap "</span>
-</span><span data-line="698">        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">time_str</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">time_str</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="si">}</span><span class="s2">)"</span>
-</span><span data-line="699">        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">a_id</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spans</span><span class="p">)</span>
-</span><span data-line="700">        <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">b_id</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
-</span><span data-line="701">        <span class="k">if</span> <span class="n">a_id</span> <span class="o">!=</span> <span class="n">b_id</span> <span class="ow">and</span> <span class="n">_overlaps</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-</span><span data-line="702">    <span class="p">]</span>
-</span><span data-line="703">    <span class="n">flags</span> <span class="o">+=</span> <span class="p">[</span>
-</span><span data-line="704">        <span class="sa">f</span><span class="s2">"inconsistent: child </span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> of </span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> lies outside its parent"</span>
-</span><span data-line="705">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">steps</span>
-</span><span data-line="706">        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">children</span>
-</span><span data-line="707">        <span class="k">for</span> <span class="n">span</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">spans</span>
-</span><span data-line="708">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">span</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">span</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">)</span>
-</span><span data-line="709">    <span class="p">]</span>
-</span><span data-line="710">    <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_edges</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span> <span class="o">-</span> <span class="n">state</span><span class="o">.</span><span class="n">boundaries</span><span class="p">)</span>
-</span><span data-line="711">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-</span><span data-line="712">        <span class="n">listed</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">)</span>
-</span><span data-line="713">        <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"inconsistent: step edges not in boundaries: </span><span class="si">{</span><span class="n">listed</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="714">    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -902,7 +868,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=3294188c"></script>
+      <script src="../../_static/documentation_options.js?v=f91d8841"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

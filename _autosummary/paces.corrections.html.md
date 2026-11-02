@@ -38,24 +38,22 @@ infeasible, is reported in `Segmentation.flags`.
 
 ### Module Attributes
 
-| [`TIME_PLACES`](#paces.corrections.TIME_PLACES)            | milliseconds, the wire's resolution.                       |
-|-------------------------------------------------------------------------|------------------------------------------------------------|
-| [`DFLT_MERGE_TOLERANCE_S`](#paces.corrections.DFLT_MERGE_TOLERANCE_S) | How far a `merge` time may sit from the boundary it means. |
-| [`DFLT_MIN_STEP_S`](#paces.corrections.DFLT_MIN_STEP_S)        | The narrowest step a `split` may create.                   |
+| [`DFLT_MERGE_TOLERANCE_S`](#paces.corrections.DFLT_MERGE_TOLERANCE_S)   | How far a `merge` time may sit from the boundary it means.   |
+|---------------------------------------------------------------------------|--------------------------------------------------------------|
+| [`DFLT_MIN_STEP_S`](#paces.corrections.DFLT_MIN_STEP_S)          | The narrowest step a `split` may create.                     |
 
 ### Functions
 
-| [`absent`](#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                                         |
-|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| [`forbid`](#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                                                    |
-| [`from_wire`](#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                                                   |
-| [`merge`](#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                                                  |
-| [`normalize_corrections`](#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](#paces.corrections.Correction) objects or their wire dicts, in log order.                          |
-| [`pin`](#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`.                         |
-| [`replay`](#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                                                |
-| [`split`](#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                                              |
-| [`time_str`](#paces.corrections.time_str)(t)                         | A time as paces' millisecond wire decimal — the one formatter every corrections producer shares (the ask page's `timeStr` mirrors it). |
-| [`to_wire`](#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                                         |
+| [`absent`](#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                 |
+|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`forbid`](#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                            |
+| [`from_wire`](#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                           |
+| [`merge`](#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                          |
+| [`normalize_corrections`](#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](#paces.corrections.Correction) objects or their wire dicts, in log order.  |
+| [`pin`](#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`. |
+| [`replay`](#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                        |
+| [`split`](#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                      |
+| [`to_wire`](#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                 |
 
 ### Classes
 
@@ -71,7 +69,7 @@ One thing a human said about a segmentation, keyed by media time.
 `step_id` is for display only and is NEVER the join key: replay finds
 its target by `anchor_t`. `media_key` records which rendering of the
 media the correction was true of, so a later re-cut can migrate the log.
-Times are kept to the millisecond ([`TIME_PLACES`](#paces.corrections.TIME_PLACES)), so the wire form
+Times are kept to the millisecond (`TIME_PLACES`), so the wire form
 round-trips exactly.
 
 ```pycon
@@ -93,15 +91,6 @@ snaps taps within ±1.5 s).
 
 The narrowest step a `split` may create. A split closer than this to an
 existing cut is a tap on that cut, not a new step, so it is unmatched.
-
-### paces.corrections.TIME_PLACES *= 3*
-
-milliseconds, the wire’s
-resolution. Times are rounded to it at construction, so `to_wire` →
-`from_wire` is lossless (`decimal_str` writes exactly this many).
-
-* **Type:**
-  Decimal places a correction’s times keep
 
 ### paces.corrections.absent(anchor_t, \*\*meta)
 
@@ -174,9 +163,11 @@ would leave an empty, inverted or overlapping span
 against the *final* placement: `satisfied: forbid@<t>`, or
 `correction-unenforced` — moving a step elsewhere needs a solver, which
 replay is not. A pin that clips a child step out of existence says so
-(`correction-clipped`). A last consistency pass flags
-(`inconsistent:`) any empty span, any overlap between steps, and any
-step edge missing from `boundaries`.
+(`correction-clipped`). Checking the result is not replay’s job:
+[`paces.segmenters.segment()`](paces.segmenters.html.md#paces.segmenters.segment) runs
+[`inconsistencies()`](paces.segmentation.html.md#paces.segmentation.inconsistencies) on every segmentation. A log
+in which no correction edits the cut set leaves `boundaries` exactly as
+given (duplicates included); once one does, they are rebuilt from it.
 
 ```pycon
 >>> seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),
@@ -194,19 +185,6 @@ Split — “that is two steps”: cut the step covering `at_t` there (K += 1).
 
 * **Return type:**
   [`Correction`](#paces.corrections.Correction)
-
-### paces.corrections.time_str(t)
-
-A time as paces’ millisecond wire decimal — the one formatter every
-corrections producer shares (the ask page’s `timeStr` mirrors it).
-
-```pycon
->>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
-('95.8', '10.062')
-```
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### paces.corrections.to_wire(correction)
 

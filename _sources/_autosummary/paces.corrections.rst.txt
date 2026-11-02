@@ -8,7 +8,6 @@ paces.corrections
 
    .. autosummary::
    
-      TIME_PLACES
       DFLT_MERGE_TOLERANCE_S
       DFLT_MIN_STEP_S
    
@@ -24,7 +23,6 @@ paces.corrections
       pin
       replay
       split
-      time_str
       to_wire
    
    .. rubric:: Classes
