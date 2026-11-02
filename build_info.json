@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-02T18:19:16Z",
+  "built_at": "2026-11-02T18:26:52Z",
   "package": {
     "name": "paces",
-    "version": "0.0.22",
+    "version": "0.0.23",
     "display_name": "paces",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "b2dfe0cbc1e01956bb7d257317b64c50898473fd",
-    "short_commit": "b2dfe0c",
+    "commit": "79ead0700c61382d5d9f1f1bc24013ac286881a0",
+    "short_commit": "79ead07",
     "branch": "main",
     "tags": [
-      "0.0.22"
+      "0.0.23"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/paces",
-    "commit_url": "https://github.com/reeleehq/paces/commit/b2dfe0cbc1e01956bb7d257317b64c50898473fd",
+    "commit_url": "https://github.com/reeleehq/paces/commit/79ead0700c61382d5d9f1f1bc24013ac286881a0",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/paces",
-    "sha": "3cad924986e585dd5fc966381604b3982c779cbd",
+    "sha": "04bc4efc3118569004fcfe2ce369bcdb489bdc7f",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "41498719835",
-    "run_url": "https://github.com/reeleehq/paces/actions/runs/41498719835",
+    "run_id": "41500019680",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/41500019680",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,11 +62,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.22",
+    "latest": "0.0.23",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout b2dfe0cbc1e01956bb7d257317b64c50898473fd\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout 79ead0700c61382d5d9f1f1bc24013ac286881a0\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

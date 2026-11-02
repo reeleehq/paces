@@ -531,8 +531,8 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="386">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps"</span><span class="p">)</span>
 </span><span data-line="387">        <span class="k">if</span> <span class="ow">not</span> <span class="n">_undated_ids</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
 </span><span data-line="388">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.durations"</span><span class="p">)</span>  <span class="c1"># children too: placement needs them all</span>
-</span><span data-line="389">        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"spans"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">):</span>
-</span><span data-line="390">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.spans"</span><span class="p">)</span>
+</span><span data-line="389">        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"spans"</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_walk_rows</span><span class="p">(</span><span class="n">steps</span><span class="p">)):</span>
+</span><span data-line="390">            <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"steps.spans"</span><span class="p">)</span>  <span class="c1"># like steps.durations: the whole tree</span>
 </span><span data-line="391">    <span class="k">if</span> <span class="n">boundaries</span><span class="p">:</span>
 </span><span data-line="392">        <span class="n">facts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"boundaries"</span><span class="p">)</span>
 </span><span data-line="393">    <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1006,7 +1006,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=96ec9c95"></script>
+      <script src="../../_static/documentation_options.js?v=3294188c"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
