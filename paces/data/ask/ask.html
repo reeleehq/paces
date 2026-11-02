@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<style>
+{{css}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>{{title}}</h1>
+    <p class="muted" id="method"></p>
+    <p class="notice" id="restored" hidden>
+      <span id="restored-text"></span>
+      <button type="button" id="start-over" class="link">Start over</button>
+    </p>
+  </header>
+
+  <section aria-labelledby="q-k">
+    <h2 id="q-k">1. How many steps are there?</h2>
+    <p class="muted" id="k-evidence"></p>
+    <label class="k">
+      <input id="k" type="number" min="1" step="1" inputmode="numeric">
+      <span>steps</span>
+    </label>
+    <p class="muted small">This number alone already helps the next run.</p>
+  </section>
+
+  <section aria-labelledby="q-cuts">
+    <h2 id="q-cuts">2. Where does each step start?</h2>
+    <div id="player" hidden>
+      <video id="video" controls playsinline preload="metadata"></video>
+    </div>
+    <p id="no-media" class="muted small">
+      <span id="no-media-text">Open the video to tap along with it:</span>
+      <input id="file" type="file" accept="video/*,audio/*">
+    </p>
+    <button type="button" id="tap" class="primary" disabled>Cut here <kbd>Space</kbd></button>
+    <p class="muted small">Tap at each change of step while it plays. A tap near a proposed cut or a beat snaps to it.</p>
+    <ol id="cuts" class="rows"></ol>
+  </section>
+
+  <section aria-labelledby="q-steps">
+    <h2 id="q-steps">3. Is any of these not in the video?</h2>
+    <ol id="steps" class="rows"></ol>
+  </section>
+
+  <section aria-labelledby="q-send">
+    <h2 id="q-send">4. Send the answers back</h2>
+    <p class="muted small">Your answers are kept in this browser as you go. To use them, download the file and pass it to the next run: <code>paces segment … --answers answers.json</code></p>
+    <div class="actions">
+      <button type="button" id="download" class="primary">Download answers.json</button>
+      <button type="button" id="copy">Copy</button>
+    </div>
+    <details>
+      <summary>Show the answers</summary>
+      <textarea id="answers" readonly rows="10"></textarea>
+    </details>
+  </section>
+
+  <p id="status" role="status" aria-live="polite"></p>
+</main>
+<script type="application/json" id="proposal">{{data}}</script>
+<script>
+{{js}}
+</script>
+</body>
+</html>
