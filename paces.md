@@ -1,4 +1,4 @@
-> built 2026-11-02 17:30 UTC from 8436b0a (main) · paces 0.0.19. Details: build_info.json
+> built 2026-11-02 17:43 UTC from 0b29126 (main) · paces 0.0.20. Details: build_info.json
 
 # index.html.md
 
@@ -2542,6 +2542,7 @@ by an exception.
 
 | [`capabilities`](_autosummary/paces.segmenters.html.md#paces.segmenters.capabilities)()                          | The registered capability catalog (read-only view).                      |
 |------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`place_on_grid`](_autosummary/paces.segmenters.html.md#paces.segmenters.place_on_grid)(steps, grid)              | Place an ordered step list on the timeline using a metric grid.          |
 | [`register`](_autosummary/paces.segmenters.html.md#paces.segmenters.register)(capability)                    | Register a segmentation capability; returns it for assignment.           |
 | [`segment`](_autosummary/paces.segmenters.html.md#paces.segmenters.segment)([media, segmenter, steps, ...]) | Cut *media* into named steps, using whatever else is present.            |
 | [`unique_slug_ids`](_autosummary/paces.segmenters.html.md#paces.segmenters.unique_slug_ids)(names, \*[, fallback])  | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`. |
@@ -2568,6 +2569,28 @@ The registered capability catalog (read-only view).
 
 * **Return type:**
   [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Capability`](_autosummary/paces.segmenters.html.md#paces.segmenters.Capability)]
+
+### paces.segmenters.place_on_grid(steps, grid)
+
+Place an ordered step list on the timeline using a metric grid.
+
+The que-calor shape: cumulative domain durations from the grid’s origin,
+`span = origin + cumulative_units * seconds_per_unit`. Children subdivide
+their parent’s span the same way. `steps` takes any form
+[`segment()`](_autosummary/paces.segmenters.html.md#paces.segmenters.segment) takes (`(name, duration)` pairs, mappings with
+`children`); every step needs a positive duration, and the grid a tempo
+and an origin — anything missing or invalid is a `ValueError` naming it.
+
+```pycon
+>>> seg = place_on_grid([("a", 1), ("b", 2)],
+...                     {"unit": "eight", "subdivisions": 8,
+...                      "tempoBpm": "120", "origin": "1"})
+>>> [s.spans for s in seg.steps], seg.boundaries
+([((1.0, 5.0),), ((5.0, 13.0),)], (1.0, 5.0, 13.0))
+```
+
+* **Return type:**
+  [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation)
 
 ### paces.segmenters.register(capability)
 
@@ -2844,20 +2867,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-02 17:30 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/8436b0ac9ef69a39635061c77bbdf494bed2a65e"><code>8436b0a</code></a> on branch <code>main</code>, for **paces 0.0.19** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 17:43 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/0b2912655d5c5623d92fcde490320436d65b3921"><code>0b29126</code></a> on branch <code>main</code>, for **paces 0.0.20** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.19) is ahead of the latest release on PyPI (0.0.18): these docs describe unreleased code.
+- The documented version (0.0.20) is ahead of the latest release on PyPI (0.0.19): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/8436b0ac9ef69a39635061c77bbdf494bed2a65e"><code>8436b0ac9ef69a39635061c77bbdf494bed2a65e</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/0b2912655d5c5623d92fcde490320436d65b3921"><code>0b2912655d5c5623d92fcde490320436d65b3921</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.19</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.20</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -2866,9 +2889,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41490751038">41490751038</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41493325453">41493325453</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>93ff984ef4d0176ee958406c09907ba34efa5398</code> (in the history of the built commit) |
+| Event commit | <code>8f822a32d9306d541982fafad08b42b7d2cf99be</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -2893,13 +2916,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.18/">0.0.18</a>, older than the documented version (0.0.19).
+Latest release: <a href="https://pypi.org/project/paces/0.0.19/">0.0.19</a>, older than the documented version (0.0.20).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 8436b0ac9ef69a39635061c77bbdf494bed2a65e
+git checkout 0b2912655d5c5623d92fcde490320436d65b3921
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

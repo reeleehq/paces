@@ -100,6 +100,7 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#paces.segmenters.Capability"><code class="docutils literal notranslate"><span class="pre">Capability</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.capabilities"><code class="docutils literal notranslate"><span class="pre">capabilities()</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmenters.place_on_grid"><code class="docutils literal notranslate"><span class="pre">place_on_grid()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.register"><code class="docutils literal notranslate"><span class="pre">register()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.segment"><code class="docutils literal notranslate"><span class="pre">segment()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.unique_slug_ids"><code class="docutils literal notranslate"><span class="pre">unique_slug_ids()</span></code></a></li>
@@ -180,13 +181,16 @@ by an exception.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.capabilities" title="paces.segmenters.capabilities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">capabilities</span></code></a>()</p></td>
 <td><p>The registered capability catalog (read-only view).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.register" title="paces.segmenters.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a>(capability)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.place_on_grid" title="paces.segmenters.place_on_grid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">place_on_grid</span></code></a>(steps, grid)</p></td>
+<td><p>Place an ordered step list on the timeline using a metric grid.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.register" title="paces.segmenters.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a>(capability)</p></td>
 <td><p>Register a segmentation capability; returns it for assignment.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, segmenter, steps, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, segmenter, steps, ...])</p></td>
 <td><p>Cut <em>media</em> into named steps, using whatever else is present.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.unique_slug_ids" title="paces.segmenters.unique_slug_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique_slug_ids</span></code></a>(names, *[, fallback])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.unique_slug_ids" title="paces.segmenters.unique_slug_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique_slug_ids</span></code></a>(names, *[, fallback])</p></td>
 <td><p>One unique, git-readable id per name; unnamed ones get <code class="docutils literal notranslate"><span class="pre">{fallback}-{i}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -222,6 +226,30 @@ must not import its dependencies.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#paces.segmenters.Capability" title="paces.segmenters.Capability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Capability</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmenters.place_on_grid">
+<span class="sig-prename descclassname"><span class="pre">paces.segmenters.</span></span><span class="sig-name descname"><span class="pre">place_on_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#place_on_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmenters.place_on_grid" title="Link to this definition">#</a></dt>
+<dd><p>Place an ordered step list on the timeline using a metric grid.</p>
+<p>The que-calor shape: cumulative domain durations from the grid’s origin,
+<code class="docutils literal notranslate"><span class="pre">span</span> <span class="pre">=</span> <span class="pre">origin</span> <span class="pre">+</span> <span class="pre">cumulative_units</span> <span class="pre">*</span> <span class="pre">seconds_per_unit</span></code>. Children subdivide
+their parent’s span the same way. <code class="docutils literal notranslate"><span class="pre">steps</span></code> takes any form
+<a class="reference internal" href="#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-func docutils literal notranslate"><span class="pre">segment()</span></code></a> takes (<code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">duration)</span></code> pairs, mappings with
+<code class="docutils literal notranslate"><span class="pre">children</span></code>); every step needs a positive duration, and the grid a tempo
+and an origin — anything missing or invalid is a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> naming it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">seg</span> <span class="o">=</span> <span class="n">place_on_grid</span><span class="p">([(</span><span class="s2">"a"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)],</span>
+</span><span data-line="2"><span class="gp">... </span>                    <span class="p">{</span><span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"eight"</span><span class="p">,</span> <span class="s2">"subdivisions"</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+</span><span data-line="3"><span class="gp">... </span>                     <span class="s2">"tempoBpm"</span><span class="p">:</span> <span class="s2">"120"</span><span class="p">,</span> <span class="s2">"origin"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">})</span>
+</span><span data-line="4"><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">spans</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">],</span> <span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span>
+</span><span data-line="5"><span class="go">([((1.0, 5.0),), ((5.0, 13.0),)], (1.0, 5.0, 13.0))</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="paces.segmentation.html#paces.segmentation.Segmentation" title="paces.segmentation.Segmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Segmentation</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -320,7 +348,7 @@ that could not be honoured is flagged, never dropped.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=2fd7553c"></script>
+      <script src="../_static/documentation_options.js?v=056c92e6"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

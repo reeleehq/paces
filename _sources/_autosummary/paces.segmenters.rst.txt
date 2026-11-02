@@ -9,6 +9,7 @@ paces.segmenters
    .. autosummary::
    
       capabilities
+      place_on_grid
       register
       segment
       unique_slug_ids

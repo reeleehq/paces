@@ -2,20 +2,20 @@
 
 # About this build
 
-This documentation was built on **2026-11-02 17:30 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/8436b0ac9ef69a39635061c77bbdf494bed2a65e"><code>8436b0a</code></a> on branch <code>main</code>, for **paces 0.0.19** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 17:43 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/0b2912655d5c5623d92fcde490320436d65b3921"><code>0b29126</code></a> on branch <code>main</code>, for **paces 0.0.20** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.19) is ahead of the latest release on PyPI (0.0.18): these docs describe unreleased code.
+- The documented version (0.0.20) is ahead of the latest release on PyPI (0.0.19): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/8436b0ac9ef69a39635061c77bbdf494bed2a65e"><code>8436b0ac9ef69a39635061c77bbdf494bed2a65e</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/0b2912655d5c5623d92fcde490320436d65b3921"><code>0b2912655d5c5623d92fcde490320436d65b3921</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.19</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.20</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -24,9 +24,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41490751038">41490751038</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41493325453">41493325453</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>93ff984ef4d0176ee958406c09907ba34efa5398</code> (in the history of the built commit) |
+| Event commit | <code>8f822a32d9306d541982fafad08b42b7d2cf99be</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51,13 +51,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.18/">0.0.18</a>, older than the documented version (0.0.19).
+Latest release: <a href="https://pypi.org/project/paces/0.0.19/">0.0.19</a>, older than the documented version (0.0.20).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 8436b0ac9ef69a39635061c77bbdf494bed2a65e
+git checkout 0b2912655d5c5623d92fcde490320436d65b3921
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

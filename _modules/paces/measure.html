@@ -175,7 +175,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="45"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.segmenters</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span data-line="46">    <span class="n">Capability</span><span class="p">,</span>
 </span><span data-line="47">    <span class="n">Segmentation</span><span class="p">,</span>
-</span><span data-line="48">    <span class="n">_segment_grid_placed</span><span class="p">,</span>
+</span><span data-line="48">    <span class="n">place_on_grid</span><span class="p">,</span>
 </span><span data-line="49">    <span class="n">register</span><span class="p">,</span>
 </span><span data-line="50"><span class="p">)</span>
 </span><span data-line="51">
@@ -457,7 +457,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="318">    <span class="n">grid</span> <span class="o">=</span> <span class="n">measurement</span><span class="o">.</span><span class="n">grid</span>
 </span><span data-line="319">    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 </span><span data-line="320">        <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="n">grid</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">)</span>
-</span><span data-line="321">    <span class="n">placed</span> <span class="o">=</span> <span class="n">_segment_grid_placed</span><span class="p">({</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="s2">"grid"</span><span class="p">:</span> <span class="n">grid</span><span class="p">})</span>
+</span><span data-line="321">    <span class="n">placed</span> <span class="o">=</span> <span class="n">place_on_grid</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">grid</span><span class="p">)</span>
 </span><span data-line="322">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
 </span><span data-line="323">        <span class="n">steps</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
 </span><span data-line="324">        <span class="n">boundaries</span><span class="o">=</span><span class="n">placed</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span>
@@ -514,7 +514,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=2fd7553c"></script>
+      <script src="../../_static/documentation_options.js?v=056c92e6"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
