@@ -5,21 +5,19 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-11-02 17:08 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/863c50b865dff47bacc74c2c20ea91b119fd99d5"><code>863c50b</code></a> on branch <code>main</code>, for **paces 0.0.17** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-02 17:17 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/787dd2a36a0a49dd5efe81a3a481d8efb49ecf34"><code>787dd2a</code></a> on branch <code>main</code>, for **paces 0.0.18** (from <code>pyproject.toml</code>).
 
-:::{warning}
-The documentation and the package may be misaligned:
-
-- The documented version (0.0.17) is ahead of the latest release on PyPI (0.0.16): these docs describe unreleased code.
+:::{note}
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/reeleehq/paces/commit/863c50b865dff47bacc74c2c20ea91b119fd99d5"><code>863c50b865dff47bacc74c2c20ea91b119fd99d5</code></a> |
+| Commit | <a href="https://github.com/reeleehq/paces/commit/787dd2a36a0a49dd5efe81a3a481d8efb49ecf34"><code>787dd2a36a0a49dd5efe81a3a481d8efb49ecf34</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.0.17</code> |
+| Tags at this commit | <code>0.0.18</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/reeleehq/paces</code> |
 
@@ -28,9 +26,9 @@ The documentation and the package may be misaligned:
 | | |
 |---|---|
 | Repository | <code>reeleehq/paces</code> |
-| Run | <a href="https://github.com/reeleehq/paces/actions/runs/41487447132">41487447132</a> |
+| Run | <a href="https://github.com/reeleehq/paces/actions/runs/41488968932">41488968932</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>da69126221269e68480e42c4dae69cb3fd469523</code> (in the history of the built commit) |
+| Event commit | <code>bd192f8e1393b0d47b94e7696f042e1d590797ce</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -55,13 +53,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.16/">0.0.16</a>, older than the documented version (0.0.17).
+Latest release: <a href="https://pypi.org/project/paces/0.0.18/">0.0.18</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 863c50b865dff47bacc74c2c20ea91b119fd99d5
+git checkout 787dd2a36a0a49dd5efe81a3a481d8efb49ecf34
 pip install "epythet==0.2.22"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

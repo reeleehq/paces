@@ -221,6 +221,8 @@ document’s no-floats wire format.
 ```pycon
 >>> decimal_str(72.60000000000001, places=3)
 '72.6'
+>>> decimal_str(-0.0004, places=3)  # rounds to zero: no sign
+'0'
 ```
 
 * **Return type:**

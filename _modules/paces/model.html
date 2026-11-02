@@ -153,514 +153,522 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="24">
 </span><span data-line="25"><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 </span><span data-line="26">
-</span><span data-line="27"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
-</span><span data-line="28"><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
-</span><span data-line="29"><span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
-</span><span data-line="30"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
-</span><span data-line="31">
-</span><span data-line="32"><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span>
-</span><span data-line="33"><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic.alias_generators</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_camel</span>
-</span><span data-line="34">
-</span><span data-line="35"><span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">"0.1.0"</span>
-</span><span data-line="36">
-</span><span data-line="37"><span class="c1">#: Git-readable stable identifier — deliberately NOT a uuid4.</span>
-</span><span data-line="38"><span class="n">Slug</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">"^[a-z0-9][a-z0-9._-]*$"</span><span class="p">)]</span>
-</span><span data-line="39">
-</span><span data-line="40"><span class="c1">#: Exact decimal number as a string ("231.3") — no float representation drift.</span>
-</span><span data-line="41"><span class="n">Decimal</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">"^-?\d+(\.\d+)?$"</span><span class="p">)]</span>
-</span><span data-line="42">
+</span><span data-line="27"><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+</span><span data-line="28"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+</span><span data-line="29"><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+</span><span data-line="30"><span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+</span><span data-line="31"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
+</span><span data-line="32">
+</span><span data-line="33"><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span>
+</span><span data-line="34"><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic.alias_generators</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_camel</span>
+</span><span data-line="35">
+</span><span data-line="36"><span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">"0.1.0"</span>
+</span><span data-line="37">
+</span><span data-line="38"><span class="c1">#: Git-readable stable identifier — deliberately NOT a uuid4.</span>
+</span><span data-line="39"><span class="n">Slug</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">"^[a-z0-9][a-z0-9._-]*$"</span><span class="p">)]</span>
+</span><span data-line="40">
+</span><span data-line="41"><span class="c1">#: Exact decimal number as a string ("231.3") — no float representation drift.</span>
+</span><span data-line="42"><span class="n">Decimal</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">"^-?\d+(\.\d+)?$"</span><span class="p">)]</span>
 </span><span data-line="43">
-</span><span data-line="44"><span class="k">class</span><span class="w"> </span><span class="nc">_Base</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span data-line="45"><span class="w">    </span><span class="sd">"""Shared model config: camelCase wire, strict fields."""</span>
-</span><span data-line="46">
-</span><span data-line="47">    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
-</span><span data-line="48">        <span class="n">alias_generator</span><span class="o">=</span><span class="n">to_camel</span><span class="p">,</span> <span class="n">populate_by_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="s2">"forbid"</span>
-</span><span data-line="49">    <span class="p">)</span>
-</span><span data-line="50">
+</span><span data-line="44">
+</span><span data-line="45"><span class="k">class</span><span class="w"> </span><span class="nc">_Base</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span data-line="46"><span class="w">    </span><span class="sd">"""Shared model config: camelCase wire, strict fields."""</span>
+</span><span data-line="47">
+</span><span data-line="48">    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+</span><span data-line="49">        <span class="n">alias_generator</span><span class="o">=</span><span class="n">to_camel</span><span class="p">,</span> <span class="n">populate_by_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="s2">"forbid"</span>
+</span><span data-line="50">    <span class="p">)</span>
 </span><span data-line="51">
-</span><span data-line="52"><span class="c1"># ── identity &amp; units ────────────────────────────────────────────────────────</span>
-</span><span data-line="53">
+</span><span data-line="52">
+</span><span data-line="53"><span class="c1"># ── identity &amp; units ────────────────────────────────────────────────────────</span>
 </span><span data-line="54">
+</span><span data-line="55">
 <div class="viewcode-block" id="Measure">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Measure">[docs]</a>
-</span><span data-line="55"><span class="k">class</span><span class="w"> </span><span class="nc">Measure</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="56"><span class="w">    </span><span class="sd">"""A duration in the DOMAIN's own unit — never seconds unless the domain's</span>
-</span><span data-line="57"><span class="sd">    unit is seconds."""</span>
-</span><span data-line="58">
-</span><span data-line="59">    <span class="n">value</span><span class="p">:</span> <span class="n">Decimal</span>
-</span><span data-line="60">    <span class="n">unit</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># "eight" | "bar" | "rep" | "second" | "minute" | ...</span></div>
+</span><span data-line="56"><span class="k">class</span><span class="w"> </span><span class="nc">Measure</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="57"><span class="w">    </span><span class="sd">"""A duration in the DOMAIN's own unit — never seconds unless the domain's</span>
+</span><span data-line="58"><span class="sd">    unit is seconds."""</span>
+</span><span data-line="59">
+</span><span data-line="60">    <span class="n">value</span><span class="p">:</span> <span class="n">Decimal</span>
+</span><span data-line="61">    <span class="n">unit</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># "eight" | "bar" | "rep" | "second" | "minute" | ...</span></div>
 
-</span><span data-line="61">
 </span><span data-line="62">
+</span><span data-line="63">
 <div class="viewcode-block" id="MetricGrid">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.MetricGrid">[docs]</a>
-</span><span data-line="63"><span class="k">class</span><span class="w"> </span><span class="nc">MetricGrid</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="64"><span class="w">    </span><span class="sd">"""How the domain unit relates to wall-clock time, when it does at all.</span>
-</span><span data-line="65">
-</span><span data-line="66"><span class="sd">    Optional by design: a "reps" domain has no grid; a dance routine does —</span>
-</span><span data-line="67"><span class="sd">    and the grid is what drives the metronome and :func:`resolve`.</span>
-</span><span data-line="68">
-</span><span data-line="69"><span class="sd">    A non-positive tempo or subdivision count is unrepresentable, not merely</span>
-</span><span data-line="70"><span class="sd">    discouraged: a zero tempo makes every duration infinite and every</span>
-</span><span data-line="71"><span class="sd">    ``seconds_per_unit`` division a crash, so "tempo unknown" is spelled</span>
-</span><span data-line="72"><span class="sd">    ``tempo_bpm=None``, never ``"0"``.</span>
-</span><span data-line="73"><span class="sd">    """</span>
-</span><span data-line="74">
-</span><span data-line="75">    <span class="n">unit</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># "eight"</span>
-</span><span data-line="76">    <span class="n">subdivisions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># beats per unit (8 for an 8-count)</span>
-</span><span data-line="77">    <span class="n">tempo_bpm</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># "129.2"</span>
-</span><span data-line="78">    <span class="n">origin</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># seconds into origin_source where unit 0 starts</span>
-</span><span data-line="79">    <span class="n">origin_source</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="80">
-</span><span data-line="81">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"tempo_bpm"</span><span class="p">)</span>
-</span><span data-line="82">    <span class="nd">@classmethod</span>
-</span><span data-line="83">    <span class="k">def</span><span class="w"> </span><span class="nf">_tempo_must_be_positive</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="84">        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-</span><span data-line="85">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="86">                <span class="s2">"tempo_bpm must be positive; spell 'tempo unknown' as None"</span>
-</span><span data-line="87">            <span class="p">)</span>
-</span><span data-line="88">        <span class="k">return</span> <span class="n">value</span></div>
+</span><span data-line="64"><span class="k">class</span><span class="w"> </span><span class="nc">MetricGrid</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="65"><span class="w">    </span><span class="sd">"""How the domain unit relates to wall-clock time, when it does at all.</span>
+</span><span data-line="66">
+</span><span data-line="67"><span class="sd">    Optional by design: a "reps" domain has no grid; a dance routine does —</span>
+</span><span data-line="68"><span class="sd">    and the grid is what drives the metronome and :func:`resolve`.</span>
+</span><span data-line="69">
+</span><span data-line="70"><span class="sd">    A non-positive tempo or subdivision count is unrepresentable, not merely</span>
+</span><span data-line="71"><span class="sd">    discouraged: a zero tempo makes every duration infinite and every</span>
+</span><span data-line="72"><span class="sd">    ``seconds_per_unit`` division a crash, so "tempo unknown" is spelled</span>
+</span><span data-line="73"><span class="sd">    ``tempo_bpm=None``, never ``"0"``.</span>
+</span><span data-line="74"><span class="sd">    """</span>
+</span><span data-line="75">
+</span><span data-line="76">    <span class="n">unit</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># "eight"</span>
+</span><span data-line="77">    <span class="n">subdivisions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># beats per unit (8 for an 8-count)</span>
+</span><span data-line="78">    <span class="n">tempo_bpm</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># "129.2"</span>
+</span><span data-line="79">    <span class="n">origin</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># seconds into origin_source where unit 0 starts</span>
+</span><span data-line="80">    <span class="n">origin_source</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="81">
+</span><span data-line="82">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"tempo_bpm"</span><span class="p">)</span>
+</span><span data-line="83">    <span class="nd">@classmethod</span>
+</span><span data-line="84">    <span class="k">def</span><span class="w"> </span><span class="nf">_tempo_must_be_positive</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="85">        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span data-line="86">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="87">                <span class="s2">"tempo_bpm must be positive; spell 'tempo unknown' as None"</span>
+</span><span data-line="88">            <span class="p">)</span>
+</span><span data-line="89">        <span class="k">return</span> <span class="n">value</span></div>
 
-</span><span data-line="89">
 </span><span data-line="90">
-</span><span data-line="91"><span class="c1"># ── sources &amp; spans ─────────────────────────────────────────────────────────</span>
-</span><span data-line="92">
+</span><span data-line="91">
+</span><span data-line="92"><span class="c1"># ── sources &amp; spans ─────────────────────────────────────────────────────────</span>
 </span><span data-line="93">
+</span><span data-line="94">
 <div class="viewcode-block" id="Source">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Source">[docs]</a>
-</span><span data-line="94"><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="95"><span class="w">    </span><span class="sd">"""One input the document's spans refer into (a video, a notes doc, ...)."""</span>
-</span><span data-line="96">
-</span><span data-line="97">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
-</span><span data-line="98">    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"audio"</span><span class="p">,</span> <span class="s2">"image"</span><span class="p">,</span> <span class="s2">"document"</span><span class="p">,</span> <span class="s2">"url"</span><span class="p">]</span>
-</span><span data-line="99">    <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="100">    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># content hash of a local copy, if any</span>
-</span><span data-line="101">    <span class="n">duration_s</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="102">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="103">    <span class="n">attribution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="104">    <span class="n">rights</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># rights are content in this domain (docs/07 §3)</span>
-</span><span data-line="105">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="95"><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="96"><span class="w">    </span><span class="sd">"""One input the document's spans refer into (a video, a notes doc, ...)."""</span>
+</span><span data-line="97">
+</span><span data-line="98">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
+</span><span data-line="99">    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"audio"</span><span class="p">,</span> <span class="s2">"image"</span><span class="p">,</span> <span class="s2">"document"</span><span class="p">,</span> <span class="s2">"url"</span><span class="p">]</span>
+</span><span data-line="100">    <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="101">    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># content hash of a local copy, if any</span>
+</span><span data-line="102">    <span class="n">duration_s</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="103">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="104">    <span class="n">attribution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="105">    <span class="n">rights</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># rights are content in this domain (docs/07 §3)</span>
+</span><span data-line="106">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="106">
 </span><span data-line="107">
+</span><span data-line="108">
 <div class="viewcode-block" id="SourceSpan">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.SourceSpan">[docs]</a>
-</span><span data-line="108"><span class="k">class</span><span class="w"> </span><span class="nc">SourceSpan</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="109"><span class="w">    </span><span class="sd">"""ONE step's presence in ONE source, in ONE role. A step has a LIST of</span>
-</span><span data-line="110"><span class="sd">    these — several roles is the norm, not the exception.</span>
-</span><span data-line="111">
-</span><span data-line="112"><span class="sd">    ``end=None`` means "starts here, extent not recorded" (a deep link is a</span>
-</span><span data-line="113"><span class="sd">    point of entry, not an interval; recording an end it does not know would</span>
-</span><span data-line="114"><span class="sd">    be invention, not data).</span>
-</span><span data-line="115"><span class="sd">    """</span>
-</span><span data-line="116">
-</span><span data-line="117">    <span class="n">source</span><span class="p">:</span> <span class="n">Slug</span>
-</span><span data-line="118">    <span class="n">role</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">=</span> <span class="s2">"performance"</span>  <span class="c1"># open vocab: performance|instruction|closeup|...</span>
-</span><span data-line="119">    <span class="n">start</span><span class="p">:</span> <span class="n">Decimal</span>
-</span><span data-line="120">    <span class="n">end</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="121">    <span class="n">excerpt</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Decimal</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># loopable sub-window</span>
-</span><span data-line="122">    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="123">    <span class="n">caption</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># prose about THIS span, not the step</span>
-</span><span data-line="124">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="125">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="109"><span class="k">class</span><span class="w"> </span><span class="nc">SourceSpan</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="110"><span class="w">    </span><span class="sd">"""ONE step's presence in ONE source, in ONE role. A step has a LIST of</span>
+</span><span data-line="111"><span class="sd">    these — several roles is the norm, not the exception.</span>
+</span><span data-line="112">
+</span><span data-line="113"><span class="sd">    ``end=None`` means "starts here, extent not recorded" (a deep link is a</span>
+</span><span data-line="114"><span class="sd">    point of entry, not an interval; recording an end it does not know would</span>
+</span><span data-line="115"><span class="sd">    be invention, not data).</span>
+</span><span data-line="116"><span class="sd">    """</span>
+</span><span data-line="117">
+</span><span data-line="118">    <span class="n">source</span><span class="p">:</span> <span class="n">Slug</span>
+</span><span data-line="119">    <span class="n">role</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">=</span> <span class="s2">"performance"</span>  <span class="c1"># open vocab: performance|instruction|closeup|...</span>
+</span><span data-line="120">    <span class="n">start</span><span class="p">:</span> <span class="n">Decimal</span>
+</span><span data-line="121">    <span class="n">end</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="122">    <span class="n">excerpt</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Decimal</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># loopable sub-window</span>
+</span><span data-line="123">    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="124">    <span class="n">caption</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># prose about THIS span, not the step</span>
+</span><span data-line="125">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="126">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="126">
 </span><span data-line="127">
-</span><span data-line="128"><span class="c1"># ── derived artifacts ───────────────────────────────────────────────────────</span>
-</span><span data-line="129">
+</span><span data-line="128">
+</span><span data-line="129"><span class="c1"># ── derived artifacts ───────────────────────────────────────────────────────</span>
 </span><span data-line="130">
+</span><span data-line="131">
 <div class="viewcode-block" id="ArtifactRef">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.ArtifactRef">[docs]</a>
-</span><span data-line="131"><span class="k">class</span><span class="w"> </span><span class="nc">ArtifactRef</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="132"><span class="w">    </span><span class="sd">"""WHAT a derived file is, never HOW it was made — the recipe lives in the</span>
-</span><span data-line="133"><span class="sd">    evidence layer (``paces.evidence``, tier ``derivation``) and in the</span>
-</span><span data-line="134"><span class="sd">    committed span-address-keyed ``&lt;stem&gt;.recipes.json`` sidecar (ADR-0005 §3),</span>
-</span><span data-line="135"><span class="sd">    which stay in step: both are keyed by the same span address."""</span>
-</span><span data-line="136">
-</span><span data-line="137">    <span class="n">role</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># clip | gif | poster | thumbnail | waveform | audio</span>
-</span><span data-line="138">    <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># relative to the document — deploy-portable</span>
-</span><span data-line="139">    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 64-hex SHA-256, the durable identity</span>
-</span><span data-line="140">    <span class="n">mime</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="141">    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="142">    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="143">    <span class="n">duration_s</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="144">    <span class="n">derived_from</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># which SourceSpan.role it came from</span>
-</span><span data-line="145">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="132"><span class="k">class</span><span class="w"> </span><span class="nc">ArtifactRef</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="133"><span class="w">    </span><span class="sd">"""WHAT a derived file is, never HOW it was made — the recipe lives in the</span>
+</span><span data-line="134"><span class="sd">    evidence layer (``paces.evidence``, tier ``derivation``) and in the</span>
+</span><span data-line="135"><span class="sd">    committed span-address-keyed ``&lt;stem&gt;.recipes.json`` sidecar (ADR-0005 §3),</span>
+</span><span data-line="136"><span class="sd">    which stay in step: both are keyed by the same span address."""</span>
+</span><span data-line="137">
+</span><span data-line="138">    <span class="n">role</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># clip | gif | poster | thumbnail | waveform | audio</span>
+</span><span data-line="139">    <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># relative to the document — deploy-portable</span>
+</span><span data-line="140">    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 64-hex SHA-256, the durable identity</span>
+</span><span data-line="141">    <span class="n">mime</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="142">    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="143">    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="144">    <span class="n">duration_s</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="145">    <span class="n">derived_from</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># which SourceSpan.role it came from</span>
+</span><span data-line="146">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="146">
 </span><span data-line="147">
-</span><span data-line="148"><span class="c1"># ── cues: their own track, anchored by step id ──────────────────────────────</span>
-</span><span data-line="149">
+</span><span data-line="148">
+</span><span data-line="149"><span class="c1"># ── cues: their own track, anchored by step id ──────────────────────────────</span>
 </span><span data-line="150">
+</span><span data-line="151">
 <div class="viewcode-block" id="Anchor">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Anchor">[docs]</a>
-</span><span data-line="151"><span class="k">class</span><span class="w"> </span><span class="nc">Anchor</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="152"><span class="w">    </span><span class="sd">"""Where a cue attaches: a step, plus an optional relative offset in the</span>
-</span><span data-line="153"><span class="sd">    domain unit. NEVER an absolute time."""</span>
-</span><span data-line="154">
-</span><span data-line="155">    <span class="n">step</span><span class="p">:</span> <span class="n">Slug</span>
-</span><span data-line="156">    <span class="n">offset</span><span class="p">:</span> <span class="n">Measure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+</span><span data-line="152"><span class="k">class</span><span class="w"> </span><span class="nc">Anchor</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="153"><span class="w">    </span><span class="sd">"""Where a cue attaches: a step, plus an optional relative offset in the</span>
+</span><span data-line="154"><span class="sd">    domain unit. NEVER an absolute time."""</span>
+</span><span data-line="155">
+</span><span data-line="156">    <span class="n">step</span><span class="p">:</span> <span class="n">Slug</span>
+</span><span data-line="157">    <span class="n">offset</span><span class="p">:</span> <span class="n">Measure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-</span><span data-line="157">
 </span><span data-line="158">
+</span><span data-line="159">
 <div class="viewcode-block" id="Cue">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Cue">[docs]</a>
-</span><span data-line="159"><span class="k">class</span><span class="w"> </span><span class="nc">Cue</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="160"><span class="w">    </span><span class="sd">"""A landmark the learner can hear or watch for (a lyric, a count, ...)."""</span>
-</span><span data-line="161">
-</span><span data-line="162">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
-</span><span data-line="163">    <span class="n">kind</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># lyric | count | audio-landmark | caption | warning</span>
-</span><span data-line="164">    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="165">    <span class="n">anchor</span><span class="p">:</span> <span class="n">Anchor</span>
-</span><span data-line="166">    <span class="n">duration</span><span class="p">:</span> <span class="n">Measure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="167">    <span class="n">source</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="168">    <span class="n">at_s</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># optional resolved time in that source</span>
-</span><span data-line="169">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="160"><span class="k">class</span><span class="w"> </span><span class="nc">Cue</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="161"><span class="w">    </span><span class="sd">"""A landmark the learner can hear or watch for (a lyric, a count, ...)."""</span>
+</span><span data-line="162">
+</span><span data-line="163">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
+</span><span data-line="164">    <span class="n">kind</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># lyric | count | audio-landmark | caption | warning</span>
+</span><span data-line="165">    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="166">    <span class="n">anchor</span><span class="p">:</span> <span class="n">Anchor</span>
+</span><span data-line="167">    <span class="n">duration</span><span class="p">:</span> <span class="n">Measure</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="168">    <span class="n">source</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="169">    <span class="n">at_s</span><span class="p">:</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># optional resolved time in that source</span>
+</span><span data-line="170">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="170">
 </span><span data-line="171">
-</span><span data-line="172"><span class="c1"># ── provenance &amp; edit protection ────────────────────────────────────────────</span>
-</span><span data-line="173">
+</span><span data-line="172">
+</span><span data-line="173"><span class="c1"># ── provenance &amp; edit protection ────────────────────────────────────────────</span>
 </span><span data-line="174">
-</span><span data-line="175"><span class="c1">#: ``Lock.at`` is always written by :func:`paces.edits._now_iso`; this is that</span>
-</span><span data-line="176"><span class="c1">#: same format, enforced on the way in so a hand-authored ``at`` can't smuggle</span>
-</span><span data-line="177"><span class="c1">#: an unparseable timestamp onto the wire.</span>
-</span><span data-line="178"><span class="n">_LOCK_AT_FORMAT</span> <span class="o">=</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ"</span>
-</span><span data-line="179">
+</span><span data-line="175">
+</span><span data-line="176"><span class="c1">#: ``Lock.at`` is always written by :func:`paces.edits._now_iso`; this is that</span>
+</span><span data-line="177"><span class="c1">#: same format, enforced on the way in so a hand-authored ``at`` can't smuggle</span>
+</span><span data-line="178"><span class="c1">#: an unparseable timestamp onto the wire.</span>
+</span><span data-line="179"><span class="n">_LOCK_AT_FORMAT</span> <span class="o">=</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ"</span>
 </span><span data-line="180">
+</span><span data-line="181">
 <div class="viewcode-block" id="Lock">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Lock">[docs]</a>
-</span><span data-line="181"><span class="k">class</span><span class="w"> </span><span class="nc">Lock</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="182"><span class="w">    </span><span class="sd">"""A human (or approved-AI) decision that regeneration MUST NOT overwrite."""</span>
-</span><span data-line="183">
-</span><span data-line="184">    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON pointer relative to the node: "/name", "/spans/1/caption"</span>
-</span><span data-line="185">    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># "user:thor" | "agent:&lt;model&gt;@&lt;hash&gt;"</span>
-</span><span data-line="186">    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># ISO-8601 UTC, second resolution</span>
-</span><span data-line="187">    <span class="n">was</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the pre-edit value — makes the edit reversible</span>
-</span><span data-line="188">    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="189">
-</span><span data-line="190">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"by"</span><span class="p">)</span>
-</span><span data-line="191">    <span class="nd">@classmethod</span>
-</span><span data-line="192">    <span class="k">def</span><span class="w"> </span><span class="nf">_by_must_be_attributed</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="193">        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-</span><span data-line="194">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Lock.by must not be empty — who made this edit?"</span><span class="p">)</span>
-</span><span data-line="195">        <span class="k">return</span> <span class="n">value</span>
-</span><span data-line="196">
-</span><span data-line="197">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"at"</span><span class="p">)</span>
-</span><span data-line="198">    <span class="nd">@classmethod</span>
-</span><span data-line="199">    <span class="k">def</span><span class="w"> </span><span class="nf">_at_must_be_iso_utc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="200">        <span class="k">try</span><span class="p">:</span>
-</span><span data-line="201">            <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_LOCK_AT_FORMAT</span><span class="p">)</span>
-</span><span data-line="202">        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span data-line="203">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="204">                <span class="sa">f</span><span class="s2">"Lock.at must be ISO-8601 UTC, second resolution "</span>
-</span><span data-line="205">                <span class="sa">f</span><span class="s2">"('2026-08-30T00:00:00Z'); got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="206">            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-</span><span data-line="207">        <span class="k">return</span> <span class="n">value</span></div>
+</span><span data-line="182"><span class="k">class</span><span class="w"> </span><span class="nc">Lock</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="183"><span class="w">    </span><span class="sd">"""A human (or approved-AI) decision that regeneration MUST NOT overwrite."""</span>
+</span><span data-line="184">
+</span><span data-line="185">    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON pointer relative to the node: "/name", "/spans/1/caption"</span>
+</span><span data-line="186">    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># "user:thor" | "agent:&lt;model&gt;@&lt;hash&gt;"</span>
+</span><span data-line="187">    <span class="n">at</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># ISO-8601 UTC, second resolution</span>
+</span><span data-line="188">    <span class="n">was</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the pre-edit value — makes the edit reversible</span>
+</span><span data-line="189">    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="190">
+</span><span data-line="191">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"by"</span><span class="p">)</span>
+</span><span data-line="192">    <span class="nd">@classmethod</span>
+</span><span data-line="193">    <span class="k">def</span><span class="w"> </span><span class="nf">_by_must_be_attributed</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="194">        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+</span><span data-line="195">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Lock.by must not be empty — who made this edit?"</span><span class="p">)</span>
+</span><span data-line="196">        <span class="k">return</span> <span class="n">value</span>
+</span><span data-line="197">
+</span><span data-line="198">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"at"</span><span class="p">)</span>
+</span><span data-line="199">    <span class="nd">@classmethod</span>
+</span><span data-line="200">    <span class="k">def</span><span class="w"> </span><span class="nf">_at_must_be_iso_utc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="201">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="202">            <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_LOCK_AT_FORMAT</span><span class="p">)</span>
+</span><span data-line="203">        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span data-line="204">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="205">                <span class="sa">f</span><span class="s2">"Lock.at must be ISO-8601 UTC, second resolution "</span>
+</span><span data-line="206">                <span class="sa">f</span><span class="s2">"('2026-08-30T00:00:00Z'); got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="207">            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+</span><span data-line="208">        <span class="k">return</span> <span class="n">value</span></div>
 
-</span><span data-line="208">
 </span><span data-line="209">
+</span><span data-line="210">
 <div class="viewcode-block" id="Origin">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Origin">[docs]</a>
-</span><span data-line="210"><span class="k">class</span><span class="w"> </span><span class="nc">Origin</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="211"><span class="w">    </span><span class="sd">"""Back-reference into the evidence layer: why this node says what it says,</span>
-</span><span data-line="212"><span class="sd">    and what a regeneration may replace."""</span>
-</span><span data-line="213">
-</span><span data-line="214">    <span class="n">annotation_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="215">    <span class="n">value_digest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="216">    <span class="n">generated_by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># "segmenter:grid-placed" | "user:thor"</span>
-</span><span data-line="217">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+</span><span data-line="211"><span class="k">class</span><span class="w"> </span><span class="nc">Origin</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="212"><span class="w">    </span><span class="sd">"""Back-reference into the evidence layer: why this node says what it says,</span>
+</span><span data-line="213"><span class="sd">    and what a regeneration may replace."""</span>
+</span><span data-line="214">
+</span><span data-line="215">    <span class="n">annotation_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="216">    <span class="n">value_digest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="217">    <span class="n">generated_by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># "segmenter:grid-placed" | "user:thor"</span>
+</span><span data-line="218">    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-</span><span data-line="218">
 </span><span data-line="219">
+</span><span data-line="220">
 <div class="viewcode-block" id="OpenQuestion">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.OpenQuestion">[docs]</a>
-</span><span data-line="220"><span class="k">class</span><span class="w"> </span><span class="nc">OpenQuestion</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="221"><span class="w">    </span><span class="sd">"""The POC's ``note`` fields, promoted: uncertainty and its resolution are</span>
-</span><span data-line="222"><span class="sd">    first-class content, not scratch."""</span>
-</span><span data-line="223">
-</span><span data-line="224">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
-</span><span data-line="225">    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="226">    <span class="n">status</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"open"</span><span class="p">,</span> <span class="s2">"settled"</span><span class="p">,</span> <span class="s2">"dropped"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"open"</span>
-</span><span data-line="227">    <span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="228">    <span class="n">evidence</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SourceSpan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+</span><span data-line="221"><span class="k">class</span><span class="w"> </span><span class="nc">OpenQuestion</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="222"><span class="w">    </span><span class="sd">"""The POC's ``note`` fields, promoted: uncertainty and its resolution are</span>
+</span><span data-line="223"><span class="sd">    first-class content, not scratch."""</span>
+</span><span data-line="224">
+</span><span data-line="225">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
+</span><span data-line="226">    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="227">    <span class="n">status</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"open"</span><span class="p">,</span> <span class="s2">"settled"</span><span class="p">,</span> <span class="s2">"dropped"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"open"</span>
+</span><span data-line="228">    <span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="229">    <span class="n">evidence</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SourceSpan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
 
-</span><span data-line="229">
 </span><span data-line="230">
-</span><span data-line="231"><span class="c1"># ── the step ────────────────────────────────────────────────────────────────</span>
-</span><span data-line="232">
+</span><span data-line="231">
+</span><span data-line="232"><span class="c1"># ── the step ────────────────────────────────────────────────────────────────</span>
 </span><span data-line="233">
+</span><span data-line="234">
 <div class="viewcode-block" id="Step">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.Step">[docs]</a>
-</span><span data-line="234"><span class="k">class</span><span class="w"> </span><span class="nc">Step</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="235"><span class="w">    </span><span class="sd">"""One named piece of the routine — the unit a learner practises.</span>
-</span><span data-line="236">
-</span><span data-line="237"><span class="sd">    A step is a step: sub-steps are ``Step``s in ``steps``. ``repeat`` says the</span>
-</span><span data-line="238"><span class="sd">    children cycle N times (the POC's block 9 is ``repeat=4`` over two</span>
-</span><span data-line="239"><span class="sd">    sub-steps — structure, where the original hand-wrote a display override).</span>
-</span><span data-line="240"><span class="sd">    """</span>
-</span><span data-line="241">
-</span><span data-line="242">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># stable across re-runs, human-meaningful ("b4")</span>
-</span><span data-line="243">    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="244">    <span class="n">duration</span><span class="p">:</span> <span class="n">Measure</span>
-</span><span data-line="245">    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-</span><span data-line="246">    <span class="n">spans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SourceSpan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="247">    <span class="n">artifacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ArtifactRef</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="248">    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Step"</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="249">    <span class="n">repeat</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span data-line="250">    <span class="n">optional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span data-line="251">    <span class="n">variant_of</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="252">    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Slug</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="253">    <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OpenQuestion</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="254">    <span class="n">origin</span><span class="p">:</span> <span class="n">Origin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="255">    <span class="n">locks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="256">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="235"><span class="k">class</span><span class="w"> </span><span class="nc">Step</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="236"><span class="w">    </span><span class="sd">"""One named piece of the routine — the unit a learner practises.</span>
+</span><span data-line="237">
+</span><span data-line="238"><span class="sd">    A step is a step: sub-steps are ``Step``s in ``steps``. ``repeat`` says the</span>
+</span><span data-line="239"><span class="sd">    children cycle N times (the POC's block 9 is ``repeat=4`` over two</span>
+</span><span data-line="240"><span class="sd">    sub-steps — structure, where the original hand-wrote a display override).</span>
+</span><span data-line="241"><span class="sd">    """</span>
+</span><span data-line="242">
+</span><span data-line="243">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>  <span class="c1"># stable across re-runs, human-meaningful ("b4")</span>
+</span><span data-line="244">    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="245">    <span class="n">duration</span><span class="p">:</span> <span class="n">Measure</span>
+</span><span data-line="246">    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+</span><span data-line="247">    <span class="n">spans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SourceSpan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="248">    <span class="n">artifacts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ArtifactRef</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="249">    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Step"</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="250">    <span class="n">repeat</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span data-line="251">    <span class="n">optional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span data-line="252">    <span class="n">variant_of</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="253">    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Slug</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="254">    <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OpenQuestion</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="255">    <span class="n">origin</span><span class="p">:</span> <span class="n">Origin</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="256">    <span class="n">locks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="257">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="257">
 </span><span data-line="258">
-</span><span data-line="259"><span class="c1"># ── the document ────────────────────────────────────────────────────────────</span>
-</span><span data-line="260">
+</span><span data-line="259">
+</span><span data-line="260"><span class="c1"># ── the document ────────────────────────────────────────────────────────────</span>
 </span><span data-line="261">
+</span><span data-line="262">
 <div class="viewcode-block" id="StepDocument">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.StepDocument">[docs]</a>
-</span><span data-line="262"><span class="k">class</span><span class="w"> </span><span class="nc">StepDocument</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
-</span><span data-line="263"><span class="w">    </span><span class="sd">"""The committed, hand-editable, git-diffable step document — the AST."""</span>
-</span><span data-line="264">
-</span><span data-line="265">    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"StepDocument"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"StepDocument"</span>
-</span><span data-line="266">    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">SCHEMA_VERSION</span>
-</span><span data-line="267">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
-</span><span data-line="268">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="269">    <span class="n">lang</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span>  <span class="c1"># BCP-47</span>
-</span><span data-line="270">    <span class="n">domain</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">=</span> <span class="s2">"generic"</span>  <span class="c1"># "dance" | "recipe" | "workout" | ...</span>
-</span><span data-line="271">    <span class="n">metric</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="272">    <span class="n">sources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Source</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="273">    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Step</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>  <span class="c1"># ORDER IS SEMANTIC</span>
-</span><span data-line="274">    <span class="n">cues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Cue</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="275">    <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OpenQuestion</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span data-line="276">    <span class="n">credits</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="277">    <span class="n">locks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>  <span class="c1"># document-level fields</span>
-</span><span data-line="278">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</span><span data-line="263"><span class="k">class</span><span class="w"> </span><span class="nc">StepDocument</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
+</span><span data-line="264"><span class="w">    </span><span class="sd">"""The committed, hand-editable, git-diffable step document — the AST."""</span>
+</span><span data-line="265">
+</span><span data-line="266">    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"StepDocument"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"StepDocument"</span>
+</span><span data-line="267">    <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">SCHEMA_VERSION</span>
+</span><span data-line="268">    <span class="nb">id</span><span class="p">:</span> <span class="n">Slug</span>
+</span><span data-line="269">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="270">    <span class="n">lang</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span>  <span class="c1"># BCP-47</span>
+</span><span data-line="271">    <span class="n">domain</span><span class="p">:</span> <span class="n">Slug</span> <span class="o">=</span> <span class="s2">"generic"</span>  <span class="c1"># "dance" | "recipe" | "workout" | ...</span>
+</span><span data-line="272">    <span class="n">metric</span><span class="p">:</span> <span class="n">MetricGrid</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="273">    <span class="n">sources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Source</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="274">    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Step</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>  <span class="c1"># ORDER IS SEMANTIC</span>
+</span><span data-line="275">    <span class="n">cues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Cue</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="276">    <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OpenQuestion</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span data-line="277">    <span class="n">credits</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="278">    <span class="n">locks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>  <span class="c1"># document-level fields</span>
+</span><span data-line="279">    <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
-</span><span data-line="279">
 </span><span data-line="280">
+</span><span data-line="281">
 <div class="viewcode-block" id="decimal_str">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.decimal_str">[docs]</a>
-</span><span data-line="281"><span class="k">def</span><span class="w"> </span><span class="nf">decimal_str</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">places</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="282"><span class="w">    </span><span class="sd">"""A clean wire decimal from a number ('95.78', never '95.78000000001').</span>
-</span><span data-line="283">
-</span><span data-line="284"><span class="sd">    The one shared serialisation helper for computed values entering the</span>
-</span><span data-line="285"><span class="sd">    document's no-floats wire format.</span>
-</span><span data-line="286">
-</span><span data-line="287"><span class="sd">    &gt;&gt;&gt; decimal_str(72.60000000000001, places=3)</span>
-</span><span data-line="288"><span class="sd">    '72.6'</span>
-</span><span data-line="289"><span class="sd">    """</span>
-</span><span data-line="290">    <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">:</span><span class="s2">.</span><span class="si">{</span><span class="n">places</span><span class="si">}</span><span class="s2">f</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"0"</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
-</span><span data-line="291">    <span class="k">return</span> <span class="n">text</span> <span class="ow">or</span> <span class="s2">"0"</span></div>
+</span><span data-line="282"><span class="k">def</span><span class="w"> </span><span class="nf">decimal_str</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">places</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="283"><span class="w">    </span><span class="sd">"""A clean wire decimal from a number ('95.78', never '95.78000000001').</span>
+</span><span data-line="284">
+</span><span data-line="285"><span class="sd">    The one shared serialisation helper for computed values entering the</span>
+</span><span data-line="286"><span class="sd">    document's no-floats wire format.</span>
+</span><span data-line="287">
+</span><span data-line="288"><span class="sd">    &gt;&gt;&gt; decimal_str(72.60000000000001, places=3)</span>
+</span><span data-line="289"><span class="sd">    '72.6'</span>
+</span><span data-line="290"><span class="sd">    &gt;&gt;&gt; decimal_str(-0.0004, places=3)  # rounds to zero: no sign</span>
+</span><span data-line="291"><span class="sd">    '0'</span>
+</span><span data-line="292"><span class="sd">    """</span>
+</span><span data-line="293">    <span class="n">number</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span data-line="294">    <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+</span><span data-line="295">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no decimal string for a non-finite value: </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="296">    <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">number</span><span class="si">:</span><span class="s2">.</span><span class="si">{</span><span class="n">places</span><span class="si">}</span><span class="s2">f</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="297">    <span class="k">if</span> <span class="s2">"."</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>  <span class="c1"># places=0 has no fraction to trim</span>
+</span><span data-line="298">        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"0"</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+</span><span data-line="299">    <span class="k">return</span> <span class="s2">"0"</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"-0"</span><span class="p">)</span> <span class="k">else</span> <span class="n">text</span></div>
 
-</span><span data-line="292">
-</span><span data-line="293">
-</span><span data-line="294"><span class="c1"># ── serialisation (the git rules of docs/07 §6.5) ───────────────────────────</span>
-</span><span data-line="295">
-</span><span data-line="296">
+</span><span data-line="300">
+</span><span data-line="301">
+</span><span data-line="302"><span class="c1"># ── serialisation (the git rules of docs/07 §6.5) ───────────────────────────</span>
+</span><span data-line="303">
+</span><span data-line="304">
 <div class="viewcode-block" id="dumps_document">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.dumps_document">[docs]</a>
-</span><span data-line="297"><span class="k">def</span><span class="w"> </span><span class="nf">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="298"><span class="w">    </span><span class="sd">"""Serialise a document to its canonical wire form.</span>
-</span><span data-line="299">
-</span><span data-line="300"><span class="sd">    camelCase keys in declaration order, 2-space indent, UTF-8 readable</span>
-</span><span data-line="301"><span class="sd">    (``ensure_ascii=False`` equivalent), trailing newline.</span>
-</span><span data-line="302"><span class="sd">    """</span>
-</span><span data-line="303">    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-</span><span data-line="304">
-</span><span data-line="305">    <span class="n">payload</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="306">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span></div>
-
+</span><span data-line="305"><span class="k">def</span><span class="w"> </span><span class="nf">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="306"><span class="w">    </span><span class="sd">"""Serialise a document to its canonical wire form.</span>
 </span><span data-line="307">
-</span><span data-line="308">
-<div class="viewcode-block" id="loads_document">
-<a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.loads_document">[docs]</a>
-</span><span data-line="309"><span class="k">def</span><span class="w"> </span><span class="nf">loads_document</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepDocument</span><span class="p">:</span>
-</span><span data-line="310"><span class="w">    </span><span class="sd">"""Parse a document from its wire form (accepts camelCase or snake_case)."""</span>
-</span><span data-line="311">    <span class="k">return</span> <span class="n">StepDocument</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
-
+</span><span data-line="308"><span class="sd">    camelCase keys in declaration order, 2-space indent, UTF-8 readable</span>
+</span><span data-line="309"><span class="sd">    (``ensure_ascii=False`` equivalent), trailing newline.</span>
+</span><span data-line="310"><span class="sd">    """</span>
+</span><span data-line="311">    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 </span><span data-line="312">
-</span><span data-line="313">
-</span><span data-line="314"><span class="c1"># ── resolution: absolute positions are computed, never stored ───────────────</span>
+</span><span data-line="313">    <span class="n">payload</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="314">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span></div>
+
 </span><span data-line="315">
 </span><span data-line="316">
+<div class="viewcode-block" id="loads_document">
+<a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.loads_document">[docs]</a>
+</span><span data-line="317"><span class="k">def</span><span class="w"> </span><span class="nf">loads_document</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepDocument</span><span class="p">:</span>
+</span><span data-line="318"><span class="w">    </span><span class="sd">"""Parse a document from its wire form (accepts camelCase or snake_case)."""</span>
+</span><span data-line="319">    <span class="k">return</span> <span class="n">StepDocument</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+</span><span data-line="320">
+</span><span data-line="321">
+</span><span data-line="322"><span class="c1"># ── resolution: absolute positions are computed, never stored ───────────────</span>
+</span><span data-line="323">
+</span><span data-line="324">
 <div class="viewcode-block" id="seconds_per_unit">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.seconds_per_unit">[docs]</a>
-</span><span data-line="317"><span class="k">def</span><span class="w"> </span><span class="nf">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="318"><span class="w">    </span><span class="sd">"""Seconds one domain unit lasts under *grid*, or None without a tempo.</span>
-</span><span data-line="319">
-</span><span data-line="320"><span class="sd">    &gt;&gt;&gt; seconds_per_unit(MetricGrid(unit='eight', subdivisions=8, tempo_bpm='129.2'))</span>
-</span><span data-line="321"><span class="sd">    3.7151702786377707</span>
-</span><span data-line="322"><span class="sd">    """</span>
-</span><span data-line="323">    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="324">        <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="325">    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">subdivisions</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">/</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span><span class="p">))</span></div>
-
-</span><span data-line="326">
+</span><span data-line="325"><span class="k">def</span><span class="w"> </span><span class="nf">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">MetricGrid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="326"><span class="w">    </span><span class="sd">"""Seconds one domain unit lasts under *grid*, or None without a tempo.</span>
 </span><span data-line="327">
+</span><span data-line="328"><span class="sd">    &gt;&gt;&gt; seconds_per_unit(MetricGrid(unit='eight', subdivisions=8, tempo_bpm='129.2'))</span>
+</span><span data-line="329"><span class="sd">    3.7151702786377707</span>
+</span><span data-line="330"><span class="sd">    """</span>
+</span><span data-line="331">    <span class="k">if</span> <span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="332">        <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="333">    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">subdivisions</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">/</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">tempo_bpm</span><span class="p">))</span></div>
+
+</span><span data-line="334">
+</span><span data-line="335">
 <div class="viewcode-block" id="resolve">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.resolve">[docs]</a>
-</span><span data-line="328"><span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="329"><span class="w">    </span><span class="sd">"""Compute absolute metric offsets (and wall-clock times, when the grid</span>
-</span><span data-line="330"><span class="sd">    allows) for every step. Pure; the analogue of walkthru's</span>
-</span><span data-line="331"><span class="sd">    ``resolve_timeline``.</span>
-</span><span data-line="332">
-</span><span data-line="333"><span class="sd">    Returns a JSON-able dict: ``{"unit", "seconds_per_unit", "origin_s",</span>
-</span><span data-line="334"><span class="sd">    "total_units", "steps": [{"id", "name", "offset", "duration", "start_s",</span>
-</span><span data-line="335"><span class="sd">    "end_s", "repeat", "children": [...]}, ...]}``. Times are floats — this is</span>
-</span><span data-line="336"><span class="sd">    a computed view, not the stored document.</span>
-</span><span data-line="337"><span class="sd">    """</span>
-</span><span data-line="338">    <span class="n">grid</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">metric</span>
-</span><span data-line="339">    <span class="n">spu</span> <span class="o">=</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span> <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="340">    <span class="n">origin</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">origin</span><span class="p">))</span> <span class="k">if</span> <span class="n">grid</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="341">
-</span><span data-line="342">    <span class="k">def</span><span class="w"> </span><span class="nf">_wall</span><span class="p">(</span><span class="n">offset_units</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="343">        <span class="k">if</span> <span class="n">spu</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="344">            <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="345">        <span class="k">return</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">offset_units</span> <span class="o">*</span> <span class="n">spu</span>
-</span><span data-line="346">
-</span><span data-line="347">    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Step</span><span class="p">],</span> <span class="n">at</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
-</span><span data-line="348">        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="349">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
-</span><span data-line="350">            <span class="n">dur</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-</span><span data-line="351">            <span class="n">children</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_resolve_steps</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
-</span><span data-line="352">            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="353">                <span class="p">{</span>
-</span><span data-line="354">                    <span class="s2">"id"</span><span class="p">:</span> <span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span data-line="355">                    <span class="s2">"name"</span><span class="p">:</span> <span class="n">step</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span data-line="356">                    <span class="s2">"offset"</span><span class="p">:</span> <span class="n">at</span><span class="p">,</span>
-</span><span data-line="357">                    <span class="s2">"duration"</span><span class="p">:</span> <span class="n">dur</span><span class="p">,</span>
-</span><span data-line="358">                    <span class="s2">"start_s"</span><span class="p">:</span> <span class="n">_wall</span><span class="p">(</span><span class="n">at</span><span class="p">),</span>
-</span><span data-line="359">                    <span class="s2">"end_s"</span><span class="p">:</span> <span class="n">_wall</span><span class="p">(</span><span class="n">at</span> <span class="o">+</span> <span class="n">dur</span><span class="p">),</span>
-</span><span data-line="360">                    <span class="s2">"repeat"</span><span class="p">:</span> <span class="n">step</span><span class="o">.</span><span class="n">repeat</span><span class="p">,</span>
-</span><span data-line="361">                    <span class="s2">"children"</span><span class="p">:</span> <span class="n">children</span><span class="p">,</span>
-</span><span data-line="362">                <span class="p">}</span>
-</span><span data-line="363">            <span class="p">)</span>
-</span><span data-line="364">            <span class="n">at</span> <span class="o">+=</span> <span class="n">dur</span>
-</span><span data-line="365">        <span class="k">return</span> <span class="n">rows</span><span class="p">,</span> <span class="n">at</span>
-</span><span data-line="366">
-</span><span data-line="367">    <span class="n">rows</span><span class="p">,</span> <span class="n">total</span> <span class="o">=</span> <span class="n">_resolve_steps</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-</span><span data-line="368">    <span class="k">return</span> <span class="p">{</span>
-</span><span data-line="369">        <span class="s2">"unit"</span><span class="p">:</span> <span class="n">grid</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">grid</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="370">        <span class="s2">"seconds_per_unit"</span><span class="p">:</span> <span class="n">spu</span><span class="p">,</span>
-</span><span data-line="371">        <span class="s2">"origin_s"</span><span class="p">:</span> <span class="n">origin</span><span class="p">,</span>
-</span><span data-line="372">        <span class="s2">"total_units"</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
-</span><span data-line="373">        <span class="s2">"steps"</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span>
-</span><span data-line="374">    <span class="p">}</span></div>
+</span><span data-line="336"><span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="337"><span class="w">    </span><span class="sd">"""Compute absolute metric offsets (and wall-clock times, when the grid</span>
+</span><span data-line="338"><span class="sd">    allows) for every step. Pure; the analogue of walkthru's</span>
+</span><span data-line="339"><span class="sd">    ``resolve_timeline``.</span>
+</span><span data-line="340">
+</span><span data-line="341"><span class="sd">    Returns a JSON-able dict: ``{"unit", "seconds_per_unit", "origin_s",</span>
+</span><span data-line="342"><span class="sd">    "total_units", "steps": [{"id", "name", "offset", "duration", "start_s",</span>
+</span><span data-line="343"><span class="sd">    "end_s", "repeat", "children": [...]}, ...]}``. Times are floats — this is</span>
+</span><span data-line="344"><span class="sd">    a computed view, not the stored document.</span>
+</span><span data-line="345"><span class="sd">    """</span>
+</span><span data-line="346">    <span class="n">grid</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">metric</span>
+</span><span data-line="347">    <span class="n">spu</span> <span class="o">=</span> <span class="n">seconds_per_unit</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span> <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="348">    <span class="n">origin</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">origin</span><span class="p">))</span> <span class="k">if</span> <span class="n">grid</span> <span class="ow">and</span> <span class="n">grid</span><span class="o">.</span><span class="n">origin</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="349">
+</span><span data-line="350">    <span class="k">def</span><span class="w"> </span><span class="nf">_wall</span><span class="p">(</span><span class="n">offset_units</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="351">        <span class="k">if</span> <span class="n">spu</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">origin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="352">            <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="353">        <span class="k">return</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">offset_units</span> <span class="o">*</span> <span class="n">spu</span>
+</span><span data-line="354">
+</span><span data-line="355">    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Step</span><span class="p">],</span> <span class="n">at</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span data-line="356">        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="357">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+</span><span data-line="358">            <span class="n">dur</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+</span><span data-line="359">            <span class="n">children</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_resolve_steps</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+</span><span data-line="360">            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="361">                <span class="p">{</span>
+</span><span data-line="362">                    <span class="s2">"id"</span><span class="p">:</span> <span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span data-line="363">                    <span class="s2">"name"</span><span class="p">:</span> <span class="n">step</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span data-line="364">                    <span class="s2">"offset"</span><span class="p">:</span> <span class="n">at</span><span class="p">,</span>
+</span><span data-line="365">                    <span class="s2">"duration"</span><span class="p">:</span> <span class="n">dur</span><span class="p">,</span>
+</span><span data-line="366">                    <span class="s2">"start_s"</span><span class="p">:</span> <span class="n">_wall</span><span class="p">(</span><span class="n">at</span><span class="p">),</span>
+</span><span data-line="367">                    <span class="s2">"end_s"</span><span class="p">:</span> <span class="n">_wall</span><span class="p">(</span><span class="n">at</span> <span class="o">+</span> <span class="n">dur</span><span class="p">),</span>
+</span><span data-line="368">                    <span class="s2">"repeat"</span><span class="p">:</span> <span class="n">step</span><span class="o">.</span><span class="n">repeat</span><span class="p">,</span>
+</span><span data-line="369">                    <span class="s2">"children"</span><span class="p">:</span> <span class="n">children</span><span class="p">,</span>
+</span><span data-line="370">                <span class="p">}</span>
+</span><span data-line="371">            <span class="p">)</span>
+</span><span data-line="372">            <span class="n">at</span> <span class="o">+=</span> <span class="n">dur</span>
+</span><span data-line="373">        <span class="k">return</span> <span class="n">rows</span><span class="p">,</span> <span class="n">at</span>
+</span><span data-line="374">
+</span><span data-line="375">    <span class="n">rows</span><span class="p">,</span> <span class="n">total</span> <span class="o">=</span> <span class="n">_resolve_steps</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+</span><span data-line="376">    <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="377">        <span class="s2">"unit"</span><span class="p">:</span> <span class="n">grid</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="n">grid</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="378">        <span class="s2">"seconds_per_unit"</span><span class="p">:</span> <span class="n">spu</span><span class="p">,</span>
+</span><span data-line="379">        <span class="s2">"origin_s"</span><span class="p">:</span> <span class="n">origin</span><span class="p">,</span>
+</span><span data-line="380">        <span class="s2">"total_units"</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
+</span><span data-line="381">        <span class="s2">"steps"</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span>
+</span><span data-line="382">    <span class="p">}</span></div>
 
-</span><span data-line="375">
-</span><span data-line="376">
-</span><span data-line="377"><span class="c1">#: Field names whose schema type is deliberately ``float`` (``docs/07 §6.5``</span>
-</span><span data-line="378"><span class="c1">#: accepts this as a pre-existing hole in the no-floats-on-the-wire rule) —</span>
-</span><span data-line="379"><span class="c1">#: everywhere else, a Python ``float`` reaching the wire (typically through an</span>
-</span><span data-line="380"><span class="c1">#: ``attrs`` bag or a ``Lock.was``, both typed ``Any``) is a leak. (A float</span>
-</span><span data-line="381"><span class="c1">#: under an ``attrs`` key that happens to be literally named ``confidence``</span>
-</span><span data-line="382"><span class="c1">#: slips through this same allowlist — a narrow, accepted gap: distinguishing</span>
-</span><span data-line="383"><span class="c1">#: it would mean knowing ``attrs`` is user data everywhere it appears.)</span>
-</span><span data-line="384"><span class="n">_FLOAT_TYPED_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"confidence"</span><span class="p">})</span>
-</span><span data-line="385">
-</span><span data-line="386"><span class="c1">#: The keys a ``Lock`` always dumps as (``model_dump(mode="python")``, no</span>
-</span><span data-line="387"><span class="c1">#: ``exclude_none``) — used to recognise a Lock structurally so ``was`` can be</span>
-</span><span data-line="388"><span class="c1">#: checked against what ``path`` says it actually holds, not the literal key</span>
-</span><span data-line="389"><span class="c1">#: name ``"was"`` (a ``Lock`` locking a ``confidence`` field legitimately</span>
-</span><span data-line="390"><span class="c1">#: carries a float in ``was``).</span>
-</span><span data-line="391"><span class="n">_LOCK_DUMP_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">,</span> <span class="s2">"was"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">})</span>
-</span><span data-line="392">
+</span><span data-line="383">
+</span><span data-line="384">
+</span><span data-line="385"><span class="c1">#: Field names whose schema type is deliberately ``float`` (``docs/07 §6.5``</span>
+</span><span data-line="386"><span class="c1">#: accepts this as a pre-existing hole in the no-floats-on-the-wire rule) —</span>
+</span><span data-line="387"><span class="c1">#: everywhere else, a Python ``float`` reaching the wire (typically through an</span>
+</span><span data-line="388"><span class="c1">#: ``attrs`` bag or a ``Lock.was``, both typed ``Any``) is a leak. (A float</span>
+</span><span data-line="389"><span class="c1">#: under an ``attrs`` key that happens to be literally named ``confidence``</span>
+</span><span data-line="390"><span class="c1">#: slips through this same allowlist — a narrow, accepted gap: distinguishing</span>
+</span><span data-line="391"><span class="c1">#: it would mean knowing ``attrs`` is user data everywhere it appears.)</span>
+</span><span data-line="392"><span class="n">_FLOAT_TYPED_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"confidence"</span><span class="p">})</span>
 </span><span data-line="393">
-</span><span data-line="394"><span class="k">def</span><span class="w"> </span><span class="nf">_scan_floats</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-</span><span data-line="395"><span class="w">    </span><span class="sd">"""Paths where a raw ``float`` reaches the wire outside a typed field."""</span>
-</span><span data-line="396">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-</span><span data-line="397">        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_FLOAT_TYPED_KEYS</span><span class="p">:</span>
-</span><span data-line="398">            <span class="k">return</span> <span class="p">[]</span>
-</span><span data-line="399">        <span class="k">return</span> <span class="p">[</span>
-</span><span data-line="400">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: float value </span><span class="si">{</span><span class="n">node</span><span class="si">!r}</span><span class="s2"> on the no-floats wire (use a decimal string)"</span>
-</span><span data-line="401">        <span class="p">]</span>
-</span><span data-line="402">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-</span><span data-line="403">        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">==</span> <span class="n">_LOCK_DUMP_KEYS</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
-</span><span data-line="404">            <span class="n">was_key</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-</span><span data-line="405">            <span class="k">return</span> <span class="p">[</span>
-</span><span data-line="406">                <span class="n">issue</span>
-</span><span data-line="407">                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-</span><span data-line="408">                <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">_scan_floats</span><span class="p">(</span>
-</span><span data-line="409">                    <span class="n">v</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">was_key</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"was"</span> <span class="k">else</span> <span class="n">k</span>
-</span><span data-line="410">                <span class="p">)</span>
-</span><span data-line="411">            <span class="p">]</span>
-</span><span data-line="412">        <span class="k">return</span> <span class="p">[</span>
-</span><span data-line="413">            <span class="n">issue</span>
-</span><span data-line="414">            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-</span><span data-line="415">            <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">_scan_floats</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
-</span><span data-line="416">        <span class="p">]</span>
-</span><span data-line="417">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-</span><span data-line="418">        <span class="k">return</span> <span class="p">[</span>
-</span><span data-line="419">            <span class="n">issue</span>
-</span><span data-line="420">            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-</span><span data-line="421">            <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">_scan_floats</span><span class="p">(</span>
-</span><span data-line="422">                <span class="n">v</span><span class="p">,</span>
-</span><span data-line="423">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="424">                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"id"</span> <span class="ow">in</span> <span class="n">v</span>
-</span><span data-line="425">                <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-</span><span data-line="426">                <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
-</span><span data-line="427">            <span class="p">)</span>
-</span><span data-line="428">        <span class="p">]</span>
-</span><span data-line="429">    <span class="k">return</span> <span class="p">[]</span>
-</span><span data-line="430">
-</span><span data-line="431">
+</span><span data-line="394"><span class="c1">#: The keys a ``Lock`` always dumps as (``model_dump(mode="python")``, no</span>
+</span><span data-line="395"><span class="c1">#: ``exclude_none``) — used to recognise a Lock structurally so ``was`` can be</span>
+</span><span data-line="396"><span class="c1">#: checked against what ``path`` says it actually holds, not the literal key</span>
+</span><span data-line="397"><span class="c1">#: name ``"was"`` (a ``Lock`` locking a ``confidence`` field legitimately</span>
+</span><span data-line="398"><span class="c1">#: carries a float in ``was``).</span>
+</span><span data-line="399"><span class="n">_LOCK_DUMP_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">,</span> <span class="s2">"was"</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">})</span>
+</span><span data-line="400">
+</span><span data-line="401">
+</span><span data-line="402"><span class="k">def</span><span class="w"> </span><span class="nf">_scan_floats</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span data-line="403"><span class="w">    </span><span class="sd">"""Paths where a raw ``float`` reaches the wire outside a typed field."""</span>
+</span><span data-line="404">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+</span><span data-line="405">        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_FLOAT_TYPED_KEYS</span><span class="p">:</span>
+</span><span data-line="406">            <span class="k">return</span> <span class="p">[]</span>
+</span><span data-line="407">        <span class="k">return</span> <span class="p">[</span>
+</span><span data-line="408">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: float value </span><span class="si">{</span><span class="n">node</span><span class="si">!r}</span><span class="s2"> on the no-floats wire (use a decimal string)"</span>
+</span><span data-line="409">        <span class="p">]</span>
+</span><span data-line="410">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+</span><span data-line="411">        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">==</span> <span class="n">_LOCK_DUMP_KEYS</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+</span><span data-line="412">            <span class="n">was_key</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span data-line="413">            <span class="k">return</span> <span class="p">[</span>
+</span><span data-line="414">                <span class="n">issue</span>
+</span><span data-line="415">                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+</span><span data-line="416">                <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">_scan_floats</span><span class="p">(</span>
+</span><span data-line="417">                    <span class="n">v</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">was_key</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">"was"</span> <span class="k">else</span> <span class="n">k</span>
+</span><span data-line="418">                <span class="p">)</span>
+</span><span data-line="419">            <span class="p">]</span>
+</span><span data-line="420">        <span class="k">return</span> <span class="p">[</span>
+</span><span data-line="421">            <span class="n">issue</span>
+</span><span data-line="422">            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+</span><span data-line="423">            <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">_scan_floats</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span data-line="424">        <span class="p">]</span>
+</span><span data-line="425">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+</span><span data-line="426">        <span class="k">return</span> <span class="p">[</span>
+</span><span data-line="427">            <span class="n">issue</span>
+</span><span data-line="428">            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+</span><span data-line="429">            <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">_scan_floats</span><span class="p">(</span>
+</span><span data-line="430">                <span class="n">v</span><span class="p">,</span>
+</span><span data-line="431">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="432">                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"id"</span> <span class="ow">in</span> <span class="n">v</span>
+</span><span data-line="433">                <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+</span><span data-line="434">                <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+</span><span data-line="435">            <span class="p">)</span>
+</span><span data-line="436">        <span class="p">]</span>
+</span><span data-line="437">    <span class="k">return</span> <span class="p">[]</span>
+</span><span data-line="438">
+</span><span data-line="439">
 <div class="viewcode-block" id="validate_document">
 <a class="viewcode-back" href="../../_autosummary/paces.model.html#paces.validate_document">[docs]</a>
-</span><span data-line="432"><span class="k">def</span><span class="w"> </span><span class="nf">validate_document</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-</span><span data-line="433"><span class="w">    </span><span class="sd">"""Semantic checks beyond the schema. Returns human-readable issues</span>
-</span><span data-line="434"><span class="sd">    (empty list = clean); never raises.</span>
-</span><span data-line="435">
-</span><span data-line="436"><span class="sd">    Checks: children durations account for the parent's (``repeat`` included),</span>
-</span><span data-line="437"><span class="sd">    span sources exist, cue anchors point at real steps, step ids are unique</span>
-</span><span data-line="438"><span class="sd">    (id-addressed edits and the regeneration merge both key on them — a</span>
-</span><span data-line="439"><span class="sd">    duplicate makes those silently ambiguous), and no raw ``float`` has</span>
-</span><span data-line="440"><span class="sd">    leaked onto the no-floats wire through an ``attrs`` bag or a ``Lock.was``</span>
-</span><span data-line="441"><span class="sd">    (both typed ``Any``, so the schema alone cannot catch this).</span>
-</span><span data-line="442"><span class="sd">    """</span>
-</span><span data-line="443">    <span class="n">issues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">_scan_floats</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"python"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span>
-</span><span data-line="444">    <span class="n">source_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">sources</span><span class="p">}</span>
-</span><span data-line="445">    <span class="n">step_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-</span><span data-line="446">
-</span><span data-line="447">    <span class="k">def</span><span class="w"> </span><span class="nf">_walk</span><span class="p">(</span><span class="n">step</span><span class="p">:</span> <span class="n">Step</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="448">        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">step_ids</span><span class="p">:</span>
-</span><span data-line="449">            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: duplicate step id </span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="450">        <span class="n">step_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-</span><span data-line="451">        <span class="n">seen_spans</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-</span><span data-line="452">        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">):</span>
-</span><span data-line="453">            <span class="k">if</span> <span class="n">span</span><span class="o">.</span><span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_ids</span><span class="p">:</span>
-</span><span data-line="454">                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/spans/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: unknown source </span><span class="si">{</span><span class="n">span</span><span class="o">.</span><span class="n">source</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="455">            <span class="n">identity</span> <span class="o">=</span> <span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">span</span><span class="o">.</span><span class="n">role</span><span class="p">,</span> <span class="n">span</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
-</span><span data-line="456">            <span class="k">if</span> <span class="n">identity</span> <span class="ow">in</span> <span class="n">seen_spans</span><span class="p">:</span>
-</span><span data-line="457">                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="458">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/spans/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: duplicate span identity "</span>
-</span><span data-line="459">                    <span class="sa">f</span><span class="s2">"(source, role, start) = </span><span class="si">{</span><span class="n">identity</span><span class="si">}</span><span class="s2"> — lock "</span>
-</span><span data-line="460">                    <span class="s2">"re-application and media derivation cannot tell "</span>
-</span><span data-line="461">                    <span class="s2">"these spans apart"</span>
-</span><span data-line="462">                <span class="p">)</span>
-</span><span data-line="463">            <span class="n">seen_spans</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">identity</span><span class="p">)</span>
-</span><span data-line="464">        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="465">            <span class="n">child_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="466">            <span class="n">expected</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-</span><span data-line="467">            <span class="n">optional_present</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">optional</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">variant_of</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="468">            <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">repeat</span> <span class="o">*</span> <span class="n">child_sum</span> <span class="o">!=</span> <span class="n">expected</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">optional_present</span><span class="p">:</span>
-</span><span data-line="469">                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="470">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: children sum to </span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">repeat</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">child_sum</span><span class="si">}</span><span class="s2"> "</span>
-</span><span data-line="471">                    <span class="sa">f</span><span class="s2">"!= duration </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="472">                <span class="p">)</span>
-</span><span data-line="473">        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="474">            <span class="n">_walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/steps/</span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="475">
-</span><span data-line="476">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="477">        <span class="n">_walk</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"/steps/</span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="478">    <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">cues</span><span class="p">:</span>
-</span><span data-line="479">        <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">anchor</span><span class="o">.</span><span class="n">step</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">step_ids</span><span class="p">:</span>
-</span><span data-line="480">            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"/cues/</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: anchor step </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">anchor</span><span class="o">.</span><span class="n">step</span><span class="si">!r}</span><span class="s2"> not found"</span><span class="p">)</span>
-</span><span data-line="481">    <span class="k">return</span> <span class="n">issues</span></div>
+</span><span data-line="440"><span class="k">def</span><span class="w"> </span><span class="nf">validate_document</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span data-line="441"><span class="w">    </span><span class="sd">"""Semantic checks beyond the schema. Returns human-readable issues</span>
+</span><span data-line="442"><span class="sd">    (empty list = clean); never raises.</span>
+</span><span data-line="443">
+</span><span data-line="444"><span class="sd">    Checks: children durations account for the parent's (``repeat`` included),</span>
+</span><span data-line="445"><span class="sd">    span sources exist, cue anchors point at real steps, step ids are unique</span>
+</span><span data-line="446"><span class="sd">    (id-addressed edits and the regeneration merge both key on them — a</span>
+</span><span data-line="447"><span class="sd">    duplicate makes those silently ambiguous), and no raw ``float`` has</span>
+</span><span data-line="448"><span class="sd">    leaked onto the no-floats wire through an ``attrs`` bag or a ``Lock.was``</span>
+</span><span data-line="449"><span class="sd">    (both typed ``Any``, so the schema alone cannot catch this).</span>
+</span><span data-line="450"><span class="sd">    """</span>
+</span><span data-line="451">    <span class="n">issues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">_scan_floats</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"python"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span>
+</span><span data-line="452">    <span class="n">source_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">sources</span><span class="p">}</span>
+</span><span data-line="453">    <span class="n">step_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+</span><span data-line="454">
+</span><span data-line="455">    <span class="k">def</span><span class="w"> </span><span class="nf">_walk</span><span class="p">(</span><span class="n">step</span><span class="p">:</span> <span class="n">Step</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="456">        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">step_ids</span><span class="p">:</span>
+</span><span data-line="457">            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: duplicate step id </span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="458">        <span class="n">step_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</span><span data-line="459">        <span class="n">seen_spans</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+</span><span data-line="460">        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">span</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">):</span>
+</span><span data-line="461">            <span class="k">if</span> <span class="n">span</span><span class="o">.</span><span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_ids</span><span class="p">:</span>
+</span><span data-line="462">                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/spans/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: unknown source </span><span class="si">{</span><span class="n">span</span><span class="o">.</span><span class="n">source</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="463">            <span class="n">identity</span> <span class="o">=</span> <span class="p">(</span><span class="n">span</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">span</span><span class="o">.</span><span class="n">role</span><span class="p">,</span> <span class="n">span</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+</span><span data-line="464">            <span class="k">if</span> <span class="n">identity</span> <span class="ow">in</span> <span class="n">seen_spans</span><span class="p">:</span>
+</span><span data-line="465">                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="466">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/spans/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: duplicate span identity "</span>
+</span><span data-line="467">                    <span class="sa">f</span><span class="s2">"(source, role, start) = </span><span class="si">{</span><span class="n">identity</span><span class="si">}</span><span class="s2"> — lock "</span>
+</span><span data-line="468">                    <span class="s2">"re-application and media derivation cannot tell "</span>
+</span><span data-line="469">                    <span class="s2">"these spans apart"</span>
+</span><span data-line="470">                <span class="p">)</span>
+</span><span data-line="471">            <span class="n">seen_spans</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">identity</span><span class="p">)</span>
+</span><span data-line="472">        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="473">            <span class="n">child_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="474">            <span class="n">expected</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</span><span data-line="475">            <span class="n">optional_present</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">optional</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">variant_of</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="476">            <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">repeat</span> <span class="o">*</span> <span class="n">child_sum</span> <span class="o">!=</span> <span class="n">expected</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">optional_present</span><span class="p">:</span>
+</span><span data-line="477">                <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="478">                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: children sum to </span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">repeat</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">child_sum</span><span class="si">}</span><span class="s2"> "</span>
+</span><span data-line="479">                    <span class="sa">f</span><span class="s2">"!= duration </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="480">                <span class="p">)</span>
+</span><span data-line="481">        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="482">            <span class="n">_walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/steps/</span><span class="si">{</span><span class="n">child</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="483">
+</span><span data-line="484">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="485">        <span class="n">_walk</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"/steps/</span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="486">    <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">cues</span><span class="p">:</span>
+</span><span data-line="487">        <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">anchor</span><span class="o">.</span><span class="n">step</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">step_ids</span><span class="p">:</span>
+</span><span data-line="488">            <span class="n">issues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"/cues/</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: anchor step </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">anchor</span><span class="o">.</span><span class="n">step</span><span class="si">!r}</span><span class="s2"> not found"</span><span class="p">)</span>
+</span><span data-line="489">    <span class="k">return</span> <span class="n">issues</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -689,7 +697,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=63b572e7"></script>
+      <script src="../../_static/documentation_options.js?v=8bafd125"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
