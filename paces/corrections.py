@@ -52,10 +52,30 @@ from paces.segmenters import (
 Verb = Literal["pin", "forbid", "absent", "split", "merge"]
 VERBS: tuple[str, ...] = get_args(Verb)
 
+#: Decimal places a correction's times keep: milliseconds, the wire's
+#: resolution. Times are rounded to it at construction, so ``to_wire`` →
+#: ``from_wire`` is lossless (``decimal_str`` writes exactly this many).
+TIME_PLACES = 3
+
 #: How far a ``merge`` time may sit from the boundary it means. A human taps
 #: approximately; the machine finds the cut (``docs/alignment/07 §7.3`` step 3
 #: snaps taps within ±1.5 s).
 DFLT_MERGE_TOLERANCE_S = 1.5
+
+#: The narrowest step a ``split`` may create. A split closer than this to an
+#: existing cut is a tap on that cut, not a new step, so it is unmatched.
+DFLT_MIN_STEP_S = 0.25
+
+
+def _to_ms(value, *, what: str) -> float:
+    """A finite time rounded to :data:`TIME_PLACES`, or a ``ValueError``."""
+    try:
+        t = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{what} must be a time in seconds, got {value!r}") from None
+    if not math.isfinite(t):
+        raise ValueError(f"{what} must be a finite time, got {value!r}")
+    return round(t, TIME_PLACES)
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -65,6 +85,11 @@ class Correction:
     ``step_id`` is for display only and is NEVER the join key: replay finds
     its target by ``anchor_t``. ``media_key`` records which rendering of the
     media the correction was true of, so a later re-cut can migrate the log.
+    Times are kept to the millisecond (:data:`TIME_PLACES`), so the wire form
+    round-trips exactly.
+
+    >>> split(0.8550444).anchor_t
+    0.855
     """
 
     verb: Verb
@@ -79,16 +104,17 @@ class Correction:
     def __post_init__(self):
         if self.verb not in VERBS:
             raise ValueError(f"unknown verb {self.verb!r}; expected one of {VERBS}")
-        if not math.isfinite(self.anchor_t):
-            raise ValueError(f"anchor_t must be a finite time, got {self.anchor_t!r}")
+        object.__setattr__(self, "anchor_t", _to_ms(self.anchor_t, what="anchor_t"))
         needs_span = self.verb in ("pin", "forbid")
         if needs_span != (self.span is not None):
             raise ValueError(
                 f"{self.verb!r} {'needs' if needs_span else 'takes no'} span="
             )
         if self.span is not None:
-            start, end = self.span
-            if not (math.isfinite(start) and math.isfinite(end) and start < end):
+            if len(self.span) != 2:
+                raise ValueError(f"span must be (start, end), got {self.span!r}")
+            start, end = (_to_ms(t, what="span") for t in self.span)
+            if not start < end:
                 raise ValueError(
                     f"span must be (start, end) with start < end: {self.span}"
                 )
@@ -96,11 +122,12 @@ class Correction:
                 raise ValueError(
                     f"a pin's anchor_t ({self.anchor_t}) must lie inside its span {self.span}"
                 )
+            object.__setattr__(self, "span", (start, end))
 
     @property
     def label(self) -> str:
         """``'split@95.8'`` — how flags name this correction."""
-        return f"{self.verb}@{decimal_str(self.anchor_t)}"
+        return f"{self.verb}@{decimal_str(self.anchor_t, places=TIME_PLACES)}"
 
 
 # ── the five verbs ──────────────────────────────────────────────────────────
@@ -109,31 +136,30 @@ class Correction:
 def pin(span: Span, *, anchor_t: float | None = None, **meta) -> Correction:
     """Pin — "the step is HERE": the step covering ``anchor_t`` (default: the span's
     midpoint) occupies exactly ``span``."""
-    start, end = map(float, span)
-    anchor = (start + end) / 2 if anchor_t is None else float(anchor_t)
-    return Correction(verb="pin", anchor_t=anchor, span=(start, end), **meta)
+    span = tuple(span)
+    if anchor_t is None and len(span) == 2:
+        anchor_t = (float(span[0]) + float(span[1])) / 2
+    return Correction(verb="pin", anchor_t=anchor_t, span=span, **meta)
 
 
 def forbid(anchor_t: float, span: Span, **meta) -> Correction:
     """Forbid — "the step at ``anchor_t`` is not in ``span``"."""
-    return Correction(
-        verb="forbid", anchor_t=float(anchor_t), span=tuple(map(float, span)), **meta
-    )
+    return Correction(verb="forbid", anchor_t=anchor_t, span=tuple(span), **meta)
 
 
 def absent(anchor_t: float, **meta) -> Correction:
     """Absent — "the step placed at ``anchor_t`` is not in this media"."""
-    return Correction(verb="absent", anchor_t=float(anchor_t), **meta)
+    return Correction(verb="absent", anchor_t=anchor_t, **meta)
 
 
 def split(at_t: float, **meta) -> Correction:
     """Split — "that is two steps": cut the step covering ``at_t`` there (K += 1)."""
-    return Correction(verb="split", anchor_t=float(at_t), **meta)
+    return Correction(verb="split", anchor_t=at_t, **meta)
 
 
 def merge(at_t: float, **meta) -> Correction:
     """Merge — "those are one step": remove the cut nearest ``at_t`` (K -= 1)."""
-    return Correction(verb="merge", anchor_t=float(at_t), **meta)
+    return Correction(verb="merge", anchor_t=at_t, **meta)
 
 
 # ── wire form (no floats on the wire, docs/07 §6.5) ─────────────────────────
@@ -148,13 +174,18 @@ _WIRE_KEYS = {
     "media_key": "mediaKey",
     "reason": "reason",
 }
+_REQUIRED_WIRE_KEYS = ("verb", "anchorT")
+
+
+def _time_str(t: float) -> str:
+    return decimal_str(t, places=TIME_PLACES)
 
 
 def to_wire(correction: Correction) -> dict:
     """A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted."""
-    wire: dict = {"verb": correction.verb, "anchorT": decimal_str(correction.anchor_t)}
+    wire: dict = {"verb": correction.verb, "anchorT": _time_str(correction.anchor_t)}
     if correction.span is not None:
-        wire["span"] = [decimal_str(t) for t in correction.span]
+        wire["span"] = [_time_str(t) for t in correction.span]
     for field_name in ("step_id", "author", "at", "media_key", "reason"):
         value = getattr(correction, field_name)
         if value:
@@ -163,28 +194,78 @@ def to_wire(correction: Correction) -> dict:
 
 
 def from_wire(wire: Mapping) -> Correction:
-    """Parse one wire dict; unknown keys raise (a typo must not vanish)."""
+    """Parse one wire dict. Unknown or missing keys raise ``ValueError`` (a typo
+    must not vanish, and a correction without a verb or a time is not one).
+
+    >>> from_wire({"verb": "split", "anchorT": "95.8"}) == split(95.8)
+    True
+    """
+    if not isinstance(wire, Mapping):
+        raise ValueError(f"a correction must be a mapping, got {wire!r}")
     by_wire = {w: f for f, w in _WIRE_KEYS.items()}
     unknown = sorted(set(wire) - set(by_wire))
     if unknown:
         raise ValueError(f"unknown correction keys {unknown}; known: {sorted(by_wire)}")
+    missing = [key for key in _REQUIRED_WIRE_KEYS if key not in wire]
+    if missing:
+        raise ValueError(f"correction {dict(wire)} is missing {missing}")
     kwargs = {by_wire[key]: value for key, value in wire.items()}
-    kwargs["anchor_t"] = float(kwargs["anchor_t"])
     if kwargs.get("span") is not None:
-        kwargs["span"] = tuple(float(t) for t in kwargs["span"])
+        kwargs["span"] = tuple(kwargs["span"])
     return Correction(**kwargs)
 
 
 def normalize_corrections(
     corrections: Iterable[Correction | Mapping] | None,
 ) -> tuple[Correction, ...]:
-    """Accept :class:`Correction` objects or their wire dicts, in log order."""
-    return tuple(
-        c if isinstance(c, Correction) else from_wire(c) for c in corrections or ()
-    )
+    """Accept :class:`Correction` objects or their wire dicts, in log order.
+
+    A log is a *sequence*: one correction passed bare (a mapping) is refused
+    rather than iterated over its keys.
+
+    >>> normalize_corrections({"verb": "split", "anchorT": "1"})
+    Traceback (most recent call last):
+    ...
+    ValueError: corrections must be a list of corrections, got a single mapping; wrap it in a list
+    """
+    if corrections is None:
+        return ()
+    if isinstance(corrections, (Mapping, Correction)):
+        kind = "mapping" if isinstance(corrections, Mapping) else "Correction"
+        raise ValueError(
+            f"corrections must be a list of corrections, got a single {kind}; "
+            "wrap it in a list"
+        )
+    if isinstance(corrections, (str, bytes)):
+        raise ValueError(
+            f"corrections must be a list of corrections, got a string {corrections[:80]!r}"
+        )
+    return tuple(c if isinstance(c, Correction) else from_wire(c) for c in corrections)
 
 
 # ── replay: the fallback for segmenters that do not read the log ────────────
+
+
+@dataclass(frozen=True, slots=True)
+class _State:
+    """What replay threads through the log: the steps and the cut set."""
+
+    steps: tuple[SegStep, ...]
+    boundaries: frozenset[float]
+
+
+@dataclass(frozen=True, slots=True)
+class _Options:
+    merge_tolerance_s: float
+    min_step_s: float
+
+
+@dataclass(frozen=True, slots=True)
+class _PendingForbid:
+    """A forbid's target, resolved at its log position, judged after the log."""
+
+    correction: Correction
+    step_id: str
 
 
 def replay(
@@ -192,29 +273,43 @@ def replay(
     corrections: Iterable[Correction | Mapping],
     *,
     merge_tolerance_s: float = DFLT_MERGE_TOLERANCE_S,
+    min_step_s: float = DFLT_MIN_STEP_S,
 ) -> Segmentation:
     """Apply a correction log to a segmentation, in log order.
 
     Each correction acts on the result of the ones before it, as the human
     made them. Applied ones are flagged ``corrected: <verb>@<t>``; one that
     finds nothing to act on is flagged ``correction-unmatched``, one that
-    would leave an empty or inverted span ``correction-infeasible``, and a
-    ``forbid`` the current placement violates ``correction-unenforced`` —
-    moving a step elsewhere needs a solver, which replay is not.
+    would leave an empty, inverted or overlapping span
+    ``correction-infeasible`` (and changes nothing). A ``forbid`` is judged
+    against the *final* placement: ``satisfied: forbid@<t>``, or
+    ``correction-unenforced`` — moving a step elsewhere needs a solver, which
+    replay is not. A pin that clips a child step out of existence says so
+    (``correction-clipped``). A last consistency pass flags
+    (``inconsistent:``) any empty span, any overlap between steps, and any
+    step edge missing from ``boundaries``.
+
+    >>> seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),
+    ...                    boundaries=(0.0, 10.0))
+    >>> replay(seg, [split(5), split(5.1)]).flags
+    ('corrected: split@5', 'correction-unmatched: split@5.1 (within 0.25 s of a cut)')
     """
-    steps = list(seg.steps)
-    boundaries = set(seg.boundaries)
-    flags: list[str] = []
+    options = _Options(merge_tolerance_s=merge_tolerance_s, min_step_s=min_step_s)
+    state = _State(steps=tuple(seg.steps), boundaries=frozenset(seg.boundaries))
+    outcomes: list = []
     for correction in normalize_corrections(corrections):
-        apply = _APPLY[correction.verb]
-        outcome = apply(steps, boundaries, correction, merge_tolerance_s)
-        flags.append(outcome or f"corrected: {correction.label}")
+        state, outcome = _APPLY[correction.verb](state, correction, options)
+        outcomes.append(outcome)
+    flags = tuple(_final_flags(state.steps, outcomes)) + _inconsistencies(state)
     return dataclasses.replace(
         seg,
-        steps=tuple(steps),
-        boundaries=tuple(sorted(boundaries)),
-        flags=seg.flags + tuple(flags),
+        steps=state.steps,
+        boundaries=tuple(sorted(state.boundaries)),
+        flags=seg.flags + flags,
     )
+
+
+# ── small pure helpers over spans ───────────────────────────────────────────
 
 
 def _covering(steps: Sequence[SegStep], t: float) -> tuple[int, int] | None:
@@ -224,6 +319,31 @@ def _covering(steps: Sequence[SegStep], t: float) -> tuple[int, int] | None:
             if start <= t < end:
                 return i, j
     return None
+
+
+def _edges_at(steps: Sequence[SegStep], t: float, side: int) -> list[tuple[int, int]]:
+    """(step, span) indices of every span whose start (``side=0``) or end
+    (``side=1``) is exactly ``t``."""
+    return [
+        (i, j)
+        for i, step in enumerate(steps)
+        for j, span in enumerate(step.spans)
+        if span[side] == t
+    ]
+
+
+def _edges(steps: Iterable[SegStep]) -> set[float]:
+    return {t for step in steps for span in step.spans for t in span}
+
+
+def _overlaps(a: Span, b: Span) -> bool:
+    """True when the two spans share a positive length of time."""
+    return max(a[0], b[0]) < min(a[1], b[1])
+
+
+def _falls_in(child: SegStep, span: Span) -> bool:
+    """A child belongs to the parent span its first span starts in."""
+    return bool(child.spans) and span[0] <= child.spans[0][0] < span[1]
 
 
 def _with_span(step: SegStep, j: int, span: Span | None) -> SegStep:
@@ -236,139 +356,240 @@ def _with_span(step: SegStep, j: int, span: Span | None) -> SegStep:
     return dataclasses.replace(step, spans=tuple(spans))
 
 
-def _unmatched(correction: Correction, why: str) -> str:
-    return f"correction-unmatched: {correction.label} ({why})"
+def _nearest(candidates: Iterable[float], t: float, tolerance: float) -> float | None:
+    """The candidate nearest ``t`` within ``tolerance``; ties go to the earlier."""
+    near = [b for b in candidates if abs(b - t) <= tolerance]
+    return min(near, key=lambda b: (abs(b - t), b)) if near else None
 
 
-def _apply_split(steps, boundaries, correction, _tolerance) -> str | None:
+def _too_close(t: float, cuts: Iterable[float], min_step_s: float) -> str:
+    """Why a split at ``t`` is not a new step, or ``''`` when it is one."""
+    gap = min(abs(t - cut) for cut in cuts)
+    if gap == 0:
+        return "already a cut there"
+    if gap < min_step_s:
+        return f"within {_time_str(min_step_s)} s of a cut"
+    return ""
+
+
+def _done(state: _State, correction: Correction, *extra: str):
+    return state, (f"corrected: {correction.label}",) + extra
+
+
+def _unmatched(state: _State, correction: Correction, why: str):
+    return state, (f"correction-unmatched: {correction.label} ({why})",)
+
+
+def _infeasible(state: _State, correction: Correction, why: str):
+    return state, (f"correction-infeasible: {correction.label} ({why})",)
+
+
+# ── the verbs, replayed (each: state, correction, options → state, outcome) ─
+
+
+def _apply_split(state: _State, correction: Correction, options: _Options):
     t = correction.anchor_t
-    hit = _covering(steps, t)
-    if hit is None or steps[hit[0]].spans[hit[1]][0] == t:
-        return _unmatched(correction, "no step spans that time")
+    if not state.steps:
+        return _split_cuts(state, correction, options)
+    hit = _covering(state.steps, t)
+    if hit is None:
+        return _unmatched(state, correction, "no step spans that time")
     i, j = hit
-    step = steps[i]
+    step = state.steps[i]
     start, end = step.spans[j]
-    taken = {s.id for s in steps}
-    new_id = next(
-        f"{step.id}-{n}"
-        for n in range(2, len(taken) + 3)
-        if f"{step.id}-{n}" not in taken
-    )
+    why = _too_close(t, (start, end), options.min_step_s)
+    if why:
+        return _unmatched(state, correction, why)
+    to_tail = [_falls_in(c, (t, end)) for c in step.children]
+    taken = {s.id for s in state.steps}
     tail = SegStep(
-        id=new_id,
+        id=next(
+            f"{step.id}-{n}"
+            for n in range(2, len(taken) + 3)
+            if f"{step.id}-{n}" not in taken
+        ),
         spans=((t, end),),
         confidence=DFLT_EXPLICIT_CONFIDENCE,
-        children=tuple(c for c in step.children if c.spans and c.spans[0][0] >= t),
+        children=tuple(c for c, moves in zip(step.children, to_tail) if moves),
         source="correction",
         evidence={"correction": correction.label, "split_from": step.id},
     )
     head = dataclasses.replace(
         _with_span(step, j, (start, t)),
-        children=tuple(
-            c for c in step.children if not (c.spans and c.spans[0][0] >= t)
-        ),
+        children=tuple(c for c, moves in zip(step.children, to_tail) if not moves),
     )
-    steps[i : i + 1] = [head, tail]
-    boundaries.add(t)
-    return None
+    steps = state.steps[:i] + (head, tail) + state.steps[i + 1 :]
+    return _done(_State(steps, state.boundaries | {t}), correction)
 
 
-def _apply_merge(steps, boundaries, correction, tolerance) -> str | None:
-    t = correction.anchor_t
-    near = [b for b in boundaries if abs(b - t) <= tolerance]
-    if not near:
-        return _unmatched(correction, f"no cut within {decimal_str(tolerance)} s")
-    cut = min(near, key=lambda b: (abs(b - t), b))
-    left = next(
-        (
-            (i, j)
-            for i, s in enumerate(steps)
-            for j, sp in enumerate(s.spans)
-            if sp[1] == cut
-        ),
-        None,
+def _split_cuts(state: _State, correction: Correction, options: _Options):
+    """Split over a boundaries-only segmentation: add the cut."""
+    t, cuts = correction.anchor_t, sorted(state.boundaries)
+    interval = next(((a, b) for a, b in zip(cuts, cuts[1:]) if a <= t < b), None)
+    if interval is None:
+        return _unmatched(state, correction, "no step spans that time")
+    why = _too_close(t, interval, options.min_step_s)
+    if why:
+        return _unmatched(state, correction, why)
+    return _done(_State(state.steps, state.boundaries | {t}), correction)
+
+
+def _meeting_cuts(steps: Sequence[SegStep]) -> dict[float, tuple]:
+    """``{cut: ((li, lj), (ri, rj))}`` for every time where a span of one step
+    ends and a span of a *different* step starts (both non-empty)."""
+    meets: dict[float, tuple] = {}
+    for li, step in enumerate(steps):
+        for lj, (lo, cut) in enumerate(step.spans):
+            for ri, rj in _edges_at(steps, cut, side=0):
+                if ri != li and lo < cut < steps[ri].spans[rj][1]:
+                    meets.setdefault(cut, ((li, lj), (ri, rj)))
+    return meets
+
+
+def _apply_merge(state: _State, correction: Correction, options: _Options):
+    if not state.steps:
+        return _merge_cuts(state, correction, options)
+    t, tolerance = correction.anchor_t, options.merge_tolerance_s
+    meets = _meeting_cuts(state.steps)
+    cut = _nearest(meets, t, tolerance)
+    if cut is None:
+        within = f"within {_time_str(tolerance)} s"
+        if _nearest(state.boundaries, t, tolerance) is None:
+            return _unmatched(state, correction, f"no cut {within}")
+        return _unmatched(state, correction, f"no two steps meet {within}")
+    (li, lj), (ri, rj) = meets[cut]
+    steps = list(state.steps)
+    left, right = steps[li], steps[ri]
+    absorbed = right.spans[rj]
+    moving = [_falls_in(c, absorbed) for c in right.children]
+    left = dataclasses.replace(
+        _with_span(left, lj, (left.spans[lj][0], absorbed[1])),
+        children=left.children + tuple(c for c, m in zip(right.children, moving) if m),
     )
-    right = next(
-        (
-            (i, j)
-            for i, s in enumerate(steps)
-            for j, sp in enumerate(s.spans)
-            if sp[0] == cut
-        ),
-        None,
+    right = dataclasses.replace(
+        _with_span(right, rj, None),
+        children=tuple(c for c, m in zip(right.children, moving) if not m),
     )
-    if left is None or right is None or left[0] == right[0]:
-        return _unmatched(correction, "no two steps meet at that cut")
-    (li, lj), (ri, rj) = left, right
-    absorbed_end = steps[ri].spans[rj][1]
-    left_step = _with_span(steps[li], lj, (steps[li].spans[lj][0], absorbed_end))
-    right_step = _with_span(steps[ri], rj, None)
-    if not left_step.name and right_step.name:  # keep the name a human can see
-        left_step = dataclasses.replace(
-            left_step, id=right_step.id, name=right_step.name
-        )
-        right_step = dataclasses.replace(right_step, id=steps[li].id, name="")
-    if right_step.spans:
-        steps[li], steps[ri] = left_step, right_step
-    else:  # the right step was only that span: it is gone, its children move left
-        steps[li] = dataclasses.replace(
-            left_step, children=left_step.children + right_step.children
-        )
+    if right.spans:  # the right step lives on elsewhere: it keeps its identity
+        steps[li], steps[ri] = left, right
+    else:  # fully absorbed: it is gone, and the merged step keeps a visible name
+        if not left.name and right.name:
+            left = dataclasses.replace(left, id=right.id, name=right.name)
+        steps[li] = dataclasses.replace(left, children=left.children + right.children)
         del steps[ri]
-    boundaries.discard(cut)
-    return None
+    still_an_edge = cut in _edges(steps)
+    boundaries = state.boundaries if still_an_edge else state.boundaries - {cut}
+    return _done(_State(tuple(steps), boundaries), correction)
 
 
-def _apply_pin(steps, boundaries, correction, _tolerance) -> str | None:
-    hit = _covering(steps, correction.anchor_t)
-    if hit is None:
-        return _unmatched(correction, "no step spans that time")
-    i, j = hit
-    old_start, old_end = steps[i].spans[j]
-    new_start, new_end = correction.span
-    moves = {old_start: new_start, old_end: new_end}
-
-    def _moved(span: Span) -> Span:
-        return (moves.get(span[0], span[0]), moves.get(span[1], span[1]))
-
-    # Neighbours that abut the pinned span move with it — the replay analogue
-    # of "one pin re-solves its neighbours".
-    moved = [[_moved(sp) for sp in s.spans] for s in steps]
-    moved[i][j] = (new_start, new_end)
-    if any(start >= end for spans in moved for start, end in spans):
-        return f"correction-infeasible: {correction.label} (would empty a neighbouring step)"
-    for k, step in enumerate(steps):
-        spans = tuple(moved[k])
-        if spans != step.spans or k == i:
-            steps[k] = dataclasses.replace(step, spans=spans)
-    steps[i] = dataclasses.replace(steps[i], confidence=DFLT_EXPLICIT_CONFIDENCE)
-    for old, new in moves.items():
-        if old in boundaries:
-            boundaries.discard(old)
-            boundaries.add(new)
-    return None
+def _merge_cuts(state: _State, correction: Correction, options: _Options):
+    """Merge over a boundaries-only segmentation: remove the interior cut."""
+    tolerance = options.merge_tolerance_s
+    interior = sorted(state.boundaries)[1:-1]
+    cut = _nearest(interior, correction.anchor_t, tolerance)
+    if cut is None:
+        return _unmatched(state, correction, f"no cut within {_time_str(tolerance)} s")
+    return _done(_State(state.steps, state.boundaries - {cut}), correction)
 
 
-def _apply_forbid(steps, _boundaries, correction, _tolerance) -> str | None:
-    hit = _covering(steps, correction.anchor_t)
-    if hit is None:
-        return _unmatched(correction, "no step spans that time")
-    i, _ = hit
-    lo, hi = correction.span
-    if any(start < hi and lo < end for start, end in steps[i].spans):
-        return (
-            f"correction-unenforced: {correction.label} (step {steps[i].id!r} "
-            "overlaps the forbidden span; moving it needs a solver)"
+def _neighbour(steps, t: float, side: int, exclude: tuple[int, int]):
+    """The time-order neighbour abutting at ``t``: of the spans ending
+    (``side=1``) or starting (``side=0``) there, the one nearest in time."""
+    found = [hit for hit in _edges_at(steps, t, side) if hit != exclude]
+    if not found:
+        return None
+    # ending at t: the latest-starting is nearest; starting at t: the earliest-ending
+    other = 0 if side == 1 else 1
+    sign = -1 if side == 1 else 1
+    return min(found, key=lambda h: sign * steps[h[0]].spans[h[1]][other])
+
+
+def _clip_children(step: SegStep, old: Span, new: Span) -> tuple[SegStep, list[str]]:
+    """Clip the children of span ``old`` to ``new``; drop (and name) any left empty."""
+    kept, dropped = [], []
+    for child in step.children:
+        if not _falls_in(child, old):
+            kept.append(child)
+            continue
+        spans = tuple(
+            (max(s, new[0]), min(e, new[1])) if old[0] <= s < old[1] else (s, e)
+            for s, e in child.spans
         )
-    return None
+        spans = tuple(sp for sp in spans if sp[0] < sp[1])
+        if spans:
+            kept.append(dataclasses.replace(child, spans=spans))
+        else:
+            dropped.append(child.id)
+    return dataclasses.replace(step, children=tuple(kept)), dropped
 
 
-def _apply_absent(steps, _boundaries, correction, _tolerance) -> str | None:
-    hit = _covering(steps, correction.anchor_t)
+def _apply_pin(state: _State, correction: Correction, _options: _Options):
+    hit = _covering(state.steps, correction.anchor_t)
     if hit is None:
-        return _unmatched(correction, "no step spans that time")
-    del steps[hit[0]]  # the cuts stay: the time is still there, just not this step
-    return None
+        return _unmatched(state, correction, "no step spans that time")
+    i, j = hit
+    steps = state.steps
+    old, new = steps[i].spans[j], correction.span
+    # Only the immediate neighbours that abut the pinned span move with it —
+    # the replay analogue of "one pin re-solves its neighbours".
+    moves = {hit: new}
+    before = _neighbour(steps, old[0], side=1, exclude=hit)
+    after = _neighbour(steps, old[1], side=0, exclude=hit)
+    if before is not None:
+        moves[before] = (steps[before[0]].spans[before[1]][0], new[0])
+    if after is not None:
+        moves[after] = (new[1], steps[after[0]].spans[after[1]][1])
+    if any(start >= end for start, end in moves.values()):
+        return _infeasible(state, correction, "would empty a neighbouring step")
+    moved = [
+        tuple(moves.get((k, l), span) for l, span in enumerate(step.spans))
+        for k, step in enumerate(steps)
+    ]
+    clash = next(
+        (
+            steps[k].id
+            for k, spans in enumerate(moved)
+            for l, span in enumerate(spans)
+            if (k, l) != hit and _overlaps(span, new)
+        ),
+        None,
+    )
+    if clash is not None:
+        return _infeasible(state, correction, f"would overlap step {clash!r}")
+    new_steps, dropped = list(steps), []
+    for (k, l), span in moves.items():
+        step = dataclasses.replace(new_steps[k], spans=moved[k])
+        new_steps[k], lost = _clip_children(step, steps[k].spans[l], span)
+        dropped += [f"{child!r} of {step.id!r}" for child in lost]
+    new_steps[i] = dataclasses.replace(
+        new_steps[i], confidence=DFLT_EXPLICIT_CONFIDENCE
+    )
+    edges = _edges(new_steps)
+    boundaries = {b for b in state.boundaries if b in edges or b not in old} | set(new)
+    extra = tuple(
+        f"correction-clipped: {correction.label} (dropped child {name}: "
+        "outside its step's new span)"
+        for name in dropped
+    )
+    return _done(_State(tuple(new_steps), frozenset(boundaries)), correction, *extra)
+
+
+def _apply_forbid(state: _State, correction: Correction, _options: _Options):
+    hit = _covering(state.steps, correction.anchor_t)
+    if hit is None:
+        return _unmatched(state, correction, "no step spans that time")
+    # Judged after the whole log (see _final_flags): a later pin may move the
+    # step into the forbidden span, or out of it.
+    return state, _PendingForbid(correction, state.steps[hit[0]].id)
+
+
+def _apply_absent(state: _State, correction: Correction, _options: _Options):
+    hit = _covering(state.steps, correction.anchor_t)
+    if hit is None:
+        return _unmatched(state, correction, "no step spans that time")
+    # the cuts stay: the time is still there, just not this step
+    steps = state.steps[: hit[0]] + state.steps[hit[0] + 1 :]
+    return _done(_State(steps, state.boundaries), correction)
 
 
 _APPLY = {
@@ -378,3 +599,55 @@ _APPLY = {
     "forbid": _apply_forbid,
     "absent": _apply_absent,
 }
+
+
+# ── after the log: judge the forbids, check the result is consistent ────────
+
+
+def _forbid_flag(steps: Sequence[SegStep], pending: _PendingForbid) -> str:
+    """``satisfied:`` or ``correction-unenforced:`` for one forbid, on the final
+    steps. Its target is the step it named at its log position, or — if that
+    step is gone — whatever now covers its time."""
+    correction = pending.correction
+    target = next((s for s in steps if s.id == pending.step_id), None)
+    if target is None:
+        hit = _covering(steps, correction.anchor_t)
+        target = steps[hit[0]] if hit else None
+    if target is None or not any(_overlaps(sp, correction.span) for sp in target.spans):
+        return f"satisfied: {correction.label}"
+    return (
+        f"correction-unenforced: {correction.label} (step {target.id!r} "
+        "overlaps the forbidden span; moving it needs a solver)"
+    )
+
+
+def _final_flags(steps: Sequence[SegStep], outcomes: Iterable) -> Iterable[str]:
+    for outcome in outcomes:
+        if isinstance(outcome, _PendingForbid):
+            yield _forbid_flag(steps, outcome)
+        else:
+            yield from outcome
+
+
+def _inconsistencies(state: _State) -> tuple[str, ...]:
+    """What no segmentation may contain, flagged rather than repaired: empty
+    spans, spans of different steps that overlap, and step edges missing from
+    ``boundaries``."""
+    spans = sorted((span, step.id) for step in state.steps for span in step.spans)
+    flags = [
+        f"inconsistent: step {step_id!r} has an empty span at {_time_str(span[0])}"
+        for span, step_id in spans
+        if span[0] >= span[1]
+    ]
+    flags += [
+        f"inconsistent: steps {a_id!r} and {b_id!r} overlap "
+        f"({_time_str(max(a[0], b[0]))}–{_time_str(min(a[1], b[1]))})"
+        for k, (a, a_id) in enumerate(spans)
+        for b, b_id in spans[k + 1 :]
+        if a_id != b_id and _overlaps(a, b)
+    ]
+    missing = sorted(_edges(state.steps) - state.boundaries)
+    if missing:
+        listed = ", ".join(_time_str(t) for t in missing)
+        flags.append(f"inconsistent: step edges not in boundaries: {listed}")
+    return tuple(flags)

@@ -354,12 +354,23 @@ def _facts(
     return frozenset(facts)
 
 
-def _normalize_corrections(corrections: Sequence | None) -> tuple:
-    if not corrections:
-        return ()
-    from paces.corrections import normalize_corrections  # imports this module
+def _corrections_api():
+    """:mod:`paces.corrections`, imported lazily: it imports this module."""
+    from paces import corrections
 
-    return normalize_corrections(corrections)
+    return corrections
+
+
+def _apply_corrections(
+    result: Segmentation, log: tuple, capability: Capability | None
+) -> Segmentation:
+    """Replay ``log`` over ``result`` unless ``capability`` honours it itself
+    (lists ``"corrections"`` in ``reads``). ``capability=None`` is the refused
+    state: nothing ran, so every correction is replayed — and flagged
+    unmatched — rather than dropped."""
+    if not log or (capability is not None and "corrections" in capability.reads):
+        return result
+    return _corrections_api().replay(result, log)
 
 
 # ── the facade ──────────────────────────────────────────────────────────────
@@ -405,7 +416,12 @@ def segment(
     subtitles, subtitles_problem = _subtitle_cues(metadata)
     problem_flags = (subtitles_problem,) if subtitles_problem else ()
     transcript_cues = normalize_timed_text(transcript)
-    correction_log = _normalize_corrections(corrections)
+    # fail fast: a malformed log raises before any segmenter runs
+    correction_log = (
+        _corrections_api().normalize_corrections(corrections)
+        if corrections is not None
+        else ()
+    )
     facts = _facts(
         media=media,
         steps=step_rows,
@@ -453,7 +469,7 @@ def segment(
             and not _preflight(cap)
         ]
         if not candidates:
-            return Segmentation(
+            refused = Segmentation(
                 confidence=0.0,
                 flags=problem_flags
                 + (
@@ -464,6 +480,7 @@ def segment(
                 ),
                 elapsed_s=time.perf_counter() - started,
             )
+            return _apply_corrections(refused, correction_log, None)
 
         def _score(cap: Capability) -> float:
             return cap.base + sum(
@@ -479,10 +496,7 @@ def segment(
             f"{', '.join(missing_modules)} — pip install them first"
         )
     result: Segmentation = _resolve_target(capability)(inputs)
-    if correction_log and "corrections" not in capability.reads:
-        from paces.corrections import replay
-
-        result = replay(result, correction_log)
+    result = _apply_corrections(result, correction_log, capability)
 
     # Honesty: an explicitly supplied input the chosen segmenter neither
     # needs nor reads was silently discarded — say so instead of implying it
