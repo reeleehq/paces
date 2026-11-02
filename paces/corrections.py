@@ -42,20 +42,19 @@ from dataclasses import dataclass
 from typing import Literal, get_args
 
 from paces.model import decimal_str
-from paces.segmentation import (
+from paces.segmentation import (  # noqa: F401 — TIME_PLACES/time_str re-exported
     DFLT_EXPLICIT_CONFIDENCE,
+    TIME_PLACES,
     SegStep,
     Segmentation,
     Span,
+    time_str,
 )
+from paces.segmentation import edges as _edges
+from paces.segmentation import overlaps as _overlaps
 
 Verb = Literal["pin", "forbid", "absent", "split", "merge"]
 VERBS: tuple[str, ...] = get_args(Verb)
-
-#: Decimal places a correction's times keep: milliseconds, the wire's
-#: resolution. Times are rounded to it at construction, so ``to_wire`` →
-#: ``from_wire`` is lossless (``decimal_str`` writes exactly this many).
-TIME_PLACES = 3
 
 #: How far a ``merge`` time may sit from the boundary it means. A human taps
 #: approximately; the machine finds the cut (``docs/alignment/07 §7.3`` step 3
@@ -69,6 +68,8 @@ DFLT_MIN_STEP_S = 0.25
 
 def _to_ms(value, *, what: str) -> float:
     """A finite time rounded to :data:`TIME_PLACES`, or a ``ValueError``."""
+    if isinstance(value, bool):  # True is 1.0 to float(); never a time
+        raise ValueError(f"{what} must be a time in seconds, got {value!r}")
     try:
         t = float(value)
     except (TypeError, ValueError):
@@ -102,6 +103,18 @@ class Correction:
     reason: str = ""
 
     def __post_init__(self):
+        for name in ("author", "at", "reason"):
+            if not isinstance(getattr(self, name), str):
+                raise ValueError(
+                    f"{name} must be a string, got {getattr(self, name)!r}"
+                )
+        for name in ("step_id", "media_key"):
+            if getattr(self, name) is not None and not isinstance(
+                getattr(self, name), str
+            ):
+                raise ValueError(
+                    f"{name} must be a string or None, got {getattr(self, name)!r}"
+                )
         if self.verb not in VERBS:
             raise ValueError(f"unknown verb {self.verb!r}; expected one of {VERBS}")
         object.__setattr__(self, "anchor_t", _to_ms(self.anchor_t, what="anchor_t"))
@@ -175,16 +188,6 @@ _WIRE_KEYS = {
     "reason": "reason",
 }
 _REQUIRED_WIRE_KEYS = ("verb", "anchorT")
-
-
-def time_str(t: float) -> str:
-    """A time as paces' millisecond wire decimal — the one formatter every
-    corrections producer shares (the ask page's ``timeStr`` mirrors it).
-
-    >>> time_str(95.80000001), time_str(10.0625)  # exact binary ties round half-even
-    ('95.8', '10.062')
-    """
-    return decimal_str(t, places=TIME_PLACES)
 
 
 def to_wire(correction: Correction) -> dict:
@@ -296,9 +299,11 @@ def replay(
     against the *final* placement: ``satisfied: forbid@<t>``, or
     ``correction-unenforced`` — moving a step elsewhere needs a solver, which
     replay is not. A pin that clips a child step out of existence says so
-    (``correction-clipped``). A last consistency pass flags
-    (``inconsistent:``) any empty span, any overlap between steps, and any
-    step edge missing from ``boundaries``.
+    (``correction-clipped``). Checking the result is not replay's job:
+    :func:`paces.segmenters.segment` runs
+    :func:`~paces.segmentation.inconsistencies` on every segmentation. A log
+    in which no correction edits the cut set leaves ``boundaries`` exactly as
+    given (duplicates included); once one does, they are rebuilt from it.
 
     >>> seg = Segmentation(steps=(SegStep(id="a", spans=((0.0, 10.0),)),),
     ...                    boundaries=(0.0, 10.0))
@@ -316,14 +321,18 @@ def replay(
         seen_ids=frozenset(step.id for step in seg.steps),
     )
     outcomes: list = []
+    cuts_touched = False  # once a correction edits the cut set, it is rebuilt
     for correction in normalize_corrections(corrections):
+        before = state.boundaries
         state, outcome = _APPLY[correction.verb](state, correction, options)
+        cuts_touched = cuts_touched or state.boundaries != before
         outcomes.append(outcome)
-    flags = tuple(_final_flags(state.steps, outcomes)) + _inconsistencies(state)
+    flags = tuple(_final_flags(state.steps, outcomes))
+    unchanged = not cuts_touched
     return dataclasses.replace(
         seg,
         steps=state.steps,
-        boundaries=tuple(sorted(state.boundaries)),
+        boundaries=seg.boundaries if unchanged else tuple(sorted(state.boundaries)),
         flags=seg.flags + flags,
     )
 
@@ -349,15 +358,6 @@ def _edges_at(steps: Sequence[SegStep], t: float, side: int) -> list[tuple[int, 
         for j, span in enumerate(step.spans)
         if span[side] == t
     ]
-
-
-def _edges(steps: Iterable[SegStep]) -> set[float]:
-    return {t for step in steps for span in step.spans for t in span}
-
-
-def _overlaps(a: Span, b: Span) -> bool:
-    """True when the two spans share a positive length of time."""
-    return max(a[0], b[0]) < min(a[1], b[1])
 
 
 def _falls_in(child: SegStep, span: Span) -> bool:
@@ -681,34 +681,3 @@ def _final_flags(steps: Sequence[SegStep], outcomes: Iterable) -> Iterable[str]:
             yield _forbid_flag(steps, outcome)
         else:
             yield from outcome
-
-
-def _inconsistencies(state: _State) -> tuple[str, ...]:
-    """What no segmentation may contain, flagged rather than repaired: empty
-    spans, spans of different steps that overlap, and step edges missing from
-    ``boundaries``."""
-    spans = sorted((span, step.id) for step in state.steps for span in step.spans)
-    flags = [
-        f"inconsistent: step {step_id!r} has an empty span at {time_str(span[0])}"
-        for span, step_id in spans
-        if span[0] >= span[1]
-    ]
-    flags += [
-        f"inconsistent: steps {a_id!r} and {b_id!r} overlap "
-        f"({time_str(max(a[0], b[0]))}–{time_str(min(a[1], b[1]))})"
-        for k, (a, a_id) in enumerate(spans)
-        for b, b_id in spans[k + 1 :]
-        if a_id != b_id and _overlaps(a, b)
-    ]
-    flags += [
-        f"inconsistent: child {child.id!r} of {step.id!r} lies outside its parent"
-        for step in state.steps
-        for child in step.children
-        for span in child.spans
-        if not any(p[0] <= span[0] and span[1] <= p[1] for p in step.spans)
-    ]
-    missing = sorted(_edges(state.steps) - state.boundaries)
-    if missing:
-        listed = ", ".join(time_str(t) for t in missing)
-        flags.append(f"inconsistent: step edges not in boundaries: {listed}")
-    return tuple(flags)

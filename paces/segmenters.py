@@ -52,7 +52,9 @@ from paces.segmentation import (  # noqa: F401 — re-exported; their home is th
     DFLT_GRID_CONFIDENCE,
     SegStep,
     Segmentation,
+    TIME_PLACES,
     Span,
+    inconsistencies,
 )
 from paces.timed_text import normalize_timed_text
 
@@ -589,13 +591,18 @@ def segment(
         grid=out_grid,
         confidence=result.confidence,
         method=capability.name,
-        flags=result.flags + extra_flags,
+        flags=result.flags + extra_flags + inconsistencies(result),
         elapsed_s=time.perf_counter() - started,
         spent_usd=result.spent_usd,
     )
 
 
 # ── the two v1 segmenters ───────────────────────────────────────────────────
+
+
+#: Places a unit offset (cumulative eights, reps…) is rounded to before it
+#: becomes seconds: far below any real duration, far above float noise.
+UNIT_PLACES = 9
 
 
 def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
@@ -632,12 +639,20 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
     spu = seconds_per_unit(grid)
     origin = float(grid.origin)
 
+    def _seconds(units: float) -> float:
+        return round(origin + round(units, UNIT_PLACES) * spu, TIME_PLACES)
+
     def _place(rows: list[dict], at_units: float) -> list[SegStep]:
         placed = []
         for row in rows:
             duration = row["duration"]
-            start = origin + at_units * spu
-            end = origin + (at_units + duration) * spu
+            # Rounded to the millisecond, like boundaries below: a child's
+            # end summed piecewise ((a+0.1)+0.2) and its parent's (a+0.3) are
+            # the same time and must compare equal.
+            # Unit offsets are rounded first too, or a piecewise sum and the
+            # whole land on opposite sides of a half-millisecond tie.
+            start = _seconds(at_units)
+            end = _seconds(at_units + duration)
             placed.append(
                 SegStep(
                     id=row["id"],
@@ -652,7 +667,7 @@ def place_on_grid(steps: Sequence, grid: MetricGrid | Mapping) -> Segmentation:
             at_units += duration
         return placed
 
-    boundaries = tuple(origin + units * spu for units in _cumulative(rows))
+    boundaries = tuple(_seconds(units) for units in _cumulative(rows))
     return Segmentation(
         steps=tuple(_place(rows, 0.0)),
         boundaries=boundaries,

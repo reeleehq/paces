@@ -366,3 +366,23 @@ def test_the_spans_fact_reads_the_whole_step_tree():
     assert segment(steps=nested, catalog=catalog).method == "needs-spans"
     refused = segment(steps=[("p", 2)], catalog=catalog)
     assert refused.method == "" and "no-signal" in refused.flags
+
+
+def test_grid_placed_children_with_fractional_durations_are_consistent():
+    """(a+0.1)+0.2 and a+0.3 are the same time once placed (review of #53)."""
+    steps = [
+        ("a", 2),
+        {"name": "b", "duration": 0.3, "children": [("c1", 0.1), ("c2", 0.2)]},
+    ]
+    seg = segment(steps=steps, grid={**GRID, "tempoBpm": "120", "origin": "0"})
+    assert not [f for f in seg.flags if f.startswith("inconsistent")]
+
+
+@pytest.mark.parametrize("origin", ["1.2345", "0.0005", "0.0015"])
+def test_grid_placed_children_survive_half_millisecond_origins(origin):
+    steps = [
+        ("a", 2),
+        {"name": "b", "duration": 0.3, "children": [("c1", 0.1), ("c2", 0.2)]},
+    ]
+    seg = segment(steps=steps, grid={**GRID, "tempoBpm": "120", "origin": origin})
+    assert not [f for f in seg.flags if f.startswith("inconsistent")]
