@@ -318,6 +318,7 @@ def _facts(
     chapters: list[dict] | None = None,
     subtitles: list[dict] | None = None,
     transcript: list[dict] | None = None,
+    corrections: Sequence | None = None,
 ) -> frozenset[str]:
     """The free half of the fact vocabulary (docs/alignment/07 §9.3): what is
     present among the inputs. Probed (intrinsic) facts arrive with the first
@@ -348,7 +349,28 @@ def _facts(
         facts.add("meta.subtitles")
     if transcript:
         facts.add("transcript")
+    if corrections:
+        facts.add("corrections")
     return frozenset(facts)
+
+
+def _corrections_api():
+    """:mod:`paces.corrections`, imported lazily: it imports this module."""
+    from paces import corrections
+
+    return corrections
+
+
+def _apply_corrections(
+    result: Segmentation, log: tuple, capability: Capability | None
+) -> Segmentation:
+    """Replay ``log`` over ``result`` unless ``capability`` honours it itself
+    (lists ``"corrections"`` in ``reads``). ``capability=None`` is the refused
+    state: nothing ran, so every correction is replayed — and flagged
+    unmatched — rather than dropped."""
+    if not log or (capability is not None and "corrections" in capability.reads):
+        return result
+    return _corrections_api().replay(result, log)
 
 
 # ── the facade ──────────────────────────────────────────────────────────────
@@ -364,6 +386,7 @@ def segment(
     metadata: Mapping | Sequence | None = None,
     transcript: str | Sequence | None = None,
     k: int | None = None,
+    corrections: Sequence | None = None,
     catalog: Mapping[str, Capability] | None = None,
 ) -> Segmentation:
     """Cut *media* into named steps, using whatever else is present.
@@ -374,6 +397,12 @@ def segment(
     exception.
 
     The seam: ``segmenter=None`` selects from what is present; a name pins it.
+
+    ``corrections`` is a human's correction log (:mod:`paces.corrections`):
+    constraints that survive re-runs. A segmenter that lists
+    ``"corrections"`` in ``reads`` receives the log and honours it itself;
+    for any other, the log is replayed over its result, and every correction
+    that could not be honoured is flagged, never dropped.
 
     >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
     >>> [(s.name, s.spans) for s in seg.steps]
@@ -387,6 +416,12 @@ def segment(
     subtitles, subtitles_problem = _subtitle_cues(metadata)
     problem_flags = (subtitles_problem,) if subtitles_problem else ()
     transcript_cues = normalize_timed_text(transcript)
+    # fail fast: a malformed log raises before any segmenter runs
+    correction_log = (
+        _corrections_api().normalize_corrections(corrections)
+        if corrections is not None
+        else ()
+    )
     facts = _facts(
         media=media,
         steps=step_rows,
@@ -396,6 +431,7 @@ def segment(
         chapters=chapters,
         subtitles=subtitles,
         transcript=transcript_cues,
+        corrections=correction_log,
     )
     inputs = {
         "media": media,
@@ -406,6 +442,7 @@ def segment(
         "subtitles": subtitles,
         "transcript": transcript_cues,
         "k": k,
+        "corrections": correction_log,
     }
 
     if segmenter is not None:
@@ -432,7 +469,7 @@ def segment(
             and not _preflight(cap)
         ]
         if not candidates:
-            return Segmentation(
+            refused = Segmentation(
                 confidence=0.0,
                 flags=problem_flags
                 + (
@@ -443,6 +480,7 @@ def segment(
                 ),
                 elapsed_s=time.perf_counter() - started,
             )
+            return _apply_corrections(refused, correction_log, None)
 
         def _score(cap: Capability) -> float:
             return cap.base + sum(
@@ -458,6 +496,7 @@ def segment(
             f"{', '.join(missing_modules)} — pip install them first"
         )
     result: Segmentation = _resolve_target(capability)(inputs)
+    result = _apply_corrections(result, correction_log, capability)
 
     # Honesty: an explicitly supplied input the chosen segmenter neither
     # needs nor reads was silently discarded — say so instead of implying it

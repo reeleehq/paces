@@ -8,6 +8,7 @@
 | 2 | `renderer=` on `tools.render()` | `"html"` practice page (stdlib) | the POC page (metronome+clips) at `docs/poc-reference/render/`; PDF/deck per `docs/03 §2.3` |
 | 3 | `grid=` values on `segment()` | caller-supplied tempo/origin; measured from local media when absent (`grid-measured`: mixing speech/music split + beat_grid, origin estimated + flagged) | better origin fitting (issue #2 follow-ons; `kodokan.estimate_period`) |
 | 4 | `store=` on `evidence.to_store()` / `from_store()` | none — injected, always: `lacing.MemoryStore` in tests, `SqliteStore` for a project sidecar | any `dol` MutableMapping conforming to `lacing.IntervalAnnotationStore` |
+| 5 | `"corrections"` in a `Capability.reads` (issue #10) | `corrections.replay` applied by `segment()` over the result (honest flags for what replay cannot enforce, e.g. `forbid`) | solver priors in the alignment engine (issue #9, `docs/alignment/07 §7.5`): a capability that reads the log treats it as anchors |
 
 Surface for v1: **CLI** (`argh` over `tools._dispatch_funcs`). MCP (`py2mcp`
 string refs), HTTP (`qh`), shipped skills, frontend: questions answered — none

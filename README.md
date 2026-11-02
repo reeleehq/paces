@@ -178,6 +178,7 @@ decisions, not measurements. Full table and rationale in
 |---|---|
 | cut media into steps | `segment(media, steps=..., grid=...)` → `Segmentation` |
 | explicit/human boundaries | `segment(media, boundaries=[...], steps=[names])` |
+| keep a human's corrections across re-runs | `segment(..., corrections=[split(t), merge(t), pin((s, e)), forbid(t, (s, e)), absent(t)])` — from `paces.corrections`; a time-keyed log, replayed as constraints, anything it could not honour flagged |
 | use the video's own chapters | `segment(media, metadata=<yt-dlp info.json>)` |
 | measure the grid from the media | `segment(local_media, steps=[(name, counts), ...])` — no grid needed; tempo + structure measured, origin estimated and flagged (`pip install paces[audio]`) |
 | protect edits from regeneration | `apply_edits(doc, patches, by="user:you")` + `merge_regenerated(committed, fresh)` |
