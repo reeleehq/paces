@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from paces.corrections import normalize_corrections
 from paces import (
     ask as ask_module,
     edits as edits_module,
@@ -23,6 +22,7 @@ from paces import (
     render as render_module,
     segmenters as segment_module,
 )
+from paces.corrections import normalize_corrections
 
 
 def _structured(value, *, what: str = "argument"):

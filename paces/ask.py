@@ -88,6 +88,7 @@ def propose(
     media: str | None = None,
     title: str = "",
     snap_s: float = DFLT_SNAP_S,
+    min_step_s: float = DFLT_MIN_STEP_S,
     max_grid_ticks: int = DFLT_MAX_GRID_TICKS,
 ) -> dict:
     """What the machine pre-computes for a human to confirm — a JSON-ready dict.
@@ -136,7 +137,7 @@ def propose(
             }
             for step in seg.steps
         ],
-        "minStepS": time_str(DFLT_MIN_STEP_S),
+        "minStepS": time_str(min_step_s),
         "snap": {
             "windowS": time_str(snap_s),
             "targets": sorted({*map(time_str, interior), *ticks}, key=float),
@@ -197,6 +198,8 @@ def _answered_boundaries(value) -> tuple[float, ...] | None:
         return None
     if not isinstance(value, list) or len(value) < 2:
         raise ValueError(f"boundaries must be a list of 2 or more times, got {value!r}")
+    if any(isinstance(t, bool) for t in value):
+        raise ValueError(f"boundaries must be times in seconds, got {value!r}")
     try:
         times = tuple(float(time_str(float(t))) for t in value)
     except (TypeError, ValueError):

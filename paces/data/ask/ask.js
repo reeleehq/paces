@@ -56,10 +56,17 @@ function freshState(proposal) {
   return { k: proposal.k, kTouched: false, struck: [], added: [], absent: [], at: "", duration: null, previous: null };
 }
 
+/**
+ * Absent steps are keyed by their row in the proposal, never by id: two rows
+ * may share an id (a repeated name), and each is its own occurrence.
+ */
+const rowKey = (index) => String(index);
+const isAbsent = (state, index) => state.absent.includes(rowKey(index));
+
 /** The spans, as numbers, of the steps marked not in the media. */
 function absentSpans(proposal, state) {
   return proposal.steps
-    .filter((step) => state.absent.includes(step.id))
+    .filter((step, i) => isAbsent(state, i))
     .flatMap((step) => step.spans.map((span) => span.map(Number)));
 }
 
@@ -113,7 +120,7 @@ const RULES = {
     if (!p.cuts.includes(cut) || s.struck.includes(cut)) return same(s);
     const t = Number(cut);
     const border = p.steps.find(
-      (step) => s.absent.includes(step.id) && step.spans.some((span) => span.map(Number).includes(t)),
+      (step, i) => isAbsent(s, i) && step.spans.some((span) => span.map(Number).includes(t)),
     );
     if (border) {
       return same(s, `The cut at ${mmss(cut)} borders ${stepLabel(border)}, which you marked as not in the video. Untick that first.`);
@@ -123,6 +130,10 @@ const RULES = {
 
   keep(p, s, { cut }) {
     if (!s.struck.includes(cut)) return same(s);
+    const near = nearest(s.added.map(Number), Number(cut));
+    if (near && near.gap < Number(p.minStepS)) {
+      return same(s, `The cut at ${mmss(cut)} stays merged: you added one at ${mmss(near.t)}, within ${p.minStepS} s of it. Remove that one first.`);
+    }
     return { state: { ...s, struck: s.struck.filter((c) => c !== cut) }, message: `Kept the cut at ${mmss(cut)}.` };
   },
 
@@ -131,14 +142,15 @@ const RULES = {
     return { state: { ...s, added: s.added.filter((c) => c !== cut) }, message: `Removed the cut at ${mmss(cut)}.` };
   },
 
-  absent(p, s, { stepId, on }) {
-    const step = p.steps.find((x) => x.id === stepId);
+  absent(p, s, { index, on }) {
+    const step = p.steps[index];
+    const key = rowKey(index);
     if (!step) return same(s);
     if (!on) {
-      if (!s.absent.includes(stepId)) return same(s);
-      return { state: { ...s, absent: s.absent.filter((id) => id !== stepId) }, message: `${stepLabel(step)} is back in.` };
+      if (!s.absent.includes(key)) return same(s);
+      return { state: { ...s, absent: s.absent.filter((k) => k !== key) }, message: `${stepLabel(step)} is back in.` };
     }
-    if (s.absent.includes(stepId)) return same(s);
+    if (s.absent.includes(key)) return same(s);
     if (!step.spans.length) return same(s, `${stepLabel(step)} has no time in this video to mark.`);
     const spans = step.spans.map((span) => span.map(Number));
     const struck = s.struck.find((c) => spans.some((span) => span.includes(Number(c))));
@@ -147,7 +159,7 @@ const RULES = {
     }
     const added = s.added.find((c) => spans.some(([a, b]) => a < Number(c) && Number(c) < b));
     if (added) return same(s, `You added a cut at ${mmss(added)} inside ${stepLabel(step)}. Remove it first.`);
-    return { state: { ...s, absent: [...s.absent, stepId] }, message: `${stepLabel(step)} will be marked as not in the video.` };
+    return { state: { ...s, absent: [...s.absent, key] }, message: `${stepLabel(step)} will be marked as not in the video.` };
   },
 
   setK(p, s, { value }) {
@@ -168,7 +180,11 @@ const RULES = {
   duration(p, s, { seconds }) {
     const d = Number(seconds);
     if (!Number.isFinite(d) || d <= 0 || timeStr(d) === s.duration) return same(s);
-    return { state: { ...s, duration: timeStr(d) } };
+    const past = s.added.filter((t) => Number(t) >= d);
+    const message = past.length
+      ? `${past.length} of your cuts lie past the end of this media (${mmss(d)}) and will not be sent.`
+      : "";
+    return { state: { ...s, duration: timeStr(d) }, message };
   },
 };
 
@@ -206,7 +222,8 @@ function buildAnswers(proposal, state) {
   if (state.at) meta.at = state.at;
   const k = state.kTouched && Number.isInteger(state.k) && state.k > 0 ? state.k : null;
   const answers = { kind: proposal.answersKind, version: proposal.version, k };
-  const added = sortedUnique(state.added);
+  const end = state.duration ? Number(state.duration) : Infinity; // unknown: keep all
+  const added = sortedUnique(state.added).filter((t) => Number(t) < end);
   const corrections = [];
   if (!proposal.extent) {
     const last = added.length ? Number(added[added.length - 1]) : 0;
@@ -214,8 +231,8 @@ function buildAnswers(proposal, state) {
     const cuts = sortedUnique(["0", ...added, ...end]);
     if (added.length && cuts.length >= 2) answers.boundaries = cuts;
   } else {
-    for (const step of proposal.steps) {
-      if (!state.absent.includes(step.id) || !step.spans.length) continue;
+    for (const [i, step] of proposal.steps.entries()) {
+      if (!isAbsent(state, i) || !step.spans.length) continue;
       const [a, b] = step.spans[0].map(Number);
       corrections.push({ verb: "absent", anchorT: timeStr((a + b) / 2), stepId: step.id, ...meta });
     }
@@ -382,16 +399,20 @@ function startPage(doc) {
     for (const row of cutRows(proposal, state)) {
       const li = doc.createElement("li");
       li.className = row.kind + (row.t === fresh ? " fresh" : "");
-      li.append(button(mmss(row.t), seek(row.t), { className: "time link", title: "Play from here" }));
+      li.append(button(mmss(row.t), seek(row.t), { className: "time link", title: "Play from here"}));
+      li.lastChild.dataset.focusKey = `time:${row.t}`;
       const label = doc.createElement("span");
       label.className = "grow muted small";
       label.textContent = { proposed: "proposed", struck: "not a cut", added: "added by you" }[row.kind];
       li.append(label);
       if (row.kind === "added") {
         li.append(button("Remove", () => dispatch({ type: "remove", cut: row.t })));
+        li.lastChild.dataset.focusKey = `act:${row.t}`;
       } else {
         const struck = row.kind === "struck";
-        li.append(button(struck ? "Keep it" : "Not a cut", () => dispatch({ type: struck ? "keep" : "strike", cut: row.t }), { "aria-pressed": String(struck) }));
+        li.append(button(struck ? "Keep it" : "Not a cut", () => dispatch({ type: struck ? "keep" : "strike", cut: row.t })));
+        li.lastChild.setAttribute("aria-pressed", String(struck));
+        li.lastChild.dataset.focusKey = `act:${row.t}`;
       }
       list.append(li);
     }
@@ -405,15 +426,16 @@ function startPage(doc) {
   function renderSteps() {
     const list = $("steps");
     list.replaceChildren();
-    for (const step of proposal.steps) {
+    for (const [i, step] of proposal.steps.entries()) {
       const li = doc.createElement("li");
       const label = doc.createElement("label");
       label.className = "grow";
       const box = doc.createElement("input");
       box.type = "checkbox";
-      box.checked = state.absent.includes(step.id);
+      box.checked = isAbsent(state, i);
       box.disabled = !step.spans.length;
-      box.addEventListener("change", () => dispatch({ type: "absent", stepId: step.id, on: box.checked }));
+      box.dataset.focusKey = `step:${i}`;
+      box.addEventListener("change", () => dispatch({ type: "absent", index: i, on: box.checked }));
       const span = step.spans[0];
       label.append(box, ` ${step.name || "(unnamed)"} `);
       const when = doc.createElement("span");
@@ -431,13 +453,25 @@ function startPage(doc) {
   }
 
   const answersText = () => JSON.stringify(buildAnswers(proposal, state), null, 2);
+  // Rows are rebuilt on every change; keep keyboard focus on the same control
+  // (or on its list, never on <body>, where Space would add a cut).
   function render() {
+    const focused = doc.activeElement;
+    const focusKey = focused && focused.dataset ? focused.dataset.focusKey : undefined;
+    const focusList = focused && focused.closest ? focused.closest("#cuts, #steps") : null;
     renderCuts();
     fresh = null; // the highlight plays once, for the row just added
     renderSteps();
-    $("k-state").textContent = state.kTouched
-      ? "Saved with your answers for segmenters that use a known step count."
-      : "Edit the number to confirm it. Until you do, it is not sent.";
+    if (focusKey) {
+      const again = doc.querySelector(`[data-focus-key="${focusKey}"]`);
+      if (again) again.focus();
+      else if (focusList) focusList.focus();
+    }
+    $("k-state").textContent = !state.kTouched
+      ? "Edit the number to confirm it. Until you do, it is not sent."
+      : state.k === null
+        ? "That is not a step count, so none is sent."
+        : "Saved with your answers for segmenters that use a known step count.";
     $("undo").hidden = !(undoOpen && state.previous);
     $("answers").value = answersText();
   }

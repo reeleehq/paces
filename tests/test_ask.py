@@ -252,7 +252,7 @@ def test_js_answers_load_and_replay_in_python():
         "k": 3,
         "struck": ["20"],
         "added": ["24", "16", "16"],  # out of order, and a double tap
-        "absent": ["intro"],
+        "absent": ["0"],  # rows, not ids: "intro" is row 0
         "at": "2026-11-02T10:00:00Z",
         "kTouched": True,
     }
@@ -355,13 +355,13 @@ def test_js_absent_steps_guard_their_cuts_and_their_inside():
     out = _reduce(
         _named(),
         [
-            {"type": "absent", "stepId": "verse", "on": True},  # 10–20
+            {"type": "absent", "index": 1, "on": True},  # 10–20
             {"type": "strike", "cut": "10"},
             {"type": "strike", "cut": "20"},
             {"type": "tap", "t": 15},
         ],
     )
-    assert out[0]["state"]["absent"] == ["verse"]
+    assert out[0]["state"]["absent"] == ["1"]
     for refused in out[1:]:
         assert refused["state"] == out[0]["state"]
     assert "borders" in out[1]["message"] and "borders" in out[2]["message"]
@@ -371,13 +371,13 @@ def test_js_absent_steps_guard_their_cuts_and_their_inside():
         _named(),
         [
             {"type": "strike", "cut": "10"},
-            {"type": "absent", "stepId": "verse", "on": True},
+            {"type": "absent", "index": 1, "on": True},
         ],
     )
     assert struck_first[-1]["state"]["absent"] == []
     added_first = _reduce(
         _named(),
-        [{"type": "tap", "t": 15}, {"type": "absent", "stepId": "verse", "on": True}],
+        [{"type": "tap", "t": 15}, {"type": "absent", "index": 1, "on": True}],
     )
     assert added_first[-1]["state"]["absent"] == []
 
@@ -386,7 +386,7 @@ def test_js_absent_steps_guard_their_cuts_and_their_inside():
 def test_js_a_step_with_no_span_cannot_be_marked_absent():
     proposal = _named()
     proposal["steps"][0]["spans"] = []
-    [out] = _reduce(proposal, [{"type": "absent", "stepId": "intro", "on": True}])
+    [out] = _reduce(proposal, [{"type": "absent", "index": 0, "on": True}])
     assert out["state"]["absent"] == [] and "no time" in out["message"]
 
 
@@ -444,3 +444,98 @@ def test_js_start_over_can_be_undone():
 def test_js_only_the_just_added_cut_is_fresh():
     out = _reduce(_named(), [{"type": "tap", "t": 15}, {"type": "setK", "value": "4"}])
     assert out[0]["fresh"] == "15" and out[1]["fresh"] is None
+
+
+# ── regressions from the second review of #37 ───────────────────────────────
+
+
+@needs_node
+def test_js_repeated_names_are_separate_rows():
+    """verse/chorus/verse: each occurrence is marked on its own, and replays."""
+    names = ["verse", "chorus", "verse"]
+    proposal = propose(segment(boundaries=CUTS, steps=names))
+    assert [s["id"] for s in proposal["steps"]] == names  # ids repeat
+    answers = _answers_after(proposal, [{"type": "absent", "index": 2, "on": True}])
+    assert [(c["verb"], c["anchorT"]) for c in answers["corrections"]] == [
+        ("absent", "25")
+    ]
+    seg = segment(
+        boundaries=CUTS, steps=names, corrections=load_answers(answers).corrections
+    )
+    assert [s.spans for s in seg.steps] == [((0.0, 10.0),), ((10.0, 20.0),)]
+    # the guard checks the row marked, not the first row with that id
+    struck = _reduce(
+        proposal,
+        [{"type": "absent", "index": 2, "on": True}, {"type": "strike", "cut": "20"}],
+    )
+    assert struck[-1]["state"]["struck"] == []
+    assert "borders" in struck[-1]["message"]
+
+
+@needs_node
+def test_js_keep_is_refused_while_a_moved_cut_sits_next_to_it():
+    proposal = _named()
+    steps = _reduce(
+        proposal,
+        [
+            {"type": "strike", "cut": "10"},
+            {"type": "tap", "t": 10.1},  # the move
+            {"type": "keep", "cut": "10"},
+        ],
+    )
+    assert steps[-1]["state"]["struck"] == ["10"]
+    assert "Remove that one first" in steps[-1]["message"]
+    answers = _answers_after(
+        proposal, [{"type": "strike", "cut": "10"}, {"type": "tap", "t": 10.1}]
+    )
+    seg = segment(
+        boundaries=CUTS, steps=NAMES, corrections=load_answers(answers).corrections
+    )
+    assert not [f for f in seg.flags if f.startswith("correction-")]
+    assert 10.1 in seg.boundaries and 10.0 not in seg.boundaries
+
+
+@needs_node
+def test_js_taps_past_the_media_end_are_not_sent():
+    proposal = propose(segment("video.mp4"))  # refused: taps become boundaries
+    out = _reduce(
+        proposal,
+        [
+            {"type": "duration", "seconds": 30},
+            {"type": "tap", "t": 10},
+            {"type": "tap", "t": 25},
+            {"type": "duration", "seconds": 22},  # a shorter file opened
+        ],
+    )
+    assert "will not be sent" in out[-1]["message"]
+    answers = _answers_after(
+        proposal,
+        [
+            {"type": "duration", "seconds": 30},
+            {"type": "tap", "t": 10},
+            {"type": "tap", "t": 25},
+            {"type": "duration", "seconds": 22},
+        ],
+    )
+    assert answers["boundaries"] == ["0", "10", "22"]
+
+
+def test_answered_boundaries_refuse_booleans():
+    with pytest.raises(ValueError, match="times in seconds"):
+        load_answers(
+            {
+                "kind": ANSWERS_KIND,
+                "version": 1,
+                "corrections": [],
+                "boundaries": [0, True],
+            }
+        )
+
+
+def test_propose_takes_the_min_step_as_a_keyword():
+    assert propose(segment(boundaries=CUTS), min_step_s=0.5)["minStepS"] == "0.5"
+
+
+def test_the_status_line_stays_on_screen():
+    css = (files("paces") / "data" / "ask" / "ask.css").read_text()
+    assert re.search(r"#status \{[^}]*position: sticky", css)

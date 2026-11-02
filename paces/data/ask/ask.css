@@ -74,4 +74,5 @@ kbd { font-size: 0.75em; opacity: 0.8; margin-left: 0.25rem; }
 .time { font-variant-numeric: tabular-nums; min-width: 4.5rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 textarea { width: 100%; font: 0.8rem/1.4 ui-monospace, monospace; margin-top: 0.5rem; }
-#status { min-height: 44px; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+#status { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); min-height: 44px; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.notice button.link { min-height: 44px; }
