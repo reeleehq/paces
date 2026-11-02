@@ -21,7 +21,7 @@ from paces.model import (
     StepDocument,
     seconds_per_unit,
 )
-from paces.segmenters import SegStep, Segmentation
+from paces.segmentation import SegStep, Segmentation
 
 #: Decimal places kept when converting computed seconds to wire decimals —
 #: matches the POC's 0.1 s working resolution with headroom.

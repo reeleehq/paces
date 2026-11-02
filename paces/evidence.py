@@ -144,7 +144,7 @@ from paces.model import (
     StepDocument,
 )
 from paces.projection import to_document
-from paces.segmenters import Segmentation
+from paces.segmentation import Segmentation
 
 #: The namespace every paces annotation id is derived under. Derived from the
 #: repository URL rather than typed as a literal, so it is reproducible from
@@ -454,7 +454,7 @@ def to_store(
     *seg* is the analysis result; the projection arguments (*doc_id*,
     *title*, *source*, *domain*, *lang*) are :func:`paces.to_document`'s,
     unchanged. Everything else is evidence a segmenter does not carry on
-    :class:`~paces.segmenters.Segmentation` but a pipeline may have:
+    :class:`~paces.segmentation.Segmentation` but a pipeline may have:
 
     Args:
         store: Any ``lacing.IntervalAnnotationStore`` — ``MemoryStore()`` for
