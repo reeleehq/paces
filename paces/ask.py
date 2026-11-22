@@ -48,14 +48,18 @@ from paces.corrections import (
     normalize_corrections,
     time_str,
 )
+from paces.ask_contract import (
+    ANSWERS_KIND,
+    CONTRACT_VERSION,
+    PROPOSAL_KIND,
+    AnswersDocument,
+    Proposal,
+    ProposedStep,
+    Snap,
+    contract_schemas,
+)
 from paces.model import seconds_per_unit
 from paces.segmentation import Segmentation
-
-PROPOSAL_KIND = "PacesAskProposal"
-ANSWERS_KIND = "PacesAskAnswers"
-#: The proposal/answers contract version. Both documents carry it; a reader
-#: refuses any other, so a page and a loader of different ages fail loudly.
-CONTRACT_VERSION = 1
 
 #: How far a tap may land from a snap target and still snap to it (§7.3 step
 #: 3). It is the merge tolerance on purpose: both absorb the same thing, the
@@ -66,7 +70,6 @@ DFLT_SNAP_S = DFLT_MERGE_TOLERANCE_S
 DFLT_MAX_GRID_TICKS = 2000
 
 _ASSETS = files("paces") / "data" / "ask"
-_ANSWERS_KEYS = {"kind", "version", "k", "corrections", "boundaries", "proposal"}
 
 
 def _grid_ticks(seg: Segmentation, lo: float, hi: float, *, limit: int) -> list[str]:
@@ -117,32 +120,29 @@ def propose(
         k, why = None, "nothing to count yet: the segmenter found no cuts"
     extent = (cuts[0], cuts[-1]) if len(cuts) >= 2 else None
     ticks = _grid_ticks(seg, *extent, limit=max_grid_ticks) if extent else []
-    return {
-        "kind": PROPOSAL_KIND,
-        "version": CONTRACT_VERSION,
-        "answersKind": ANSWERS_KIND,
-        "title": title,
-        "media": media,
-        "method": seg.method,
-        "flags": list(seg.flags),
-        "k": k,
-        "kEvidence": why,
-        "extent": [time_str(t) for t in extent] if extent else None,
-        "cuts": [time_str(t) for t in interior],
-        "steps": [
-            {
-                "id": step.id,
-                "name": step.name,
-                "spans": [[time_str(a), time_str(b)] for a, b in step.spans],
-            }
+    return Proposal(
+        title=title,
+        media=media,
+        method=seg.method,
+        flags=list(seg.flags),
+        k=k,
+        k_evidence=why,
+        extent=tuple(time_str(t) for t in extent) if extent else None,
+        cuts=[time_str(t) for t in interior],
+        steps=[
+            ProposedStep(
+                id=step.id,
+                name=step.name,
+                spans=[(time_str(a), time_str(b)) for a, b in step.spans],
+            )
             for step in seg.steps
         ],
-        "minStepS": time_str(min_step_s),
-        "snap": {
-            "windowS": time_str(snap_s),
-            "targets": sorted({*map(time_str, interior), *ticks}, key=float),
-        },
-    }
+        min_step_s=time_str(min_step_s),
+        snap=Snap(
+            window_s=time_str(snap_s),
+            targets=sorted({*map(time_str, interior), *ticks}, key=float),
+        ),
+    ).model_dump(by_alias=True, mode="json")
 
 
 def render_ask_page(proposal: Mapping, *, author: str = "") -> str:
@@ -224,29 +224,14 @@ def load_answers(answers: Mapping) -> Answers:
     ...               "corrections": [{"verb": "split", "anchorT": "15"}]})
     Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason=''),), boundaries=None)
     """
-    if not isinstance(answers, Mapping) or answers.get("kind") != ANSWERS_KIND:
-        got = (
-            answers.get("kind")
-            if isinstance(answers, Mapping)
-            else type(answers).__name__
-        )
+    if not isinstance(answers, Mapping):
         raise ValueError(
-            f"expected {ANSWERS_KIND} answers (from the ask page), got {got!r}"
+            f"expected {ANSWERS_KIND} answers (from the ask page), "
+            f"got {type(answers).__name__!r}"
         )
-    unknown = sorted(set(answers) - _ANSWERS_KEYS)
-    if unknown:
-        raise ValueError(f"unknown answers keys {unknown}")
-    version = answers.get("version")
-    if version != CONTRACT_VERSION:
-        raise ValueError(
-            f"expected version {CONTRACT_VERSION} answers, got version {version!r} "
-            "(re-export them from a page made by this paces)"
-        )
-    k = answers.get("k")
-    if k is not None and (isinstance(k, bool) or not isinstance(k, int) or k < 1):
-        raise ValueError(f"k must be a positive integer or null, got {k!r}")
+    doc = AnswersDocument.model_validate(dict(answers))
     return Answers(
-        k=k,
-        corrections=normalize_corrections(answers.get("corrections", [])),
-        boundaries=_answered_boundaries(answers.get("boundaries")),
+        k=doc.k,
+        corrections=normalize_corrections(doc.corrections),
+        boundaries=_answered_boundaries(doc.boundaries),
     )
