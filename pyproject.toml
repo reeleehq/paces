@@ -37,6 +37,10 @@ paces = "paces.__main__:main"
 
 [project.optional-dependencies]
 cli = ["cw>=0.1.1,<0.2", "argcomplete>=3"]
+# The known-k segmenter (paces#39): kernel change-point detection over the
+# media's audio features, for a step count the ask page asked for. ruptures
+# is BSD-2-Clause; the features need the [audio] extra too.
+cpd = ["ruptures>=1.1"]
 audio = [
     # Grid measurement (issue #2): the fleet's `mixing` owns speech/music
     # segmentation and beat tracking; [beats] pulls librosa, [audio] pulls
@@ -179,7 +183,7 @@ install.windows = "choco install ffmpeg -y --no-progress"
 # --------------------------------------------------------------------------
 [tool.wads.licence]
 enabled = false
-include-extras = ["cli", "audio", "media", "pose", "lacing"]
+include-extras = ["cli", "audio", "media", "pose", "lacing", "cpd"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["paces"]

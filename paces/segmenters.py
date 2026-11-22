@@ -28,6 +28,11 @@ spans. Like ``grid-measured`` (``paces/measure.py``) they register when
 ``paces`` is imported — the package ``__init__`` imports their module, so
 ``from paces.segmenters import segment`` sees them too.
 
+Plus ``known-k`` (``paces/known_k.py``, the ``[cpd]`` extra): media and the
+step count the ask page asked for, cut by kernel change-point detection over
+the audio. Whatever runs, an answered ``k`` the result disagrees with is
+flagged ``k-mismatch``.
+
 Honesty rules (``docs/alignment/07 §9.5``): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -572,6 +577,10 @@ def segment(
     )
     extra_flags = (f"ignored: {', '.join(ignored)}",) if ignored else ()
     extra_flags += problem_flags
+    found = len(result.steps) if result.steps else max(0, len(result.boundaries) - 1)
+    if k is not None and found and found != k:
+        # an answered step count the result disagrees with is said, not dropped
+        extra_flags += (f"k-mismatch: k={k}, found {found} steps",)
 
     # A grid describes the media's own clock; any segmentation over that
     # media may carry it (and its unit) even when placement didn't use it —
@@ -690,6 +699,48 @@ def _cumulative(rows: list[dict]) -> list[float]:
     return offsets
 
 
+def steps_on_boundaries(
+    boundaries: Sequence[float],
+    step_rows: Sequence[Mapping],
+    *,
+    confidence: float,
+    source: str,
+) -> tuple[tuple[SegStep, ...], tuple[str, ...]]:
+    """``(steps, flags)`` for the spans between ``boundaries``: the names of
+    ``step_rows`` zipped on when there is one per span, else honestly unnamed
+    (``seg-1``, ...) and flagged ``naming-abstained`` or, when the count
+    disagrees, ``step-count-mismatch``. Never invented.
+
+    >>> steps, flags = steps_on_boundaries([0, 5, 9], [], confidence=0.5, source="x")
+    >>> [s.id for s in steps], flags
+    (['seg-1', 'seg-2'], ('naming-abstained',))
+    """
+    spans = list(zip(boundaries, boundaries[1:]))
+    if step_rows and len(step_rows) == len(spans):
+        steps = tuple(
+            SegStep(
+                id=row["id"],
+                name=row["name"],
+                spans=(span,),
+                confidence=confidence,
+                source=source,
+            )
+            for row, span in zip(step_rows, spans)
+        )
+        return steps, ()
+    if step_rows:
+        flags: tuple[str, ...] = (
+            f"step-count-mismatch: {len(step_rows)} steps vs {len(spans)} spans",
+        )
+    else:
+        flags = ("naming-abstained",)
+    steps = tuple(
+        SegStep(id=f"seg-{i + 1}", spans=(span,), confidence=confidence, source=source)
+        for i, span in enumerate(spans)
+    )
+    return steps, flags
+
+
 def _segment_explicit(inputs: Mapping[str, Any]) -> Segmentation:
     """Adopt boundaries supplied explicitly (by a human or a prior run).
 
@@ -698,37 +749,12 @@ def _segment_explicit(inputs: Mapping[str, Any]) -> Segmentation:
     (``naming-abstained``), never invented.
     """
     boundaries = tuple(sorted(inputs["boundaries"]))
-    spans = list(zip(boundaries, boundaries[1:]))
-    step_rows = inputs["steps"]
-    flags: tuple[str, ...] = ()
-    steps: tuple[SegStep, ...] = ()
-    if step_rows and len(step_rows) == len(spans):
-        steps = tuple(
-            SegStep(
-                id=row["id"],
-                name=row["name"],
-                spans=(span,),
-                confidence=DFLT_EXPLICIT_CONFIDENCE,
-                source="explicit",
-            )
-            for row, span in zip(step_rows, spans)
-        )
-    else:
-        if step_rows:
-            flags = (
-                f"step-count-mismatch: {len(step_rows)} steps vs {len(spans)} spans",
-            )
-        else:
-            flags = ("naming-abstained",)
-        steps = tuple(
-            SegStep(
-                id=f"seg-{i + 1}",
-                spans=(span,),
-                confidence=DFLT_EXPLICIT_CONFIDENCE,
-                source="explicit",
-            )
-            for i, span in enumerate(spans)
-        )
+    steps, flags = steps_on_boundaries(
+        boundaries,
+        inputs["steps"],
+        confidence=DFLT_EXPLICIT_CONFIDENCE,
+        source="explicit",
+    )
     return Segmentation(
         steps=steps,
         boundaries=boundaries,

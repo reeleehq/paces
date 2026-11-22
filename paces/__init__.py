@@ -75,6 +75,7 @@ from paces.segmenters import (
 # Segmenters in their own modules register on import (ADR-0003); importing
 # them here is what puts them in the catalog for every ``paces.*`` import.
 from paces import cues  # noqa: F401
+from paces import known_k  # noqa: F401  (paces#39: the known-k segmenter)
 
 __all__ = [
     # the document (the contract)
