@@ -50,7 +50,13 @@ class Snap(_Wire):
 
 
 class Proposal(_Wire):
-    """What the machine pre-computes for a human to confirm (:func:`paces.ask.propose`)."""
+    """What the machine pre-computes for a human to confirm (:func:`paces.ask.propose`).
+
+    ``cut_meets`` is aligned with ``cuts``: ``True`` where one step ends and
+    another begins (so striking the cut merges them), ``False`` at the edge of a
+    gap between steps, where there is nothing to merge. Empty (an older proposal)
+    reads as all ``True``.
+    """
 
     kind: Literal["PacesAskProposal"] = PROPOSAL_KIND
     version: Literal[1] = CONTRACT_VERSION
@@ -63,6 +69,7 @@ class Proposal(_Wire):
     k_evidence: str
     extent: tuple[str, str] | None
     cuts: list[str]
+    cut_meets: list[bool] = []
     steps: list[ProposedStep]
     min_step_s: str
     snap: Snap

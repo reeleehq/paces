@@ -553,3 +553,40 @@ def test_the_contract_is_declared_as_models():
     assert schemas["proposal"]["properties"]["minStepS"]["type"] == "string"
     assert schemas["answers"]["additionalProperties"] is False
     assert AnswersDocument.model_validate(_answers()).k == 4
+
+
+def test_a_gap_cut_does_not_meet():
+    seg = segment(boundaries=[0, 10, 30], steps=["a", "b"])
+    assert propose(seg)["cutMeets"] == [True]
+    gapped = Segmentation(
+        boundaries=(0, 10, 20, 30),
+        steps=(
+            segment(boundaries=[0, 10, 20, 30], steps=["a", "b", "c"]).steps[0],
+        ),
+    )
+    p = propose(gapped)
+    assert p["cuts"] == ["10", "20"] and p["cutMeets"] == [False, False]
+
+
+@needs_node
+def test_js_refuses_striking_a_gap_edge_and_tapping_a_gap():
+    proposal = {
+        "k": 2, "extent": ["0", "30"], "cuts": ["10", "20"], "cutMeets": [False, True],
+        "steps": [
+            {"id": "a", "name": "a", "spans": [["0", "10"]]},
+            {"id": "b", "name": "b", "spans": [["20", "30"]]},
+        ],
+        "minStepS": "0.2", "snap": {"windowS": "0", "targets": ["10", "20"]},
+    }
+    import json as _j
+
+    out = _run_js(
+        f"(() => {{ const p = {_j.dumps(proposal)}; const s = core.freshState(p);"
+        "const a = core.reduce(p, s, {type: 'strike', cut: '10'});"
+        "const b = core.reduce(p, s, {type: 'tap', t: 15});"
+        "const c = core.reduce(p, s, {type: 'tap', t: 25});"
+        "return [a.state.struck, a.message, b.state.added, b.message, c.state.added]; })()"
+    )
+    assert out[0] == [] and "nothing to merge" in out[1]
+    assert out[2] == [] and "gap between steps" in out[3]
+    assert out[4] == ["25"]

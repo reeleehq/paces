@@ -84,6 +84,13 @@ function nearest(values, t) {
 
 const same = (state, message = "") => ({ state, message });
 
+/** True unless the proposal says no two steps meet at this cut (the edge of a gap). */
+const meets = (proposal, cut) => !proposal.cutMeets || proposal.cutMeets[proposal.cuts.indexOf(cut)] !== false;
+
+/** The steps have gaps, so a time between two steps belongs to none. */
+const inGap = (proposal, t) =>
+  proposal.steps.length > 0 && !proposal.steps.some((step) => step.spans.some(([a, b]) => Number(a) <= t && t <= Number(b)));
+
 // One rule per action: (proposal, state, action) -> { state, message, fresh? }.
 // A refusal returns the same state and says why.
 const RULES = {
@@ -104,6 +111,7 @@ const RULES = {
         return same(s, `Not added: ${at} is outside the part being checked (${mmss(lo)}–${mmss(hi)}).`);
       }
     }
+    if (inGap(p, t)) return same(s, `Not added: ${at} falls in a gap between steps, where no step spans that time.`);
     const inside = absentSpans(p, s).find(([a, b]) => a < t && t < b);
     if (inside) {
       return same(s, `Not added: ${at} is inside a step you marked as not in the video (${mmss(inside[0])}–${mmss(inside[1])}).`);
@@ -118,6 +126,7 @@ const RULES = {
 
   strike(p, s, { cut }) {
     if (!p.cuts.includes(cut) || s.struck.includes(cut)) return same(s);
+    if (!meets(p, cut)) return same(s, `No two steps meet at ${mmss(cut)} (it is the edge of a gap), so there is nothing to merge.`);
     const t = Number(cut);
     const border = p.steps.find(
       (step, i) => isAbsent(s, i) && step.spans.some((span) => span.map(Number).includes(t)),
@@ -248,7 +257,7 @@ function buildAnswers(proposal, state) {
 
 /** Each cut the page lists: proposed (maybe struck) and added, in time order. */
 function cutRows(proposal, state) {
-  const rows = proposal.cuts.map((t) => ({ t, kind: state.struck.includes(t) ? "struck" : "proposed" }));
+  const rows = proposal.cuts.map((t) => ({ t, kind: state.struck.includes(t) ? "struck" : "proposed", meets: meets(proposal, t) }));
   for (const t of new Set(state.added)) if (!proposal.cuts.includes(t)) rows.push({ t, kind: "added" });
   return rows.sort((a, b) => byTime(a.t, b.t));
 }
@@ -408,6 +417,8 @@ function startPage(doc) {
       if (row.kind === "added") {
         li.append(button("Remove", () => dispatch({ type: "remove", cut: row.t })));
         li.lastChild.dataset.focusKey = `act:${row.t}`;
+      } else if (!row.meets) {
+        label.textContent = "edge of a gap";
       } else {
         const struck = row.kind === "struck";
         li.append(button(struck ? "Keep it" : "Not a cut", () => dispatch({ type: struck ? "keep" : "strike", cut: row.t })));
