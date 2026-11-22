@@ -1,4 +1,4 @@
-> built 2026-11-22 20:58 UTC from 0d8e1e2 (main) · paces 0.0.27. Details: build_info.json
+> built 2026-11-22 21:56 UTC from 09e8de3 (main) · paces 0.0.29. Details: build_info.json
 
 # index.html.md
 
@@ -1120,6 +1120,9 @@ The rules, in order of authority:
 4. Cues, questions and sources are unioned by id (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
+5. Repeated steps are matched by name and time, not by their generated
+   `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
+   does not move a lock onto the wrong occurrence (paces#50).
 
 Edits made through [`apply_edits()`](_autosummary/paces.edits.html.md#paces.edits.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the
@@ -1645,6 +1648,9 @@ The rules, in order of authority:
 4. Cues, questions and sources are unioned by id (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
+5. Repeated steps are matched by name and time, not by their generated
+   `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
+   does not move a lock onto the wrong occurrence (paces#50).
 
 Edits made through [`apply_edits()`](_autosummary/paces.html.md#paces.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the
@@ -3176,20 +3182,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-22 20:58 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/0d8e1e29e7207af49fd8fd4e1adef98acb31a777"><code>0d8e1e2</code></a> on branch <code>main</code>, for **paces 0.0.27** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 21:56 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/09e8de3d510c8ea164a55361c2091715b8013995"><code>09e8de3</code></a> on branch <code>main</code>, for **paces 0.0.29** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.27) is behind the latest release on PyPI (0.0.28): `pip install paces` gives newer code than these docs describe.
+- The documented version (0.0.29) is ahead of the latest release on PyPI (0.0.28): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/0d8e1e29e7207af49fd8fd4e1adef98acb31a777"><code>0d8e1e29e7207af49fd8fd4e1adef98acb31a777</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/09e8de3d510c8ea164a55361c2091715b8013995"><code>09e8de3d510c8ea164a55361c2091715b8013995</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | none                                                                                                                                                  |
+| Tags at this commit | <code>0.0.29</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3198,9 +3204,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45069101679">45069101679</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45074627497">45074627497</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>b6a835cf2639236b758d095b999723b077d254b2</code> (in the history of the built commit) |
+| Event commit | <code>c41a06589d76d57f74254f9d79e73634373966a5</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3225,13 +3231,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.28/">0.0.28</a>, newer than the documented version (0.0.27).
+Latest release: <a href="https://pypi.org/project/paces/0.0.28/">0.0.28</a>, older than the documented version (0.0.29).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 0d8e1e29e7207af49fd8fd4e1adef98acb31a777
+git checkout 09e8de3d510c8ea164a55361c2091715b8013995
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

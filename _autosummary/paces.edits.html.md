@@ -110,6 +110,9 @@ The rules, in order of authority:
 4. Cues, questions and sources are unioned by id (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
+5. Repeated steps are matched by name and time, not by their generated
+   `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
+   does not move a lock onto the wrong occurrence (paces#50).
 
 Edits made through [`apply_edits()`](#paces.edits.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the

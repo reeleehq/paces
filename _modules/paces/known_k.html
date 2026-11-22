@@ -212,84 +212,88 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="78">    <span class="n">min_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">min_step_s</span> <span class="o">/</span> <span class="n">frame_s</span><span class="p">))</span>
 </span><span data-line="79">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">k</span> <span class="o">*</span> <span class="n">min_size</span><span class="p">:</span>
 </span><span data-line="80">        <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="81">    <span class="n">bkps</span> <span class="o">=</span> <span class="n">ruptures</span><span class="o">.</span><span class="n">KernelCPD</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">n_bkps</span><span class="o">=</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-</span><span data-line="82">    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">frame_s</span><span class="p">,</span> <span class="n">TIME_PLACES</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bkps</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span></div>
+</span><span data-line="81">    <span class="n">bkps</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="82">        <span class="n">ruptures</span><span class="o">.</span><span class="n">KernelCPD</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">)</span>
+</span><span data-line="83">        <span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span data-line="84">        <span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">n_bkps</span><span class="o">=</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</span><span data-line="85">    <span class="p">)</span>
+</span><span data-line="86">    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">frame_s</span><span class="p">,</span> <span class="n">TIME_PLACES</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bkps</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span></div>
 
-</span><span data-line="83">
-</span><span data-line="84">
+</span><span data-line="87">
+</span><span data-line="88">
 <div class="viewcode-block" id="audio_features">
 <a class="viewcode-back" href="../../_autosummary/paces.known_k.html#paces.known_k.audio_features">[docs]</a>
-</span><span data-line="85"><span class="k">def</span><span class="w"> </span><span class="nf">audio_features</span><span class="p">(</span>
-</span><span data-line="86">    <span class="n">path</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-</span><span data-line="87">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="88">    <span class="n">hop_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_HOP_S</span><span class="p">,</span>
-</span><span data-line="89">    <span class="n">n_mfcc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_N_MFCC</span><span class="p">,</span>
-</span><span data-line="90">    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_SAMPLE_RATE</span><span class="p">,</span>
-</span><span data-line="91"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-</span><span data-line="92"><span class="w">    </span><span class="sd">"""``(features, frame_s, duration_s)`` of the audio of ``path``: per frame,</span>
-</span><span data-line="93"><span class="sd">    its MFCCs and spectral contrast, each dimension standardised over the</span>
-</span><span data-line="94"><span class="sd">    media (so no one dimension's scale decides the cuts)."""</span>
-</span><span data-line="95">    <span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
-</span><span data-line="96">    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</span><span data-line="97">
-</span><span data-line="98">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">_load_audio</span>  <span class="c1"># the one decode path, wav or not</span>
-</span><span data-line="99">
-</span><span data-line="100">    <span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">_load_audio</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">)</span>
-</span><span data-line="101">    <span class="n">hop</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">hop_s</span> <span class="o">*</span> <span class="n">sr</span><span class="p">)))</span>
-</span><span data-line="102">    <span class="n">mfcc</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">n_mfcc</span><span class="o">=</span><span class="n">n_mfcc</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop</span><span class="p">)</span>
-</span><span data-line="103">    <span class="n">contrast</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">spectral_contrast</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop</span><span class="p">)</span>
-</span><span data-line="104">    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mfcc</span><span class="p">,</span> <span class="n">contrast</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-</span><span data-line="105">    <span class="n">spread</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-</span><span data-line="106">    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">spread</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">spread</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-</span><span data-line="107">    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">hop</span> <span class="o">/</span> <span class="n">sr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">sr</span></div>
+</span><span data-line="89"><span class="k">def</span><span class="w"> </span><span class="nf">audio_features</span><span class="p">(</span>
+</span><span data-line="90">    <span class="n">path</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+</span><span data-line="91">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="92">    <span class="n">hop_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_HOP_S</span><span class="p">,</span>
+</span><span data-line="93">    <span class="n">n_mfcc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_N_MFCC</span><span class="p">,</span>
+</span><span data-line="94">    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_SAMPLE_RATE</span><span class="p">,</span>
+</span><span data-line="95"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span data-line="96"><span class="w">    </span><span class="sd">"""``(features, frame_s, duration_s)`` of the audio of ``path``: per frame,</span>
+</span><span data-line="97"><span class="sd">    its MFCCs and spectral contrast, each dimension standardised over the</span>
+</span><span data-line="98"><span class="sd">    media (so no one dimension's scale decides the cuts)."""</span>
+</span><span data-line="99">    <span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+</span><span data-line="100">    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span data-line="101">
+</span><span data-line="102">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">_load_audio</span>  <span class="c1"># the one decode path, wav or not</span>
+</span><span data-line="103">
+</span><span data-line="104">    <span class="n">y</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">_load_audio</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">)</span>
+</span><span data-line="105">    <span class="n">hop</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">hop_s</span> <span class="o">*</span> <span class="n">sr</span><span class="p">)))</span>
+</span><span data-line="106">    <span class="n">mfcc</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">n_mfcc</span><span class="o">=</span><span class="n">n_mfcc</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop</span><span class="p">)</span>
+</span><span data-line="107">    <span class="n">contrast</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">spectral_contrast</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop</span><span class="p">)</span>
+</span><span data-line="108">    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mfcc</span><span class="p">,</span> <span class="n">contrast</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+</span><span data-line="109">    <span class="n">spread</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span data-line="110">    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">spread</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">spread</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</span><span data-line="111">    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">hop</span> <span class="o">/</span> <span class="n">sr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">sr</span></div>
 
-</span><span data-line="108">
-</span><span data-line="109">
-</span><span data-line="110"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_known_k</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
-</span><span data-line="111"><span class="w">    </span><span class="sd">"""The ``known-k`` capability: K steps cut where the media's audio changes most."""</span>
-</span><span data-line="112">    <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"k"</span><span class="p">])</span>
-</span><span data-line="113">    <span class="n">features</span><span class="p">,</span> <span class="n">frame_s</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">audio_features</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"media"</span><span class="p">])</span>
-</span><span data-line="114">    <span class="n">cuts</span> <span class="o">=</span> <span class="n">known_k_cuts</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">frame_s</span><span class="o">=</span><span class="n">frame_s</span><span class="p">)</span>
-</span><span data-line="115">    <span class="k">if</span> <span class="n">cuts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="116">        <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="117">            <span class="n">confidence</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-</span><span data-line="118">            <span class="n">flags</span><span class="o">=</span><span class="p">(</span>
-</span><span data-line="119">                <span class="sa">f</span><span class="s2">"k-too-large: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> steps of at least </span><span class="si">{</span><span class="n">DFLT_KNOWN_K_MIN_STEP_S</span><span class="si">}</span><span class="s2"> s "</span>
-</span><span data-line="120">                <span class="sa">f</span><span class="s2">"do not fit in </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s of media"</span><span class="p">,</span>
-</span><span data-line="121">            <span class="p">),</span>
-</span><span data-line="122">        <span class="p">)</span>
-</span><span data-line="123">    <span class="n">boundaries</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">*</span><span class="n">cuts</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">TIME_PLACES</span><span class="p">))</span>
-</span><span data-line="124">    <span class="n">steps</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">steps_on_boundaries</span><span class="p">(</span>
-</span><span data-line="125">        <span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="126">        <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span>
-</span><span data-line="127">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_KNOWN_K_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="128">        <span class="n">source</span><span class="o">=</span><span class="s2">"known-k"</span><span class="p">,</span>
-</span><span data-line="129">    <span class="p">)</span>
-</span><span data-line="130">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
-</span><span data-line="131">        <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
-</span><span data-line="132">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
-</span><span data-line="133">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_KNOWN_K_CONFIDENCE</span><span class="p">,</span>
-</span><span data-line="134">        <span class="n">flags</span><span class="o">=</span><span class="n">flags</span> <span class="o">+</span> <span class="p">(</span><span class="s2">"boundaries-proposed"</span><span class="p">,),</span>
-</span><span data-line="135">    <span class="p">)</span>
-</span><span data-line="136">
-</span><span data-line="137">
-</span><span data-line="138"><span class="n">KNOWN_K</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
-</span><span data-line="139">    <span class="n">Capability</span><span class="p">(</span>
-</span><span data-line="140">        <span class="n">name</span><span class="o">=</span><span class="s2">"known-k"</span><span class="p">,</span>
-</span><span data-line="141">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
-</span><span data-line="142">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
-</span><span data-line="143">            <span class="s2">"K steps where the media's audio changes most: kernel change-point "</span>
-</span><span data-line="144">            <span class="s2">"detection over MFCC frames, the step count from the ask page"</span>
-</span><span data-line="145">        <span class="p">),</span>
-</span><span data-line="146">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.known_k:_segment_known_k"</span><span class="p">,</span>
-</span><span data-line="147">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"media.local"</span><span class="p">,</span> <span class="s2">"k"</span><span class="p">}),</span>
-</span><span data-line="148">        <span class="n">reads</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">}),</span>
-</span><span data-line="149">        <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="s2">"ruptures"</span><span class="p">,</span> <span class="s2">"librosa"</span><span class="p">),</span>
-</span><span data-line="150">        <span class="n">licence</span><span class="o">=</span><span class="s2">"BSD-2-Clause (ruptures)"</span><span class="p">,</span>
-</span><span data-line="151">        <span class="n">base</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># below every segmenter that is told where the steps are</span>
-</span><span data-line="152">        <span class="n">resolution_s</span><span class="o">=</span><span class="n">DFLT_HOP_S</span><span class="p">,</span>
-</span><span data-line="153">    <span class="p">)</span>
-</span><span data-line="154"><span class="p">)</span>
+</span><span data-line="112">
+</span><span data-line="113">
+</span><span data-line="114"><span class="k">def</span><span class="w"> </span><span class="nf">_segment_known_k</span><span class="p">(</span><span class="n">inputs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Segmentation</span><span class="p">:</span>
+</span><span data-line="115"><span class="w">    </span><span class="sd">"""The ``known-k`` capability: K steps cut where the media's audio changes most."""</span>
+</span><span data-line="116">    <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"k"</span><span class="p">])</span>
+</span><span data-line="117">    <span class="n">features</span><span class="p">,</span> <span class="n">frame_s</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">audio_features</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s2">"media"</span><span class="p">])</span>
+</span><span data-line="118">    <span class="n">cuts</span> <span class="o">=</span> <span class="n">known_k_cuts</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">frame_s</span><span class="o">=</span><span class="n">frame_s</span><span class="p">)</span>
+</span><span data-line="119">    <span class="k">if</span> <span class="n">cuts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="120">        <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="121">            <span class="n">confidence</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+</span><span data-line="122">            <span class="n">flags</span><span class="o">=</span><span class="p">(</span>
+</span><span data-line="123">                <span class="sa">f</span><span class="s2">"k-too-large: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> steps of at least </span><span class="si">{</span><span class="n">DFLT_KNOWN_K_MIN_STEP_S</span><span class="si">}</span><span class="s2"> s "</span>
+</span><span data-line="124">                <span class="sa">f</span><span class="s2">"do not fit in </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s of media"</span><span class="p">,</span>
+</span><span data-line="125">            <span class="p">),</span>
+</span><span data-line="126">        <span class="p">)</span>
+</span><span data-line="127">    <span class="n">boundaries</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">*</span><span class="n">cuts</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">TIME_PLACES</span><span class="p">))</span>
+</span><span data-line="128">    <span class="n">steps</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">steps_on_boundaries</span><span class="p">(</span>
+</span><span data-line="129">        <span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="130">        <span class="n">inputs</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span>
+</span><span data-line="131">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_KNOWN_K_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="132">        <span class="n">source</span><span class="o">=</span><span class="s2">"known-k"</span><span class="p">,</span>
+</span><span data-line="133">    <span class="p">)</span>
+</span><span data-line="134">    <span class="k">return</span> <span class="n">Segmentation</span><span class="p">(</span>
+</span><span data-line="135">        <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
+</span><span data-line="136">        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+</span><span data-line="137">        <span class="n">confidence</span><span class="o">=</span><span class="n">DFLT_KNOWN_K_CONFIDENCE</span><span class="p">,</span>
+</span><span data-line="138">        <span class="n">flags</span><span class="o">=</span><span class="n">flags</span> <span class="o">+</span> <span class="p">(</span><span class="s2">"boundaries-proposed"</span><span class="p">,),</span>
+</span><span data-line="139">    <span class="p">)</span>
+</span><span data-line="140">
+</span><span data-line="141">
+</span><span data-line="142"><span class="n">KNOWN_K</span> <span class="o">=</span> <span class="n">register</span><span class="p">(</span>
+</span><span data-line="143">    <span class="n">Capability</span><span class="p">(</span>
+</span><span data-line="144">        <span class="n">name</span><span class="o">=</span><span class="s2">"known-k"</span><span class="p">,</span>
+</span><span data-line="145">        <span class="n">gives</span><span class="o">=</span><span class="s2">"segmentation"</span><span class="p">,</span>
+</span><span data-line="146">        <span class="n">summary</span><span class="o">=</span><span class="p">(</span>
+</span><span data-line="147">            <span class="s2">"K steps where the media's audio changes most: kernel change-point "</span>
+</span><span data-line="148">            <span class="s2">"detection over MFCC frames, the step count from the ask page"</span>
+</span><span data-line="149">        <span class="p">),</span>
+</span><span data-line="150">        <span class="n">target</span><span class="o">=</span><span class="s2">"paces.known_k:_segment_known_k"</span><span class="p">,</span>
+</span><span data-line="151">        <span class="n">needs</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"media.local"</span><span class="p">,</span> <span class="s2">"k"</span><span class="p">}),</span>
+</span><span data-line="152">        <span class="n">reads</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"steps"</span><span class="p">}),</span>
+</span><span data-line="153">        <span class="n">requires</span><span class="o">=</span><span class="p">(</span><span class="s2">"ruptures"</span><span class="p">,</span> <span class="s2">"librosa"</span><span class="p">),</span>
+</span><span data-line="154">        <span class="n">licence</span><span class="o">=</span><span class="s2">"BSD-2-Clause (ruptures)"</span><span class="p">,</span>
+</span><span data-line="155">        <span class="n">base</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># below every segmenter that is told where the steps are</span>
+</span><span data-line="156">        <span class="n">resolution_s</span><span class="o">=</span><span class="n">DFLT_HOP_S</span><span class="p">,</span>
+</span><span data-line="157">    <span class="p">)</span>
+</span><span data-line="158"><span class="p">)</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -317,7 +321,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=cee5022b"></script>
+      <script src="../../_static/documentation_options.js?v=828725f0"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
