@@ -542,3 +542,14 @@ def test_propose_takes_the_min_step_as_a_keyword():
 def test_the_status_line_stays_on_screen():
     css = (files("paces") / "data" / "ask" / "ask.css").read_text()
     assert re.search(r"#status \{[^}]*position: sticky", css)
+
+
+def test_the_contract_is_declared_as_models():
+    from paces.ask_contract import AnswersDocument, Proposal, contract_schemas
+
+    p = propose(segment(boundaries=CUTS), media="v.mp4", title="t")
+    assert Proposal.model_validate(p).model_dump(by_alias=True, mode="json") == p
+    schemas = contract_schemas()
+    assert schemas["proposal"]["properties"]["minStepS"]["type"] == "string"
+    assert schemas["answers"]["additionalProperties"] is False
+    assert AnswersDocument.model_validate(_answers()).k == 4
