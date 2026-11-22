@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T20:57:51Z",
+  "built_at": "2026-11-22T20:58:21Z",
   "package": {
     "name": "paces",
-    "version": "0.0.26",
+    "version": "0.0.27",
     "display_name": "paces",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "b6a835cf2639236b758d095b999723b077d254b2",
-    "short_commit": "b6a835c",
+    "commit": "0d8e1e29e7207af49fd8fd4e1adef98acb31a777",
+    "short_commit": "0d8e1e2",
     "branch": "main",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/paces",
-    "commit_url": "https://github.com/reeleehq/paces/commit/b6a835cf2639236b758d095b999723b077d254b2",
+    "commit_url": "https://github.com/reeleehq/paces/commit/0d8e1e29e7207af49fd8fd4e1adef98acb31a777",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/paces",
-    "sha": "c1322dd80c7a3169f0ebeaf9dffd51f0845ed503",
+    "sha": "b6a835cf2639236b758d095b999723b077d254b2",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "45069096040",
-    "run_url": "https://github.com/reeleehq/paces/actions/runs/45069096040",
+    "run_id": "45069101679",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/45069101679",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -60,14 +60,16 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.26",
-    "relation": "same",
+    "latest": "0.0.28",
+    "relation": "behind",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout b6a835cf2639236b758d095b999723b077d254b2\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout 0d8e1e29e7207af49fd8fd4e1adef98acb31a777\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": true,
-    "notes": []
+    "aligned": false,
+    "notes": [
+      "The documented version (0.0.27) is behind the latest release on PyPI (0.0.28): `pip install paces` gives newer code than these docs describe."
+    ]
   }
 }
