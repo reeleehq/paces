@@ -453,3 +453,51 @@ def test_scalar_list_edits_do_not_survive_but_keep_their_record():
     merged = merge_regenerated(committed, fresh)
     assert merged.steps[0].tags == ["wrong-tag"]  # not protected, by design
     assert merged.steps[0].locks  # but the record survives
+
+
+def _repeats(names_and_starts) -> StepDocument:
+    """A document of steps named and timed as given, with the generated ids
+    a segmenter makes for repeats (``turn``, ``turn-2``, ...)."""
+    from paces.segmenters import unique_slug_ids
+
+    names = [n for n, _ in names_and_starts]
+    return _doc(
+        steps=[
+            Step(
+                id=sid,
+                name=name,
+                duration=Measure(value="1", unit="eight"),
+                spans=[SourceSpan(source="vid", start=str(start), end=str(start + 4))],
+                origin=Origin(generated_by="segmenter:grid-placed"),
+            )
+            for sid, (name, start) in zip(unique_slug_ids(names), names_and_starts)
+        ]
+    )
+
+
+def test_a_lock_on_a_repeat_stays_on_it_when_a_repeat_is_inserted_before_it():
+    """paces#50: committed [Turn, Kick, Turn] (turn, kick, turn-2) with a lock
+    on turn-2; regeneration finds a new Turn at 5 s, so its ids shift to turn,
+    turn-2, kick, turn-3. The lock stays on the Turn at 20 s, and the new one
+    gets an id no committed step holds."""
+    committed = apply_edits(
+        _repeats([("Turn", 0), ("Kick", 10), ("Turn", 20)]),
+        [{"op": "set", "path": "/steps/turn-2/name", "value": "Turn (left)"}],
+        by="user:thor",
+    )
+    fresh = _repeats([("Turn", 0), ("Turn", 5), ("Kick", 10), ("Turn", 20)])
+    merged = merge_regenerated(committed, fresh)
+    by_start = {str(s.spans[0].start): s for s in merged.steps}
+    assert by_start["20"].name == "Turn (left)" and by_start["20"].id == "turn-2"
+    assert by_start["5"].name == "Turn" and by_start["5"].id not in {"turn", "turn-2", "kick"}
+    assert by_start["0"].id == "turn"
+    assert len({s.id for s in merged.steps}) == 4
+
+
+def test_repeats_without_times_keep_their_positional_ids():
+    """With no span to tell occurrences apart, the merge matches by id as before."""
+    committed = _repeats([("Turn", 0), ("Turn", 20)])
+    for step in committed.steps:
+        step.spans = []
+    fresh = committed.model_copy(deep=True)
+    assert [s.id for s in merge_regenerated(committed, fresh).steps] == ["turn", "turn-2"]

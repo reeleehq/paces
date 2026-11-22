@@ -435,7 +435,108 @@ def _renamed_from(committed: list[dict]) -> dict[str, dict]:
     return out
 
 
+def _occurrence_start(step: Mapping) -> float | None:
+    """Where a step first starts in its media (its first span's start), if anywhere."""
+    spans = step.get("spans") or []
+    return float(spans[0]["start"]) if spans else None
+
+
+def _repeat_family(step: Mapping) -> str | None:
+    """The generated-id family a step belongs to: the slug of its name, when
+    its id is that slug or that slug with a ``-N`` repeat suffix
+    (:func:`paces.segmenters.unique_slug_ids`); else its id less any ``-N``
+    suffix (a step whose name was edited keeps the id it was generated with).
+    A family pairs only when the fresh side, named by analysis, has it too."""
+    from paces.segmenters import _slugify
+
+    sid = step["id"]
+    base = _slugify(step.get("name") or "")
+    if not base:
+        return None  # unnamed (``seg-1``): its id is its place, as before
+    if (sid == base or re.fullmatch(rf"{re.escape(base)}-\d+", sid)):
+        return base
+    # a renamed step (a locked name edit) keeps the id it was generated with
+    repeat = re.fullmatch(r"(.+)-\d+", sid)
+    return repeat.group(1) if repeat else sid
+
+
+def _time_matching(a: list[float], b: list[float]) -> list[tuple[int, int]]:
+    """The order-preserving pairing of times ``a`` with times ``b`` (each used
+    at most once, as many pairs as the shorter list) of least total distance.
+
+    >>> _time_matching([0.0, 20.0], [0.0, 5.0, 20.0])
+    [(0, 0), (1, 2)]
+    """
+    n, m = len(a), len(b)
+    inf = float("inf")
+    # cost[i][j]: best pairing of a[:i] into b[:j] with every a used (i <= j)
+    cost = [[inf] * (m + 1) for _ in range(n + 1)]
+    cost[0] = [0.0] * (m + 1)
+    for i in range(1, n + 1):
+        for j in range(i, m + 1):
+            cost[i][j] = min(cost[i][j - 1], cost[i - 1][j - 1] + abs(a[i - 1] - b[j - 1]))
+    pairs, i, j = [], n, m
+    while i > 0:
+        if j > i and cost[i][j] == cost[i][j - 1]:
+            j -= 1
+        else:
+            pairs.append((i - 1, j - 1))
+            i, j = i - 1, j - 1
+    return pairs[::-1]
+
+
+def _reidentify_repeats(committed: list[dict], fresh: list[dict]) -> list[dict]:
+    """``fresh`` with the generated ids of repeated steps matched to the
+    committed ones by name and time, not by their place in the list (paces#50).
+
+    Generated ids of repeats are numbered by position (``turn``, ``turn-2``),
+    so a repeat inserted earlier shifts every later one's suffix, and a lock
+    on the committed ``turn-2`` would land on the new second Turn. Here each
+    family of generated ids (one name, its repeats) present on both sides is
+    paired by start time (:func:`_time_matching`); a fresh occurrence takes the
+    id of the committed one it pairs with, and an unpaired one the first free
+    id of its family that no committed step holds. Steps without a time, and
+    explicit ids, are left as they are.
+    """
+    families: dict[str, tuple[list[int], list[int]]] = {}
+    for side, steps in enumerate((committed, fresh)):
+        for index, step in enumerate(steps):
+            family = _repeat_family(step)
+            if family is not None:
+                families.setdefault(family, ([], []))[side].append(index)
+    out = [dict(step) for step in fresh]
+    taken = {step["id"] for step in committed}
+    for family, (ci, fi) in families.items():
+        if not ci or not fi or (len(ci) == 1 and len(fi) == 1):
+            continue  # nothing repeats here: ids already say it
+        c_times = [_occurrence_start(committed[i]) for i in ci]
+        f_times = [_occurrence_start(fresh[i]) for i in fi]
+        if None in c_times or None in f_times:
+            continue  # no clock to tell occurrences apart: keep the positional ids
+        if len(ci) <= len(fi):
+            pairs = _time_matching(c_times, f_times)
+        else:
+            pairs = [(c, f) for f, c in _time_matching(f_times, c_times)]
+        assigned = {fi[f]: committed[ci[c]]["id"] for c, f in pairs}
+        others = {
+            step["id"] for k, step in enumerate(fresh) if k not in fi
+        }
+        used = taken | others | set(assigned.values())
+        for index in fi:
+            if index in assigned:
+                out[index]["id"] = assigned[index]
+                continue
+            candidate, n = family, 1
+            while candidate in used:
+                n += 1
+                candidate = f"{family}-{n}"
+            used.add(candidate)
+            out[index]["id"] = candidate
+    return out
+
+
 def _merge_steps(committed: list[dict], fresh: list[dict]) -> list[dict]:
+    fresh = _reidentify_repeats(committed, fresh)
     committed_by_id: dict[str, dict] = {}
     for step in committed:  # first occurrence wins, matching apply_edits
         committed_by_id.setdefault(step["id"], step)
@@ -540,6 +641,9 @@ def merge_regenerated(committed: StepDocument, fresh: StepDocument) -> StepDocum
     4. Cues, questions and sources are unioned by id (fresh wins on shared
        ids) — analysis rarely regenerates them, and dropping committed
        content silently is the failure this module exists to prevent.
+    5. Repeated steps are matched by name and time, not by their generated
+       ``-N`` suffix (:func:`_reidentify_repeats`): a repeat inserted earlier
+       does not move a lock onto the wrong occurrence (paces#50).
 
     Edits made through :func:`apply_edits` are always locked, so "hand edit"
     and "protected" coincide by construction; edits made by hand-editing the
