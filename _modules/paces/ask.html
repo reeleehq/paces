@@ -216,167 +216,183 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="85">    <span class="k">return</span> <span class="p">[</span><span class="n">time_str</span><span class="p">(</span><span class="n">origin</span> <span class="o">+</span> <span class="n">n</span> <span class="o">*</span> <span class="n">spu</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
 </span><span data-line="86">
 </span><span data-line="87">
+</span><span data-line="88"><span class="k">def</span><span class="w"> </span><span class="nf">_meets</span><span class="p">(</span><span class="n">seg</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span> <span class="n">cut</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span data-line="89"><span class="w">    </span><span class="sd">"""Whether one step ends at ``cut`` and another begins there (no gap).</span>
+</span><span data-line="90">
+</span><span data-line="91"><span class="sd">    Unnamed segmentations (no steps) are spans between cuts, so every cut meets.</span>
+</span><span data-line="92">
+</span><span data-line="93"><span class="sd">    &gt;&gt;&gt; from paces.segmenters import segment</span>
+</span><span data-line="94"><span class="sd">    &gt;&gt;&gt; propose(segment(boundaries=[0, 10, 20]))["cutMeets"]</span>
+</span><span data-line="95"><span class="sd">    [True]</span>
+</span><span data-line="96"><span class="sd">    """</span>
+</span><span data-line="97">    <span class="k">if</span> <span class="ow">not</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="98">        <span class="k">return</span> <span class="kc">True</span>
+</span><span data-line="99">    <span class="n">spans</span> <span class="o">=</span> <span class="p">[(</span><span class="n">time_str</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">time_str</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">]</span>
+</span><span data-line="100">    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="n">cut</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">cut</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">)</span>
+</span><span data-line="101">
+</span><span data-line="102">
 <div class="viewcode-block" id="propose">
 <a class="viewcode-back" href="../../_autosummary/paces.ask.html#paces.ask.propose">[docs]</a>
-</span><span data-line="88"><span class="k">def</span><span class="w"> </span><span class="nf">propose</span><span class="p">(</span>
-</span><span data-line="89">    <span class="n">seg</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span>
-</span><span data-line="90">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="91">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="92">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
-</span><span data-line="93">    <span class="n">snap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_SNAP_S</span><span class="p">,</span>
-</span><span data-line="94">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MIN_STEP_S</span><span class="p">,</span>
-</span><span data-line="95">    <span class="n">max_grid_ticks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_GRID_TICKS</span><span class="p">,</span>
-</span><span data-line="96"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="97"><span class="w">    </span><span class="sd">"""What the machine pre-computes for a human to confirm — a JSON-ready dict.</span>
-</span><span data-line="98">
-</span><span data-line="99"><span class="sd">    ``k`` is the proposed step count (``None`` when the segmentation has</span>
-</span><span data-line="100"><span class="sd">    nothing to count) and ``k_evidence`` says where it came from, so the human</span>
-</span><span data-line="101"><span class="sd">    confirms a number they can see the reasoning for. Times are decimal</span>
-</span><span data-line="102"><span class="sd">    strings, as everywhere on paces' wire; cuts that are the same millisecond</span>
-</span><span data-line="103"><span class="sd">    are one cut. ``minStepS`` is the narrowest step a split may make</span>
-</span><span data-line="104"><span class="sd">    (:data:`~paces.corrections.DFLT_MIN_STEP_S`): the page ignores a tap</span>
-</span><span data-line="105"><span class="sd">    closer than that to a cut, as replay would.</span>
-</span><span data-line="106">
-</span><span data-line="107"><span class="sd">    &gt;&gt;&gt; propose(Segmentation(boundaries=(0, 10, 10.0001, 20)))["cuts"]</span>
-</span><span data-line="108"><span class="sd">    ['10']</span>
-</span><span data-line="109"><span class="sd">    """</span>
-</span><span data-line="110">    <span class="n">cuts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">float</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span><span class="p">})</span>
-</span><span data-line="111">    <span class="n">interior</span> <span class="o">=</span> <span class="n">cuts</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-</span><span data-line="112">    <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="113">        <span class="n">k</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="114">            <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">),</span>
-</span><span data-line="115">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps found by </span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">method</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'the segmenter'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-</span><span data-line="116">        <span class="p">)</span>
-</span><span data-line="117">    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-</span><span data-line="118">        <span class="n">k</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span><span class="si">}</span><span class="s2"> cuts make </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> spans (unnamed)"</span>
-</span><span data-line="119">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="120">        <span class="n">k</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"nothing to count yet: the segmenter found no cuts"</span>
-</span><span data-line="121">    <span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">cuts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cuts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="122">    <span class="n">ticks</span> <span class="o">=</span> <span class="n">_grid_ticks</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="o">*</span><span class="n">extent</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">max_grid_ticks</span><span class="p">)</span> <span class="k">if</span> <span class="n">extent</span> <span class="k">else</span> <span class="p">[]</span>
-</span><span data-line="123">    <span class="k">return</span> <span class="n">Proposal</span><span class="p">(</span>
-</span><span data-line="124">        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
-</span><span data-line="125">        <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span>
-</span><span data-line="126">        <span class="n">method</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
-</span><span data-line="127">        <span class="n">flags</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
-</span><span data-line="128">        <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
-</span><span data-line="129">        <span class="n">k_evidence</span><span class="o">=</span><span class="n">why</span><span class="p">,</span>
-</span><span data-line="130">        <span class="n">extent</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">extent</span><span class="p">)</span> <span class="k">if</span> <span class="n">extent</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="131">        <span class="n">cuts</span><span class="o">=</span><span class="p">[</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">interior</span><span class="p">],</span>
-</span><span data-line="132">        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
-</span><span data-line="133">            <span class="n">ProposedStep</span><span class="p">(</span>
-</span><span data-line="134">                <span class="nb">id</span><span class="o">=</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span data-line="135">                <span class="n">name</span><span class="o">=</span><span class="n">step</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-</span><span data-line="136">                <span class="n">spans</span><span class="o">=</span><span class="p">[(</span><span class="n">time_str</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">time_str</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">],</span>
-</span><span data-line="137">            <span class="p">)</span>
-</span><span data-line="138">            <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span>
-</span><span data-line="139">        <span class="p">],</span>
-</span><span data-line="140">        <span class="n">min_step_s</span><span class="o">=</span><span class="n">time_str</span><span class="p">(</span><span class="n">min_step_s</span><span class="p">),</span>
-</span><span data-line="141">        <span class="n">snap</span><span class="o">=</span><span class="n">Snap</span><span class="p">(</span>
-</span><span data-line="142">            <span class="n">window_s</span><span class="o">=</span><span class="n">time_str</span><span class="p">(</span><span class="n">snap_s</span><span class="p">),</span>
-</span><span data-line="143">            <span class="n">targets</span><span class="o">=</span><span class="nb">sorted</span><span class="p">({</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">time_str</span><span class="p">,</span> <span class="n">interior</span><span class="p">),</span> <span class="o">*</span><span class="n">ticks</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-</span><span data-line="144">        <span class="p">),</span>
-</span><span data-line="145">    <span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span></div>
+</span><span data-line="103"><span class="k">def</span><span class="w"> </span><span class="nf">propose</span><span class="p">(</span>
+</span><span data-line="104">    <span class="n">seg</span><span class="p">:</span> <span class="n">Segmentation</span><span class="p">,</span>
+</span><span data-line="105">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="106">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="107">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+</span><span data-line="108">    <span class="n">snap_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_SNAP_S</span><span class="p">,</span>
+</span><span data-line="109">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_MIN_STEP_S</span><span class="p">,</span>
+</span><span data-line="110">    <span class="n">max_grid_ticks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_GRID_TICKS</span><span class="p">,</span>
+</span><span data-line="111"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="112"><span class="w">    </span><span class="sd">"""What the machine pre-computes for a human to confirm — a JSON-ready dict.</span>
+</span><span data-line="113">
+</span><span data-line="114"><span class="sd">    ``k`` is the proposed step count (``None`` when the segmentation has</span>
+</span><span data-line="115"><span class="sd">    nothing to count) and ``k_evidence`` says where it came from, so the human</span>
+</span><span data-line="116"><span class="sd">    confirms a number they can see the reasoning for. Times are decimal</span>
+</span><span data-line="117"><span class="sd">    strings, as everywhere on paces' wire; cuts that are the same millisecond</span>
+</span><span data-line="118"><span class="sd">    are one cut. ``minStepS`` is the narrowest step a split may make</span>
+</span><span data-line="119"><span class="sd">    (:data:`~paces.corrections.DFLT_MIN_STEP_S`): the page ignores a tap</span>
+</span><span data-line="120"><span class="sd">    closer than that to a cut, as replay would.</span>
+</span><span data-line="121">
+</span><span data-line="122"><span class="sd">    &gt;&gt;&gt; propose(Segmentation(boundaries=(0, 10, 10.0001, 20)))["cuts"]</span>
+</span><span data-line="123"><span class="sd">    ['10']</span>
+</span><span data-line="124"><span class="sd">    """</span>
+</span><span data-line="125">    <span class="n">cuts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="nb">float</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">boundaries</span><span class="p">})</span>
+</span><span data-line="126">    <span class="n">interior</span> <span class="o">=</span> <span class="n">cuts</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span data-line="127">    <span class="k">if</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="128">        <span class="n">k</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="129">            <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">),</span>
+</span><span data-line="130">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps found by </span><span class="si">{</span><span class="n">seg</span><span class="o">.</span><span class="n">method</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'the segmenter'</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+</span><span data-line="131">        <span class="p">)</span>
+</span><span data-line="132">    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span data-line="133">        <span class="n">k</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span><span class="si">}</span><span class="s2"> cuts make </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> spans (unnamed)"</span>
+</span><span data-line="134">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="135">        <span class="n">k</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"nothing to count yet: the segmenter found no cuts"</span>
+</span><span data-line="136">    <span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">cuts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cuts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="137">    <span class="n">ticks</span> <span class="o">=</span> <span class="n">_grid_ticks</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="o">*</span><span class="n">extent</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">max_grid_ticks</span><span class="p">)</span> <span class="k">if</span> <span class="n">extent</span> <span class="k">else</span> <span class="p">[]</span>
+</span><span data-line="138">    <span class="k">return</span> <span class="n">Proposal</span><span class="p">(</span>
+</span><span data-line="139">        <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+</span><span data-line="140">        <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span>
+</span><span data-line="141">        <span class="n">method</span><span class="o">=</span><span class="n">seg</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+</span><span data-line="142">        <span class="n">flags</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">seg</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
+</span><span data-line="143">        <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+</span><span data-line="144">        <span class="n">k_evidence</span><span class="o">=</span><span class="n">why</span><span class="p">,</span>
+</span><span data-line="145">        <span class="n">extent</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">extent</span><span class="p">)</span> <span class="k">if</span> <span class="n">extent</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="146">        <span class="n">cuts</span><span class="o">=</span><span class="p">[</span><span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">interior</span><span class="p">],</span>
+</span><span data-line="147">        <span class="n">cut_meets</span><span class="o">=</span><span class="p">[</span><span class="n">_meets</span><span class="p">(</span><span class="n">seg</span><span class="p">,</span> <span class="n">time_str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">interior</span><span class="p">],</span>
+</span><span data-line="148">        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+</span><span data-line="149">            <span class="n">ProposedStep</span><span class="p">(</span>
+</span><span data-line="150">                <span class="nb">id</span><span class="o">=</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+</span><span data-line="151">                <span class="n">name</span><span class="o">=</span><span class="n">step</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span data-line="152">                <span class="n">spans</span><span class="o">=</span><span class="p">[(</span><span class="n">time_str</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">time_str</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">spans</span><span class="p">],</span>
+</span><span data-line="153">            <span class="p">)</span>
+</span><span data-line="154">            <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">seg</span><span class="o">.</span><span class="n">steps</span>
+</span><span data-line="155">        <span class="p">],</span>
+</span><span data-line="156">        <span class="n">min_step_s</span><span class="o">=</span><span class="n">time_str</span><span class="p">(</span><span class="n">min_step_s</span><span class="p">),</span>
+</span><span data-line="157">        <span class="n">snap</span><span class="o">=</span><span class="n">Snap</span><span class="p">(</span>
+</span><span data-line="158">            <span class="n">window_s</span><span class="o">=</span><span class="n">time_str</span><span class="p">(</span><span class="n">snap_s</span><span class="p">),</span>
+</span><span data-line="159">            <span class="n">targets</span><span class="o">=</span><span class="nb">sorted</span><span class="p">({</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">time_str</span><span class="p">,</span> <span class="n">interior</span><span class="p">),</span> <span class="o">*</span><span class="n">ticks</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+</span><span data-line="160">        <span class="p">),</span>
+</span><span data-line="161">    <span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span></div>
 
-</span><span data-line="146">
-</span><span data-line="147">
+</span><span data-line="162">
+</span><span data-line="163">
 <div class="viewcode-block" id="render_ask_page">
 <a class="viewcode-back" href="../../_autosummary/paces.ask.html#paces.ask.render_ask_page">[docs]</a>
-</span><span data-line="148"><span class="k">def</span><span class="w"> </span><span class="nf">render_ask_page</span><span class="p">(</span><span class="n">proposal</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="149"><span class="w">    </span><span class="sd">"""The default ``ask`` UI: a self-contained static HTML page.</span>
-</span><span data-line="150">
-</span><span data-line="151"><span class="sd">    It posts nothing. The human's answers autosave in the browser (so a</span>
-</span><span data-line="152"><span class="sd">    closed tab loses nothing) and leave as a downloaded ``answers.json`` or</span>
-</span><span data-line="153"><span class="sd">    copied text, which :func:`load_answers` reads. ``author`` is stamped on</span>
-</span><span data-line="154"><span class="sd">    every correction the page emits.</span>
-</span><span data-line="155"><span class="sd">    """</span>
-</span><span data-line="156">    <span class="k">if</span> <span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PROPOSAL_KIND</span><span class="p">:</span>
-</span><span data-line="157">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="158">            <span class="sa">f</span><span class="s2">"expected a </span><span class="si">{</span><span class="n">PROPOSAL_KIND</span><span class="si">}</span><span class="s2"> (from propose()), got </span><span class="si">{</span><span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'kind'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="159">        <span class="p">)</span>
-</span><span data-line="160">    <span class="k">if</span> <span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">CONTRACT_VERSION</span><span class="p">:</span>
-</span><span data-line="161">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="162">            <span class="sa">f</span><span class="s2">"expected a version </span><span class="si">{</span><span class="n">CONTRACT_VERSION</span><span class="si">}</span><span class="s2"> proposal, "</span>
-</span><span data-line="163">            <span class="sa">f</span><span class="s2">"got version </span><span class="si">{</span><span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'version'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="164">        <span class="p">)</span>
-</span><span data-line="165">    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="o">**</span><span class="n">proposal</span><span class="p">,</span> <span class="s2">"author"</span><span class="p">:</span> <span class="n">author</span><span class="p">},</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span data-line="166">    <span class="c1"># No "&lt;" may reach the data block: a "&lt;/script&gt;" (or "&lt;!--") inside a</span>
-</span><span data-line="167">    <span class="c1"># title or flag would end it early. JSON reads "\u003c" back as "&lt;".</span>
-</span><span data-line="168">    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">u003c"</span><span class="p">)</span>
-</span><span data-line="169">    <span class="n">fills</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="170">        <span class="s2">"title"</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"Check the steps"</span><span class="p">),</span>
-</span><span data-line="171">        <span class="s2">"css"</span><span class="p">:</span> <span class="p">(</span><span class="n">_ASSETS</span> <span class="o">/</span> <span class="s2">"ask.css"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span>
-</span><span data-line="172">        <span class="s2">"js"</span><span class="p">:</span> <span class="p">(</span><span class="n">_ASSETS</span> <span class="o">/</span> <span class="s2">"ask.js"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span>
-</span><span data-line="173">        <span class="s2">"data"</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
-</span><span data-line="174">    <span class="p">}</span>
-</span><span data-line="175">    <span class="n">template</span> <span class="o">=</span> <span class="p">(</span><span class="n">_ASSETS</span> <span class="o">/</span> <span class="s2">"ask.html"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="176">    <span class="c1"># One pass: a filled value is never scanned again, so a title such as</span>
-</span><span data-line="177">    <span class="c1"># "{{js}}" stays text instead of pulling the script into the heading.</span>
-</span><span data-line="178">    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\{\{(\w+)\}\}"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">fills</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)],</span> <span class="n">template</span><span class="p">)</span></div>
+</span><span data-line="164"><span class="k">def</span><span class="w"> </span><span class="nf">render_ask_page</span><span class="p">(</span><span class="n">proposal</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="165"><span class="w">    </span><span class="sd">"""The default ``ask`` UI: a self-contained static HTML page.</span>
+</span><span data-line="166">
+</span><span data-line="167"><span class="sd">    It posts nothing. The human's answers autosave in the browser (so a</span>
+</span><span data-line="168"><span class="sd">    closed tab loses nothing) and leave as a downloaded ``answers.json`` or</span>
+</span><span data-line="169"><span class="sd">    copied text, which :func:`load_answers` reads. ``author`` is stamped on</span>
+</span><span data-line="170"><span class="sd">    every correction the page emits.</span>
+</span><span data-line="171"><span class="sd">    """</span>
+</span><span data-line="172">    <span class="k">if</span> <span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PROPOSAL_KIND</span><span class="p">:</span>
+</span><span data-line="173">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="174">            <span class="sa">f</span><span class="s2">"expected a </span><span class="si">{</span><span class="n">PROPOSAL_KIND</span><span class="si">}</span><span class="s2"> (from propose()), got </span><span class="si">{</span><span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'kind'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="175">        <span class="p">)</span>
+</span><span data-line="176">    <span class="k">if</span> <span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">CONTRACT_VERSION</span><span class="p">:</span>
+</span><span data-line="177">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="178">            <span class="sa">f</span><span class="s2">"expected a version </span><span class="si">{</span><span class="n">CONTRACT_VERSION</span><span class="si">}</span><span class="s2"> proposal, "</span>
+</span><span data-line="179">            <span class="sa">f</span><span class="s2">"got version </span><span class="si">{</span><span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'version'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="180">        <span class="p">)</span>
+</span><span data-line="181">    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="o">**</span><span class="n">proposal</span><span class="p">,</span> <span class="s2">"author"</span><span class="p">:</span> <span class="n">author</span><span class="p">},</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span data-line="182">    <span class="c1"># No "&lt;" may reach the data block: a "&lt;/script&gt;" (or "&lt;!--") inside a</span>
+</span><span data-line="183">    <span class="c1"># title or flag would end it early. JSON reads "\u003c" back as "&lt;".</span>
+</span><span data-line="184">    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">u003c"</span><span class="p">)</span>
+</span><span data-line="185">    <span class="n">fills</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="186">        <span class="s2">"title"</span><span class="p">:</span> <span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">proposal</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"Check the steps"</span><span class="p">),</span>
+</span><span data-line="187">        <span class="s2">"css"</span><span class="p">:</span> <span class="p">(</span><span class="n">_ASSETS</span> <span class="o">/</span> <span class="s2">"ask.css"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span>
+</span><span data-line="188">        <span class="s2">"js"</span><span class="p">:</span> <span class="p">(</span><span class="n">_ASSETS</span> <span class="o">/</span> <span class="s2">"ask.js"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span>
+</span><span data-line="189">        <span class="s2">"data"</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+</span><span data-line="190">    <span class="p">}</span>
+</span><span data-line="191">    <span class="n">template</span> <span class="o">=</span> <span class="p">(</span><span class="n">_ASSETS</span> <span class="o">/</span> <span class="s2">"ask.html"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="192">    <span class="c1"># One pass: a filled value is never scanned again, so a title such as</span>
+</span><span data-line="193">    <span class="c1"># "{{js}}" stays text instead of pulling the script into the heading.</span>
+</span><span data-line="194">    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\{\{(\w+)\}\}"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">fills</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)],</span> <span class="n">template</span><span class="p">)</span></div>
 
-</span><span data-line="179">
-</span><span data-line="180">
+</span><span data-line="195">
+</span><span data-line="196">
 <div class="viewcode-block" id="Answers">
 <a class="viewcode-back" href="../../_autosummary/paces.ask.html#paces.ask.Answers">[docs]</a>
-</span><span data-line="181"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="182"><span class="k">class</span><span class="w"> </span><span class="nc">Answers</span><span class="p">:</span>
-</span><span data-line="183"><span class="w">    </span><span class="sd">"""What a human answered on the ask page, ready for the next run.</span>
-</span><span data-line="184">
-</span><span data-line="185"><span class="sd">    ``k`` is the step count they gave (``None`` unless they touched it);</span>
-</span><span data-line="186"><span class="sd">    ``corrections`` is a :mod:`paces.corrections` log; ``boundaries`` holds</span>
-</span><span data-line="187"><span class="sd">    the cuts they tapped when the proposal had none to correct (the refused</span>
-</span><span data-line="188"><span class="sd">    state), from 0 to the media's end — ``None`` otherwise.</span>
-</span><span data-line="189"><span class="sd">    """</span>
-</span><span data-line="190">
-</span><span data-line="191">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span data-line="192">    <span class="n">corrections</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Correction</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
-</span><span data-line="193">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+</span><span data-line="197"><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="198"><span class="k">class</span><span class="w"> </span><span class="nc">Answers</span><span class="p">:</span>
+</span><span data-line="199"><span class="w">    </span><span class="sd">"""What a human answered on the ask page, ready for the next run.</span>
+</span><span data-line="200">
+</span><span data-line="201"><span class="sd">    ``k`` is the step count they gave (``None`` unless they touched it);</span>
+</span><span data-line="202"><span class="sd">    ``corrections`` is a :mod:`paces.corrections` log; ``boundaries`` holds</span>
+</span><span data-line="203"><span class="sd">    the cuts they tapped when the proposal had none to correct (the refused</span>
+</span><span data-line="204"><span class="sd">    state), from 0 to the media's end — ``None`` otherwise.</span>
+</span><span data-line="205"><span class="sd">    """</span>
+</span><span data-line="206">
+</span><span data-line="207">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span data-line="208">    <span class="n">corrections</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Correction</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</span><span data-line="209">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-</span><span data-line="194">
-</span><span data-line="195">
-</span><span data-line="196"><span class="k">def</span><span class="w"> </span><span class="nf">_answered_boundaries</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="197">    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="198">        <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="199">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-</span><span data-line="200">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be a list of 2 or more times, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="201">    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
-</span><span data-line="202">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be times in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="203">    <span class="k">try</span><span class="p">:</span>
-</span><span data-line="204">        <span class="n">times</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
-</span><span data-line="205">    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-</span><span data-line="206">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="207">            <span class="sa">f</span><span class="s2">"boundaries must be times in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="208">        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
-</span><span data-line="209">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
-</span><span data-line="210">        <span class="n">a</span> <span class="o">&gt;=</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-</span><span data-line="211">    <span class="p">):</span>
-</span><span data-line="212">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be increasing times &gt;= 0, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="213">    <span class="k">return</span> <span class="n">times</span>
-</span><span data-line="214">
-</span><span data-line="215">
+</span><span data-line="210">
+</span><span data-line="211">
+</span><span data-line="212"><span class="k">def</span><span class="w"> </span><span class="nf">_answered_boundaries</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="213">    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="214">        <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="215">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+</span><span data-line="216">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be a list of 2 or more times, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="217">    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+</span><span data-line="218">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be times in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="219">    <span class="k">try</span><span class="p">:</span>
+</span><span data-line="220">        <span class="n">times</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">time_str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+</span><span data-line="221">    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+</span><span data-line="222">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="223">            <span class="sa">f</span><span class="s2">"boundaries must be times in seconds, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="224">        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+</span><span data-line="225">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+</span><span data-line="226">        <span class="n">a</span> <span class="o">&gt;=</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</span><span data-line="227">    <span class="p">):</span>
+</span><span data-line="228">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be increasing times &gt;= 0, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="229">    <span class="k">return</span> <span class="n">times</span>
+</span><span data-line="230">
+</span><span data-line="231">
 <div class="viewcode-block" id="load_answers">
 <a class="viewcode-back" href="../../_autosummary/paces.ask.html#paces.ask.load_answers">[docs]</a>
-</span><span data-line="216"><span class="k">def</span><span class="w"> </span><span class="nf">load_answers</span><span class="p">(</span><span class="n">answers</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Answers</span><span class="p">:</span>
-</span><span data-line="217"><span class="w">    </span><span class="sd">""":class:`Answers` from the page's answers JSON.</span>
-</span><span data-line="218">
-</span><span data-line="219"><span class="sd">    Validated here, so a bad file fails now and not halfway through a re-run:</span>
-</span><span data-line="220"><span class="sd">    the kind, the contract ``version`` (required), ``k``, every correction,</span>
-</span><span data-line="221"><span class="sd">    and the boundaries.</span>
-</span><span data-line="222">
-</span><span data-line="223"><span class="sd">    &gt;&gt;&gt; load_answers({"kind": "PacesAskAnswers", "version": 1, "k": 4,</span>
-</span><span data-line="224"><span class="sd">    ...               "corrections": [{"verb": "split", "anchorT": "15"}]})</span>
-</span><span data-line="225"><span class="sd">    Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason=''),), boundaries=None)</span>
-</span><span data-line="226"><span class="sd">    """</span>
-</span><span data-line="227">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-</span><span data-line="228">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="229">            <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">ANSWERS_KIND</span><span class="si">}</span><span class="s2"> answers (from the ask page), "</span>
-</span><span data-line="230">            <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">answers</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="231">        <span class="p">)</span>
-</span><span data-line="232">    <span class="n">doc</span> <span class="o">=</span> <span class="n">AnswersDocument</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">answers</span><span class="p">))</span>
-</span><span data-line="233">    <span class="k">return</span> <span class="n">Answers</span><span class="p">(</span>
-</span><span data-line="234">        <span class="n">k</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
-</span><span data-line="235">        <span class="n">corrections</span><span class="o">=</span><span class="n">normalize_corrections</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">corrections</span><span class="p">),</span>
-</span><span data-line="236">        <span class="n">boundaries</span><span class="o">=</span><span class="n">_answered_boundaries</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">boundaries</span><span class="p">),</span>
-</span><span data-line="237">    <span class="p">)</span></div>
+</span><span data-line="232"><span class="k">def</span><span class="w"> </span><span class="nf">load_answers</span><span class="p">(</span><span class="n">answers</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Answers</span><span class="p">:</span>
+</span><span data-line="233"><span class="w">    </span><span class="sd">""":class:`Answers` from the page's answers JSON.</span>
+</span><span data-line="234">
+</span><span data-line="235"><span class="sd">    Validated here, so a bad file fails now and not halfway through a re-run:</span>
+</span><span data-line="236"><span class="sd">    the kind, the contract ``version`` (required), ``k``, every correction,</span>
+</span><span data-line="237"><span class="sd">    and the boundaries.</span>
+</span><span data-line="238">
+</span><span data-line="239"><span class="sd">    &gt;&gt;&gt; load_answers({"kind": "PacesAskAnswers", "version": 1, "k": 4,</span>
+</span><span data-line="240"><span class="sd">    ...               "corrections": [{"verb": "split", "anchorT": "15"}]})</span>
+</span><span data-line="241"><span class="sd">    Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason=''),), boundaries=None)</span>
+</span><span data-line="242"><span class="sd">    """</span>
+</span><span data-line="243">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+</span><span data-line="244">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="245">            <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">ANSWERS_KIND</span><span class="si">}</span><span class="s2"> answers (from the ask page), "</span>
+</span><span data-line="246">            <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">answers</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="247">        <span class="p">)</span>
+</span><span data-line="248">    <span class="n">doc</span> <span class="o">=</span> <span class="n">AnswersDocument</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">answers</span><span class="p">))</span>
+</span><span data-line="249">    <span class="k">return</span> <span class="n">Answers</span><span class="p">(</span>
+</span><span data-line="250">        <span class="n">k</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+</span><span data-line="251">        <span class="n">corrections</span><span class="o">=</span><span class="n">normalize_corrections</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">corrections</span><span class="p">),</span>
+</span><span data-line="252">        <span class="n">boundaries</span><span class="o">=</span><span class="n">_answered_boundaries</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">boundaries</span><span class="p">),</span>
+</span><span data-line="253">    <span class="p">)</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -405,7 +421,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=5d650c58"></script>
+      <script src="../../_static/documentation_options.js?v=6a9d8632"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

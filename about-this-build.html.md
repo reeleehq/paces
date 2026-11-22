@@ -2,20 +2,18 @@
 
 # About this build
 
-This documentation was built on **2026-11-22 14:14 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e"><code>2c4a403</code></a> on branch <code>main</code>, for **paces 0.0.25** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 14:18 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/ace3f32ae45b0e7bea189897933073b379160582"><code>ace3f32</code></a> on branch <code>main</code>, for **paces 0.0.26** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.0.25) is ahead of the latest release on PyPI (0.0.24): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e"><code>2c4a403d23320bb98cd534a0cd4c035c821a0a4e</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/ace3f32ae45b0e7bea189897933073b379160582"><code>ace3f32ae45b0e7bea189897933073b379160582</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.25</code>                                                                                                                                   |
+| Tags at this commit | none                                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -24,9 +22,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45031428862">45031428862</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45031767055">45031767055</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>0808dbc4490212362d1901a6e8e6de45c9185109</code> (in the history of the built commit) |
+| Event commit | <code>77351c0c934cfe758e40f3a8ea3270f398ad6fa7</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51,13 +49,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.24/">0.0.24</a>, older than the documented version (0.0.25).
+Latest release: <a href="https://pypi.org/project/paces/0.0.26/">0.0.26</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 2c4a403d23320bb98cd534a0cd4c035c821a0a4e
+git checkout ace3f32ae45b0e7bea189897933073b379160582
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

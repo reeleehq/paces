@@ -55,11 +55,16 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 The proposal/answers contract version. Both documents carry it; a reader
 refuses any other, so a page and a loader of different ages fail loudly.
 
-### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, steps, minStepS, snap)
+### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, cutMeets=[], steps, minStepS, snap)
 
 Bases: `_Wire`
 
 What the machine pre-computes for a human to confirm ([`paces.ask.propose()`](paces.ask.html.md#paces.ask.propose)).
+
+`cut_meets` is aligned with `cuts`: `True` where one step ends and
+another begins (so striking the cut merges them), `False` at the edge of a
+gap between steps, where there is nothing to merge. Empty (an older proposal)
+reads as all `True`.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
 

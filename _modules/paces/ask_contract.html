@@ -189,102 +189,109 @@ data-aria-dark="Switch to auto color mode">
 <div class="viewcode-block" id="Proposal">
 <a class="viewcode-back" href="../../_autosummary/paces.ask_contract.html#paces.ask_contract.Proposal">[docs]</a>
 </span><span data-line="52"><span class="k">class</span><span class="w"> </span><span class="nc">Proposal</span><span class="p">(</span><span class="n">_Wire</span><span class="p">):</span>
-</span><span data-line="53"><span class="w">    </span><span class="sd">"""What the machine pre-computes for a human to confirm (:func:`paces.ask.propose`)."""</span>
+</span><span data-line="53"><span class="w">    </span><span class="sd">"""What the machine pre-computes for a human to confirm (:func:`paces.ask.propose`).</span>
 </span><span data-line="54">
-</span><span data-line="55">    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"PacesAskProposal"</span><span class="p">]</span> <span class="o">=</span> <span class="n">PROPOSAL_KIND</span>
-</span><span data-line="56">    <span class="n">version</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">CONTRACT_VERSION</span>
-</span><span data-line="57">    <span class="n">answers_kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"PacesAskAnswers"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ANSWERS_KIND</span>
-</span><span data-line="58">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
-</span><span data-line="59">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="60">    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="61">    <span class="n">flags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="62">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span data-line="63">    <span class="n">k_evidence</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="64">    <span class="n">extent</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
-</span><span data-line="65">    <span class="n">cuts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-</span><span data-line="66">    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ProposedStep</span><span class="p">]</span>
-</span><span data-line="67">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">str</span>
-</span><span data-line="68">    <span class="n">snap</span><span class="p">:</span> <span class="n">Snap</span></div>
+</span><span data-line="55"><span class="sd">    ``cut_meets`` is aligned with ``cuts``: ``True`` where one step ends and</span>
+</span><span data-line="56"><span class="sd">    another begins (so striking the cut merges them), ``False`` at the edge of a</span>
+</span><span data-line="57"><span class="sd">    gap between steps, where there is nothing to merge. Empty (an older proposal)</span>
+</span><span data-line="58"><span class="sd">    reads as all ``True``.</span>
+</span><span data-line="59"><span class="sd">    """</span>
+</span><span data-line="60">
+</span><span data-line="61">    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"PacesAskProposal"</span><span class="p">]</span> <span class="o">=</span> <span class="n">PROPOSAL_KIND</span>
+</span><span data-line="62">    <span class="n">version</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">CONTRACT_VERSION</span>
+</span><span data-line="63">    <span class="n">answers_kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"PacesAskAnswers"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ANSWERS_KIND</span>
+</span><span data-line="64">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+</span><span data-line="65">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="66">    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="67">    <span class="n">flags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="68">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span data-line="69">    <span class="n">k_evidence</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="70">    <span class="n">extent</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span data-line="71">    <span class="n">cuts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span><span data-line="72">    <span class="n">cut_meets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="73">    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ProposedStep</span><span class="p">]</span>
+</span><span data-line="74">    <span class="n">min_step_s</span><span class="p">:</span> <span class="nb">str</span>
+</span><span data-line="75">    <span class="n">snap</span><span class="p">:</span> <span class="n">Snap</span></div>
 
-</span><span data-line="69">
-</span><span data-line="70">
+</span><span data-line="76">
+</span><span data-line="77">
 <div class="viewcode-block" id="AnswersDocument">
 <a class="viewcode-back" href="../../_autosummary/paces.ask_contract.html#paces.ask_contract.AnswersDocument">[docs]</a>
-</span><span data-line="71"><span class="k">class</span><span class="w"> </span><span class="nc">AnswersDocument</span><span class="p">(</span><span class="n">_Wire</span><span class="p">):</span>
-</span><span data-line="72"><span class="w">    </span><span class="sd">"""What the page exports (:func:`paces.ask.load_answers` reads it).</span>
-</span><span data-line="73">
-</span><span data-line="74"><span class="sd">    ``corrections`` is a :mod:`paces.corrections` log, each entry validated by</span>
-</span><span data-line="75"><span class="sd">    :func:`paces.corrections.normalize_corrections`. ``boundaries`` holds the</span>
-</span><span data-line="76"><span class="sd">    cuts tapped when the proposal had none to correct, from 0 to the media's</span>
-</span><span data-line="77"><span class="sd">    end, as time strings or seconds.</span>
-</span><span data-line="78"><span class="sd">    """</span>
-</span><span data-line="79">
-</span><span data-line="80">    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">validate_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="81">    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span>
-</span><span data-line="82">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="83">    <span class="n">corrections</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="84">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="85">    <span class="n">proposal</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="78"><span class="k">class</span><span class="w"> </span><span class="nc">AnswersDocument</span><span class="p">(</span><span class="n">_Wire</span><span class="p">):</span>
+</span><span data-line="79"><span class="w">    </span><span class="sd">"""What the page exports (:func:`paces.ask.load_answers` reads it).</span>
+</span><span data-line="80">
+</span><span data-line="81"><span class="sd">    ``corrections`` is a :mod:`paces.corrections` log, each entry validated by</span>
+</span><span data-line="82"><span class="sd">    :func:`paces.corrections.normalize_corrections`. ``boundaries`` holds the</span>
+</span><span data-line="83"><span class="sd">    cuts tapped when the proposal had none to correct, from 0 to the media's</span>
+</span><span data-line="84"><span class="sd">    end, as time strings or seconds.</span>
+</span><span data-line="85"><span class="sd">    """</span>
 </span><span data-line="86">
-</span><span data-line="87">    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
-</span><span data-line="88">    <span class="nd">@classmethod</span>
-</span><span data-line="89">    <span class="k">def</span><span class="w"> </span><span class="nf">_known_keys</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span data-line="90">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span data-line="91">            <span class="n">known</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">model_fields</span><span class="p">)</span> <span class="o">|</span> <span class="p">{</span>
-</span><span data-line="92">                <span class="n">f</span><span class="o">.</span><span class="n">alias</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">model_fields</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">alias</span>
-</span><span data-line="93">            <span class="p">}</span>
-</span><span data-line="94">            <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">known</span><span class="p">)</span>
-</span><span data-line="95">            <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
-</span><span data-line="96">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown answers keys </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="97">        <span class="k">return</span> <span class="n">data</span>
-</span><span data-line="98">
-</span><span data-line="99">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span>
-</span><span data-line="100">    <span class="nd">@classmethod</span>
-</span><span data-line="101">    <span class="k">def</span><span class="w"> </span><span class="nf">_kind</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="102">        <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">ANSWERS_KIND</span><span class="p">:</span>
-</span><span data-line="103">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="104">                <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">ANSWERS_KIND</span><span class="si">}</span><span class="s2"> answers (from the ask page), got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="105">            <span class="p">)</span>
-</span><span data-line="106">        <span class="k">return</span> <span class="n">v</span>
-</span><span data-line="107">
-</span><span data-line="108">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"version"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
-</span><span data-line="109">    <span class="nd">@classmethod</span>
-</span><span data-line="110">    <span class="k">def</span><span class="w"> </span><span class="nf">_version</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span data-line="111">        <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">CONTRACT_VERSION</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-</span><span data-line="112">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="113">                <span class="sa">f</span><span class="s2">"expected version </span><span class="si">{</span><span class="n">CONTRACT_VERSION</span><span class="si">}</span><span class="s2"> answers, got version </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2"> "</span>
-</span><span data-line="114">                <span class="s2">"(re-export them from a page made by this paces)"</span>
-</span><span data-line="115">            <span class="p">)</span>
-</span><span data-line="116">        <span class="k">return</span> <span class="n">v</span>
-</span><span data-line="117">
-</span><span data-line="118">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"k"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
-</span><span data-line="119">    <span class="nd">@classmethod</span>
-</span><span data-line="120">    <span class="k">def</span><span class="w"> </span><span class="nf">_k</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span data-line="121">        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
-</span><span data-line="122">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"k must be a positive integer or null, got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="87">    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">validate_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="88">    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span>
+</span><span data-line="89">    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="90">    <span class="n">corrections</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="91">    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="92">    <span class="n">proposal</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="93">
+</span><span data-line="94">    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
+</span><span data-line="95">    <span class="nd">@classmethod</span>
+</span><span data-line="96">    <span class="k">def</span><span class="w"> </span><span class="nf">_known_keys</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span data-line="97">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span data-line="98">            <span class="n">known</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">model_fields</span><span class="p">)</span> <span class="o">|</span> <span class="p">{</span>
+</span><span data-line="99">                <span class="n">f</span><span class="o">.</span><span class="n">alias</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">model_fields</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">alias</span>
+</span><span data-line="100">            <span class="p">}</span>
+</span><span data-line="101">            <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">known</span><span class="p">)</span>
+</span><span data-line="102">            <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+</span><span data-line="103">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown answers keys </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="104">        <span class="k">return</span> <span class="n">data</span>
+</span><span data-line="105">
+</span><span data-line="106">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span>
+</span><span data-line="107">    <span class="nd">@classmethod</span>
+</span><span data-line="108">    <span class="k">def</span><span class="w"> </span><span class="nf">_kind</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="109">        <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">ANSWERS_KIND</span><span class="p">:</span>
+</span><span data-line="110">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="111">                <span class="sa">f</span><span class="s2">"expected </span><span class="si">{</span><span class="n">ANSWERS_KIND</span><span class="si">}</span><span class="s2"> answers (from the ask page), got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="112">            <span class="p">)</span>
+</span><span data-line="113">        <span class="k">return</span> <span class="n">v</span>
+</span><span data-line="114">
+</span><span data-line="115">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"version"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
+</span><span data-line="116">    <span class="nd">@classmethod</span>
+</span><span data-line="117">    <span class="k">def</span><span class="w"> </span><span class="nf">_version</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span data-line="118">        <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">CONTRACT_VERSION</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+</span><span data-line="119">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="120">                <span class="sa">f</span><span class="s2">"expected version </span><span class="si">{</span><span class="n">CONTRACT_VERSION</span><span class="si">}</span><span class="s2"> answers, got version </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2"> "</span>
+</span><span data-line="121">                <span class="s2">"(re-export them from a page made by this paces)"</span>
+</span><span data-line="122">            <span class="p">)</span>
 </span><span data-line="123">        <span class="k">return</span> <span class="n">v</span>
 </span><span data-line="124">
-</span><span data-line="125">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"boundaries"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
+</span><span data-line="125">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"k"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
 </span><span data-line="126">    <span class="nd">@classmethod</span>
-</span><span data-line="127">    <span class="k">def</span><span class="w"> </span><span class="nf">_boundaries_is_a_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-</span><span data-line="128">        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">):</span>
-</span><span data-line="129">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be a list of 2 or more times, got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="130">        <span class="k">return</span> <span class="n">v</span></div>
-
+</span><span data-line="127">    <span class="k">def</span><span class="w"> </span><span class="nf">_k</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span data-line="128">        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+</span><span data-line="129">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"k must be a positive integer or null, got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="130">        <span class="k">return</span> <span class="n">v</span>
 </span><span data-line="131">
-</span><span data-line="132">
+</span><span data-line="132">    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"boundaries"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
+</span><span data-line="133">    <span class="nd">@classmethod</span>
+</span><span data-line="134">    <span class="k">def</span><span class="w"> </span><span class="nf">_boundaries_is_a_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span data-line="135">        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">):</span>
+</span><span data-line="136">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"boundaries must be a list of 2 or more times, got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="137">        <span class="k">return</span> <span class="n">v</span></div>
+
+</span><span data-line="138">
+</span><span data-line="139">
 <div class="viewcode-block" id="contract_schemas">
 <a class="viewcode-back" href="../../_autosummary/paces.ask_contract.html#paces.ask_contract.contract_schemas">[docs]</a>
-</span><span data-line="133"><span class="k">def</span><span class="w"> </span><span class="nf">contract_schemas</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-</span><span data-line="134"><span class="w">    </span><span class="sd">"""The JSON Schema of both documents, for a UI written in another language.</span>
-</span><span data-line="135">
-</span><span data-line="136"><span class="sd">    &gt;&gt;&gt; contract_schemas()["proposal"]["properties"]["kind"]["const"]</span>
-</span><span data-line="137"><span class="sd">    'PacesAskProposal'</span>
-</span><span data-line="138"><span class="sd">    """</span>
-</span><span data-line="139">    <span class="k">return</span> <span class="p">{</span>
-</span><span data-line="140">        <span class="s2">"proposal"</span><span class="p">:</span> <span class="n">Proposal</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-</span><span data-line="141">        <span class="s2">"answers"</span><span class="p">:</span> <span class="n">AnswersDocument</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-</span><span data-line="142">    <span class="p">}</span></div>
+</span><span data-line="140"><span class="k">def</span><span class="w"> </span><span class="nf">contract_schemas</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+</span><span data-line="141"><span class="w">    </span><span class="sd">"""The JSON Schema of both documents, for a UI written in another language.</span>
+</span><span data-line="142">
+</span><span data-line="143"><span class="sd">    &gt;&gt;&gt; contract_schemas()["proposal"]["properties"]["kind"]["const"]</span>
+</span><span data-line="144"><span class="sd">    'PacesAskProposal'</span>
+</span><span data-line="145"><span class="sd">    """</span>
+</span><span data-line="146">    <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="147">        <span class="s2">"proposal"</span><span class="p">:</span> <span class="n">Proposal</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span data-line="148">        <span class="s2">"answers"</span><span class="p">:</span> <span class="n">AnswersDocument</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span data-line="149">    <span class="p">}</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -313,7 +320,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=5d650c58"></script>
+      <script src="../../_static/documentation_options.js?v=6a9d8632"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
