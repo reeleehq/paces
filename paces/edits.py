@@ -493,7 +493,9 @@ def _time_matching(a: list[float], b: list[float]) -> list[tuple[int, int]]:
     cost[0] = [0.0] * (m + 1)
     for i in range(1, n + 1):
         for j in range(i, m + 1):
-            cost[i][j] = min(cost[i][j - 1], cost[i - 1][j - 1] + abs(a[i - 1] - b[j - 1]))
+            cost[i][j] = min(
+                cost[i][j - 1], cost[i - 1][j - 1] + abs(a[i - 1] - b[j - 1])
+            )
     pairs, i, j = [], n, m
     while i > 0:
         if j > i and cost[i][j] == cost[i][j - 1]:
@@ -581,7 +583,9 @@ def _repeat_ids(committed: list[dict], fresh: list[dict]) -> dict[str, str]:
     for step in f_steps:
         sid = step["id"]
         if sid not in mapping and sid in taken:
-            family = _generated_family(step.get("name", ""), sid) or re.sub(r"-\d+$", "", sid)
+            family = _generated_family(step.get("name", ""), sid) or re.sub(
+                r"-\d+$", "", sid
+            )
             mapping[sid] = free(family)
     return {old: new for old, new in mapping.items() if old != new}
 
