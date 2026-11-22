@@ -453,3 +453,113 @@ def test_scalar_list_edits_do_not_survive_but_keep_their_record():
     merged = merge_regenerated(committed, fresh)
     assert merged.steps[0].tags == ["wrong-tag"]  # not protected, by design
     assert merged.steps[0].locks  # but the record survives
+
+
+def _repeats(names_and_starts) -> StepDocument:
+    """A document of steps named and timed as given, with the generated ids
+    a segmenter makes for repeats (``turn``, ``turn-2``, ...)."""
+    from paces.segmenters import unique_slug_ids
+
+    names = [n for n, _ in names_and_starts]
+    return _doc(
+        steps=[
+            Step(
+                id=sid,
+                name=name,
+                duration=Measure(value="1", unit="eight"),
+                spans=[SourceSpan(source="vid", start=str(start), end=str(start + 4))],
+                origin=Origin(generated_by="segmenter:grid-placed"),
+            )
+            for sid, (name, start) in zip(unique_slug_ids(names), names_and_starts)
+        ]
+    )
+
+
+def test_a_lock_on_a_repeat_stays_on_it_when_a_repeat_is_inserted_before_it():
+    """paces#50: committed [Turn, Kick, Turn] (turn, kick, turn-2) with a lock
+    on turn-2; regeneration finds a new Turn at 5 s, so its ids shift to turn,
+    turn-2, kick, turn-3. The lock stays on the Turn at 20 s, and the new one
+    gets an id no committed step holds."""
+    committed = apply_edits(
+        _repeats([("Turn", 0), ("Kick", 10), ("Turn", 20)]),
+        [{"op": "set", "path": "/steps/turn-2/name", "value": "Turn (left)"}],
+        by="user:thor",
+    )
+    fresh = _repeats([("Turn", 0), ("Turn", 5), ("Kick", 10), ("Turn", 20)])
+    merged = merge_regenerated(committed, fresh)
+    by_start = {str(s.spans[0].start): s for s in merged.steps}
+    assert by_start["20"].name == "Turn (left)" and by_start["20"].id == "turn-2"
+    assert by_start["5"].name == "Turn" and by_start["5"].id not in {"turn", "turn-2", "kick"}
+    assert by_start["0"].id == "turn"
+    assert len({s.id for s in merged.steps}) == 4
+
+
+def test_repeats_without_times_keep_their_positional_ids():
+    """With no span to tell occurrences apart, the merge matches by id as before."""
+    committed = _repeats([("Turn", 0), ("Turn", 20)])
+    for step in committed.steps:
+        step.spans = []
+    fresh = committed.model_copy(deep=True)
+    assert [s.id for s in merge_regenerated(committed, fresh).steps] == ["turn", "turn-2"]
+
+
+def _ids(doc) -> list[str]:
+    out = []
+
+    def walk(steps):
+        for s in steps:
+            out.append(s.id)
+            walk(s.steps)
+
+    walk(doc.steps)
+    return out
+
+
+def test_repeat_identity_never_makes_two_steps_one_id():
+    """paces#58 review: a step named "Turn 2" holds the id a second Turn would
+    take; a nested repeat must not take its parent's id; and ids stay unique."""
+    committed = _repeats([("Turn", 0), ("Turn", 20)])  # turn, turn-2
+    fresh = _repeats([("Turn 2", 10), ("Turn", 0), ("Turn", 20)])  # turn-2, turn, turn-3
+    merged = merge_regenerated(committed, fresh)
+    ids = _ids(merged)
+    assert len(ids) == len(set(ids)), ids
+    assert {str(s.spans[0].start): s.id for s in merged.steps}["20"] == "turn-2"
+
+    parent = _repeats([("Turn", 0)])
+    nested = _repeats([("Turn", 0)])
+    nested.steps[0].steps = _repeats([("Turn", 1), ("Turn", 2)]).steps  # ids turn, turn-2
+    nested.steps[0].steps[0].id, nested.steps[0].steps[1].id = "turn-2", "turn-3"
+    ids = _ids(merge_regenerated(parent, nested))
+    assert len(ids) == len(set(ids)), ids
+
+
+def test_repeat_identity_reads_time_order_not_list_order():
+    committed = _repeats([("Turn", 0), ("Turn", 20)])
+    committed.steps.reverse()  # [turn-2 @20, turn @0]
+    merged = merge_regenerated(committed, _repeats([("Turn", 0), ("Turn", 20)]))
+    assert {str(s.spans[0].start): s.id for s in merged.steps} == {"0": "turn", "20": "turn-2"}
+
+
+def test_a_renamed_repeat_and_a_cue_on_it_stay_with_their_occurrence():
+    """An ``/id`` rename (``turn-2`` -> ``my-turn``) keeps to the Turn at 20 s
+    when a Turn is inserted earlier, and a fresh cue anchored to the fresh id
+    of that Turn is re-anchored with it."""
+    from paces.model import Anchor, Cue
+
+    committed = apply_edits(
+        _repeats([("Turn", 0), ("Kick", 10), ("Turn", 20)]),
+        [{"op": "set", "path": "/steps/turn-2/id", "value": "my-turn"}],
+        by="user:thor",
+    )
+    fresh = _repeats([("Turn", 0), ("Turn", 5), ("Kick", 10), ("Turn", 20)])
+    fresh.cues = [Cue(id="clap", kind="count", text="clap", anchor=Anchor(step="turn-3"))]
+    merged = merge_regenerated(committed, fresh)
+    by_start = {str(s.spans[0].start): s.id for s in merged.steps}
+    assert by_start["20"] == "my-turn" and by_start["5"] not in {"my-turn", "turn"}
+    assert merged.cues[0].anchor.step == "my-turn"
+
+
+def test_unnamed_steps_keep_their_place_ids():
+    committed = _repeats([("", 0), ("", 10)])
+    fresh = _repeats([("", 0), ("", 5), ("", 10)])
+    assert _ids(merge_regenerated(committed, fresh)) == _ids(fresh)

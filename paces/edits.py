@@ -56,7 +56,7 @@ from __future__ import annotations
 
 import copy
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from datetime import datetime, timezone
 from typing import Any
 
@@ -435,6 +435,194 @@ def _renamed_from(committed: list[dict]) -> dict[str, dict]:
     return out
 
 
+def _occurrence_start(step: Mapping) -> float | None:
+    """Where a step first starts in its media (its first span's start), if anywhere."""
+    spans = step.get("spans") or []
+    return float(spans[0]["start"]) if spans else None
+
+
+def _walk(steps: list[dict]) -> Iterator[dict]:
+    """Every step of a tree, parents before children."""
+    for step in steps:
+        yield step
+        yield from _walk(step.get("steps", []))
+
+
+def _renamed_was(step: Mapping) -> str | None:
+    """The id a step had before an ``/id`` lock renamed it, if one did."""
+    for lock in step.get("locks", []):
+        if lock.get("path") == "/id" and lock.get("was") is not None:
+            return str(lock["was"])
+    return None
+
+
+def _generated_family(name: str, sid: str) -> str | None:
+    """The family of a generated id: the slug of ``name`` when ``sid`` is that
+    slug or it with a ``-N`` repeat suffix (:func:`paces.segmenters.unique_slug_ids`);
+    ``None`` for an unnamed step or an id the name did not generate.
+
+    >>> _generated_family("Turn", "turn-3"), _generated_family("Turn", "spin"), _generated_family("", "seg-1")
+    ('turn', None, None)
+    """
+    from paces.segmenters import _slugify
+
+    if not name:
+        return None  # unnamed (``seg-1``): its id is its place
+    base = _slugify(name)
+    if sid == base or re.fullmatch(rf"{re.escape(base)}-\d+", sid):
+        return base
+    return None
+
+
+def _time_matching(a: list[float], b: list[float]) -> list[tuple[int, int]]:
+    """The order-preserving pairing of times ``a`` with times ``b`` (each sorted;
+    each used at most once, as many pairs as the shorter list) of least total
+    distance.
+
+    >>> _time_matching([0.0, 20.0], [0.0, 5.0, 20.0])
+    [(0, 0), (1, 2)]
+    >>> _time_matching([0.0, 5.0, 20.0], [0.0, 20.0])
+    [(0, 0), (2, 1)]
+    """
+    if len(a) > len(b):
+        return [(i, j) for j, i in _time_matching(b, a)]
+    n, m = len(a), len(b)
+    inf = float("inf")
+    # cost[i][j]: best pairing of a[:i] into b[:j] with every a used (i <= j)
+    cost = [[inf] * (m + 1) for _ in range(n + 1)]
+    cost[0] = [0.0] * (m + 1)
+    for i in range(1, n + 1):
+        for j in range(i, m + 1):
+            cost[i][j] = min(cost[i][j - 1], cost[i - 1][j - 1] + abs(a[i - 1] - b[j - 1]))
+    pairs, i, j = [], n, m
+    while i > 0:
+        if j > i and cost[i][j] == cost[i][j - 1]:
+            j -= 1
+        else:
+            pairs.append((i - 1, j - 1))
+            i, j = i - 1, j - 1
+    return pairs[::-1]
+
+
+def _repeat_ids(committed: list[dict], fresh: list[dict]) -> dict[str, str]:
+    """``{fresh id: id to use}`` that keeps repeated steps' identity by name and
+    time rather than by the place a generated ``-N`` suffix encodes (paces#50).
+
+    Generated ids of repeats are numbered by position (``turn``, ``turn-2``), so
+    a repeat inserted earlier shifts every later one's suffix, and a lock on the
+    committed ``turn-2`` would land on the new second Turn. Over the WHOLE tree
+    (ids are unique document-wide), each family of generated ids (a name's slug
+    and its repeats) on both sides, with a repeat or a moved id, is paired by
+    start time (:func:`_time_matching`, each side in time order). A fresh
+    occurrence takes its committed partner's id (the id an ``/id`` lock renamed
+    away from, for a renamed one, so the rename rule finds it); an unpaired one
+    the first id of its family that no committed or other fresh step holds
+    (or held, before a rename); and a fresh step outside these families whose id
+    an assignment takes is re-identified the same way. Families without times
+    on every occurrence are left as they are.
+    """
+    c_steps, f_steps = list(_walk(committed)), list(_walk(fresh))
+    families: dict[str, tuple[list[tuple[dict, str]], list[dict]]] = {}
+    for step in c_steps:
+        was = _renamed_was(step)
+        key = was or step["id"]
+        family = _generated_family(step.get("name", ""), key)
+        if family is None and step.get("name"):
+            # a name (or id) a human edited: the id it was generated with says the
+            # family; it pairs only with a family analysis generates from a name
+            family = re.sub(r"-\d+$", "", key)
+        if family is not None:
+            families.setdefault(family, ([], []))[0].append((step, key))
+    for step in f_steps:
+        family = _generated_family(step.get("name", ""), step["id"])
+        if family is not None:
+            families.setdefault(family, ([], []))[1].append(step)
+
+    mapping: dict[str, str] = {}
+    unpaired: list[tuple[str, str]] = []  # (fresh id, family)
+    for family, (cs, fs) in families.items():
+        if not cs or not fs:
+            continue
+        if len(cs) == 1 and len(fs) == 1 and cs[0][1] == fs[0]["id"]:
+            continue  # one each, same id: nothing to re-identify
+        if any(_occurrence_start(s) is None for s, _ in cs) or any(
+            _occurrence_start(s) is None for s in fs
+        ):
+            continue  # no clock to tell occurrences apart: keep the positional ids
+        cs = sorted(cs, key=lambda c: _occurrence_start(c[0]))
+        fs = sorted(fs, key=_occurrence_start)
+        pairs = _time_matching(
+            [_occurrence_start(s) for s, _ in cs], [_occurrence_start(s) for s in fs]
+        )
+        paired = {j for _, j in pairs}
+        for i, j in pairs:
+            mapping[fs[j]["id"]] = cs[i][1]
+        unpaired += [(fs[j]["id"], family) for j in range(len(fs)) if j not in paired]
+
+    used = {s["id"] for s in c_steps} | {w for s in c_steps if (w := _renamed_was(s))}
+    used |= set(mapping.values())
+    used |= {s["id"] for s in f_steps if s["id"] not in mapping}
+
+    def free(base: str) -> str:
+        candidate, n = base, 1
+        while candidate in used:
+            n += 1
+            candidate = f"{base}-{n}"
+        used.add(candidate)
+        return candidate
+
+    held = {s["id"] for s in c_steps} | {w for s in c_steps if (w := _renamed_was(s))}
+    held |= set(mapping.values())
+    for sid, family in unpaired:
+        if sid in held:  # its positional id is a committed occurrence's: move it
+            mapping[sid] = free(family)
+    # a fresh step the mapping does not move, whose id an assignment now takes
+    taken = {new for old, new in mapping.items() if old != new}
+    for step in f_steps:
+        sid = step["id"]
+        if sid not in mapping and sid in taken:
+            family = _generated_family(step.get("name", ""), sid) or re.sub(r"-\d+$", "", sid)
+            mapping[sid] = free(family)
+    return {old: new for old, new in mapping.items() if old != new}
+
+
+def _renumbered(
+    doc: dict, ids: Mapping[str, str], *, renamed: Mapping[str, str] | None = None
+) -> dict:
+    """``doc`` (a fresh dump) with its step ids, and every reference to one (a
+    cue's anchor, a step's ``variant_of``), replaced through ``ids``. A
+    reference that lands on an id an ``/id`` lock renamed (``renamed``: was ->
+    now) follows the rename, as the step itself will in the merge."""
+    if not ids:
+        return doc
+    renamed = renamed or {}
+    ref = {old: renamed.get(new, new) for old, new in ids.items()}
+
+    def steps(rows: list[dict]) -> list[dict]:
+        out = []
+        for step in rows:
+            step = dict(step)
+            step["id"] = ids.get(step["id"], step["id"])
+            if step.get("variant_of") is not None:
+                step["variant_of"] = ref.get(step["variant_of"], step["variant_of"])
+            step["steps"] = steps(step.get("steps", []))
+            out.append(step)
+        return out
+
+    doc = dict(doc)
+    doc["steps"] = steps(doc["steps"])
+    cues = []
+    for cue in doc.get("cues", []):
+        cue = dict(cue)
+        anchor = dict(cue.get("anchor") or {})
+        if anchor.get("step") is not None:
+            anchor["step"] = ref.get(anchor["step"], anchor["step"])
+        cue["anchor"] = anchor
+        cues.append(cue)
+    doc["cues"] = cues
+    return doc
+
+
 def _merge_steps(committed: list[dict], fresh: list[dict]) -> list[dict]:
     committed_by_id: dict[str, dict] = {}
     for step in committed:  # first occurrence wins, matching apply_edits
@@ -540,6 +728,9 @@ def merge_regenerated(committed: StepDocument, fresh: StepDocument) -> StepDocum
     4. Cues, questions and sources are unioned by id (fresh wins on shared
        ids) — analysis rarely regenerates them, and dropping committed
        content silently is the failure this module exists to prevent.
+    5. Repeated steps are matched by name and time, not by their generated
+       ``-N`` suffix (:func:`_repeat_ids`): a repeat inserted earlier
+       does not move a lock onto the wrong occurrence (paces#50).
 
     Edits made through :func:`apply_edits` are always locked, so "hand edit"
     and "protected" coincide by construction; edits made by hand-editing the
@@ -547,6 +738,12 @@ def merge_regenerated(committed: StepDocument, fresh: StepDocument) -> StepDocum
     """
     committed_dump = committed.model_dump(mode="python", by_alias=False)
     out = fresh.model_dump(mode="python", by_alias=False)
+    renamed = {
+        was: s["id"] for s in _walk(committed_dump["steps"]) if (was := _renamed_was(s))
+    }
+    out = _renumbered(
+        out, _repeat_ids(committed_dump["steps"], out["steps"]), renamed=renamed
+    )
     out["steps"] = _merge_steps(committed_dump["steps"], out["steps"])
     for key in ("cues", "questions", "sources"):
         out[key] = _union_by_id(committed_dump[key], out[key])
