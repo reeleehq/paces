@@ -590,3 +590,32 @@ def test_js_refuses_striking_a_gap_edge_and_tapping_a_gap():
     assert out[0] == [] and "nothing to merge" in out[1]
     assert out[2] == [] and "gap between steps" in out[3]
     assert out[4] == ["25"]
+
+
+@needs_node
+def test_the_proposal_says_how_many_places_its_times_keep_and_the_page_keeps_them():
+    """paces#41 (3): the places travel in the proposal (``timePlaces``, Python's
+    ``TIME_PLACES``) instead of being a second constant in the page, and the
+    page writes every time it makes at that many places; a proposal written
+    before the field reads as 3."""
+    from paces.segmentation import TIME_PLACES
+
+    proposal = propose(segment("video.mp4"))
+    assert proposal["timePlaces"] == TIME_PLACES
+    actions = [{"type": "duration", "seconds": 30.0}, {"type": "tap", "t": 10.123456}]
+    for places, expected in ((TIME_PLACES, "10.123"), (2, "10.12"), (None, "10.123")):
+        p = {**proposal, "timePlaces": places}
+        if places is None:
+            del p["timePlaces"]
+        (_, tapped) = _reduce(p, actions)
+        assert tapped["state"]["added"] == [expected], places
+
+
+@needs_node
+def test_the_page_script_still_loads_as_a_module_with_only_its_pure_core():
+    """paces#41 (2): the DOM layer is split into functions (media, keyboard,
+    render, header, answers); requiring the script runs none of them and
+    exports the same pure core."""
+    assert _run_js("Object.keys(core).sort()") == sorted(
+        ["timeStr", "mmss", "snap", "freshState", "reduce", "buildAnswers", "cutRows"]
+    )

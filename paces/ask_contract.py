@@ -21,6 +21,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 
+from paces.segmentation import TIME_PLACES
+
 PROPOSAL_KIND = "PacesAskProposal"
 ANSWERS_KIND = "PacesAskAnswers"
 #: The proposal/answers contract version. Both documents carry it; a reader
@@ -72,6 +74,8 @@ class Proposal(_Wire):
     cut_meets: list[bool] = []
     steps: list[ProposedStep]
     min_step_s: str
+    #: The decimal places every time here keeps (the page writes its own the same way).
+    time_places: int = Field(TIME_PLACES, ge=1)
     snap: Snap
 
 
