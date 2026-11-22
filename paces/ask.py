@@ -85,6 +85,21 @@ def _grid_ticks(seg: Segmentation, lo: float, hi: float, *, limit: int) -> list[
     return [time_str(origin + n * spu) for n in range(first, last + 1)]
 
 
+def _meets(seg: Segmentation, cut: str) -> bool:
+    """Whether one step ends at ``cut`` and another begins there (no gap).
+
+    Unnamed segmentations (no steps) are spans between cuts, so every cut meets.
+
+    >>> from paces.segmenters import segment
+    >>> propose(segment(boundaries=[0, 10, 20]))["cutMeets"]
+    [True]
+    """
+    if not seg.steps:
+        return True
+    spans = [(time_str(a), time_str(b)) for step in seg.steps for a, b in step.spans]
+    return any(b == cut for _, b in spans) and any(a == cut for a, _ in spans)
+
+
 def propose(
     seg: Segmentation,
     *,
@@ -129,6 +144,7 @@ def propose(
         k_evidence=why,
         extent=tuple(time_str(t) for t in extent) if extent else None,
         cuts=[time_str(t) for t in interior],
+        cut_meets=[_meets(seg, time_str(t)) for t in interior],
         steps=[
             ProposedStep(
                 id=step.id,
