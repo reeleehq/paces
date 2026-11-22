@@ -78,7 +78,11 @@ def known_k_cuts(
     min_size = max(2, math.ceil(min_step_s / frame_s))
     if len(x) < k * min_size:
         return None
-    bkps = ruptures.KernelCPD(kernel=kernel, min_size=min_size).fit(x).predict(n_bkps=k - 1)
+    bkps = (
+        ruptures.KernelCPD(kernel=kernel, min_size=min_size)
+        .fit(x)
+        .predict(n_bkps=k - 1)
+    )
     return [round(b * frame_s, TIME_PLACES) for b in bkps[:-1]]
 
 
