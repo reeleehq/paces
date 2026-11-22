@@ -68,6 +68,7 @@
    edits
    evidence
    excerpts
+   known_k
    measure
    model
    pose

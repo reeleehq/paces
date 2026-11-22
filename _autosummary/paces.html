@@ -73,6 +73,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.edits.html">paces.edits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.excerpts.html">paces.excerpts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.known_k.html">paces.known_k</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.measure.html">paces.measure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.model.html">paces.model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.pose.html">paces.pose</a></li>
@@ -1028,31 +1029,34 @@ leaked onto the no-floats wire through an <code class="docutils literal notransl
 <tr class="row-odd"><td><p><a class="reference internal" href="paces.excerpts.html#module-paces.excerpts" title="paces.excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">excerpts</span></code></a></p></td>
 <td><p>Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.measure.html#module-paces.measure" title="paces.measure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.known_k.html#module-paces.known_k" title="paces.known_k"><code class="xref py py-obj docutils literal notranslate"><span class="pre">known_k</span></code></a></p></td>
+<td><p>Known-K change points: the step count a human gave turns peak-picking into exact change-point detection (paces#39).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.measure.html#module-paces.measure" title="paces.measure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure</span></code></a></p></td>
 <td><p>Measure a <a class="reference internal" href="paces.model.html#paces.model.MetricGrid" title="paces.model.MetricGrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetricGrid</span></code></a> from the media itself.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.model.html#module-paces.model" title="paces.model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.model.html#module-paces.model" title="paces.model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model</span></code></a></p></td>
 <td><p>The paces intermediate representation: the <code class="docutils literal notranslate"><span class="pre">StepDocument</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.pose.html#module-paces.pose" title="paces.pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.pose.html#module-paces.pose" title="paces.pose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pose</span></code></a></p></td>
 <td><p>The pointable <code class="docutils literal notranslate"><span class="pre">subject_locator</span></code>: person boxes from rtmlib pose keypoints.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.projection.html#module-paces.projection" title="paces.projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projection</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.projection.html#module-paces.projection" title="paces.projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projection</span></code></a></p></td>
 <td><p>The projection from analysis result to document: <code class="docutils literal notranslate"><span class="pre">to_document</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.render.html#module-paces.render" title="paces.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.render.html#module-paces.render" title="paces.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>Render a <a class="reference internal" href="paces.model.html#paces.model.StepDocument" title="paces.model.StepDocument"><code class="xref py py-class docutils literal notranslate"><span class="pre">StepDocument</span></code></a> into learning material.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.segmentation.html#module-paces.segmentation" title="paces.segmentation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmentation</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.segmentation.html#module-paces.segmentation" title="paces.segmentation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmentation</span></code></a></p></td>
 <td><p>What a segmenter returns: <a class="reference internal" href="#paces.Segmentation" title="paces.Segmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Segmentation</span></code></a>, its <a class="reference internal" href="#paces.SegStep" title="paces.SegStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">SegStep</span></code></a> records and the <code class="docutils literal notranslate"><span class="pre">Span</span></code> they cover — the analysis-result types, with nothing else.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.segmenters.html#module-paces.segmenters" title="paces.segmenters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmenters</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.segmenters.html#module-paces.segmenters" title="paces.segmenters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmenters</span></code></a></p></td>
 <td><p>Segmentation is a seam, not a stage (ADR-0003).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="paces.timed_text.html#module-paces.timed_text" title="paces.timed_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timed_text</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="paces.timed_text.html#module-paces.timed_text" title="paces.timed_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timed_text</span></code></a></p></td>
 <td><p>Timed-text normalisation: any subtitle/transcript shape → <code class="docutils literal notranslate"><span class="pre">{start,</span> <span class="pre">end,</span> <span class="pre">text}</span></code> rows.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="paces.tools.html#module-paces.tools" title="paces.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="paces.tools.html#module-paces.tools" title="paces.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
 <td><p>Agent-callable tool surface over <code class="docutils literal notranslate"><span class="pre">paces</span></code> — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic.</p></td>
 </tr>
 </tbody>

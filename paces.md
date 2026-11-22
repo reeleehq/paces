@@ -1,4 +1,4 @@
-> built 2026-11-22 14:18 UTC from ace3f32 (main) · paces 0.0.26. Details: build_info.json
+> built 2026-11-22 20:57 UTC from b6a835c (main) · paces 0.0.26. Details: build_info.json
 
 # index.html.md
 
@@ -398,7 +398,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 The proposal/answers contract version. Both documents carry it; a reader
 refuses any other, so a page and a loader of different ages fail loudly.
 
-### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, cutMeets=[], steps, minStepS, snap)
+### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, cutMeets=[], steps, minStepS, timePlaces=3, snap)
 
 Bases: `_Wire`
 
@@ -412,6 +412,10 @@ reads as all `True`.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### time_places *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+The decimal places every time here keeps (the page writes its own the same way).
 
 ### *class* paces.ask_contract.ProposedStep(, id, name=None, spans)
 
@@ -1795,6 +1799,7 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 | [`derivation`](_autosummary/paces.derivation.html.md#module-paces.derivation)     | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                                                                                                        |
 | [`edits`](_autosummary/paces.edits.html.md#module-paces.edits)               | Document-layer edit protection: typed patches write Locks; regeneration merges without eating edits.                                                                                                                                    |
 | [`excerpts`](_autosummary/paces.excerpts.html.md#module-paces.excerpts)         | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                                                                                                          |
+| [`known_k`](_autosummary/paces.known_k.html.md#module-paces.known_k)           | Known-K change points: the step count a human gave turns peak-picking into exact change-point detection (paces#39).                                                                                                                     |
 | [`measure`](_autosummary/paces.measure.html.md#module-paces.measure)           | Measure a [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid) from the media itself.                                                                                                                     |
 | [`model`](_autosummary/paces.model.html.md#module-paces.model)               | The paces intermediate representation: the `StepDocument`.                                                                                                                                                                              |
 | [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                                                                                                               |
@@ -1804,6 +1809,112 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 | [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters)     | Segmentation is a seam, not a stage (ADR-0003).                                                                                                                                                                                         |
 | [`timed_text`](_autosummary/paces.timed_text.html.md#module-paces.timed_text)     | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                                                                                                    |
 | [`tools`](_autosummary/paces.tools.html.md#module-paces.tools)               | Agent-callable tool surface over `paces` — plain functions with JSON-able arguments returning JSON-ready values, deliberately CLI/MCP/HTTP-agnostic.                                                                                    |
+
+
+# _autosummary/paces.known_k.html.md
+
+# paces.known_k
+
+Known-K change points: the step count a human gave turns peak-picking into exact change-point detection (paces#39).
+
+The ask page asks for the number of steps first (`docs/alignment/07 §7.3`
+step 1): one integer turns “find the peaks of a novelty curve” into “find the
+K-1 change points that best split this signal”, which kernel change-point
+detection solves exactly (`docs/alignment/05 §7`, `07 §2.16`). The
+`known-k` capability is that consumer of `k`:
+
+- **features**: a frame-wise description of the media’s audio
+  ([`audio_features()`](_autosummary/paces.known_k.html.md#paces.known_k.audio_features): MFCCs and their spectral contrast, each dimension
+  standardised), through paces’ own audio decode (the `[audio]` extra);
+- **cuts**: [`known_k_cuts()`](_autosummary/paces.known_k.html.md#paces.known_k.known_k_cuts), `ruptures.KernelCPD(...).predict(n_bkps=K-1)`
+  over those frames, no cut closer than `min_step_s` to another or to an end
+  (the `[cpd]` extra; `ruptures` is BSD-2-Clause);
+- **names**: zipped on when a step list of exactly K was given, else honestly
+  unnamed (the `explicit` segmenter’s rule, [`paces.segmenters.steps_on_boundaries()`](_autosummary/paces.segmenters.html.md#paces.segmenters.steps_on_boundaries)).
+
+The boundaries are a proposal: the confidence is low
+([`DFLT_KNOWN_K_CONFIDENCE`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_KNOWN_K_CONFIDENCE)) and the result is flagged
+`boundaries-proposed` for the ask page to confirm. A K the media is too
+short to hold (fewer than `min_step_s` per step) is refused, with a reason,
+never a made-up split.
+
+The pure core, [`known_k_cuts()`](_autosummary/paces.known_k.html.md#paces.known_k.known_k_cuts), runs on any feature matrix:
+
+```pycon
+>>> import numpy as np
+>>> x = np.repeat([[0.0], [5.0], [0.0]], 50, axis=0)  # three flat steps (needs ruptures)
+>>> known_k_cuts(x, 3, frame_s=0.1, min_step_s=1.0)
+[5.0, 10.0]
+```
+
+### Module Attributes
+
+| [`DFLT_HOP_S`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_HOP_S)              | fine enough for a step boundary, coarse enough that kernel change-point detection stays fast on a long video.   |
+|--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| [`DFLT_N_MFCC`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_N_MFCC)             | MFCC coefficients per frame.                                                                                    |
+| [`DFLT_KNOWN_K_MIN_STEP_S`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_KNOWN_K_MIN_STEP_S) | The narrowest step a cut may make (s), from a cut or an end.                                                    |
+| [`DFLT_KNOWN_K_CONFIDENCE`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_KNOWN_K_CONFIDENCE) | the human confirms it on the ask page.                                                                          |
+| [`DFLT_KERNEL`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_KERNEL)             | rbf compares feature distributions, not just means.                                                             |
+| [`DFLT_SAMPLE_RATE`](_autosummary/paces.known_k.html.md#paces.known_k.DFLT_SAMPLE_RATE)        | The sample rate audio is decoded at for the features.                                                           |
+
+### Functions
+
+| [`audio_features`](_autosummary/paces.known_k.html.md#paces.known_k.audio_features)(path, \*[, hop_s, n_mfcc, ...])   | `(features, frame_s, duration_s)` of the audio of `path`: per frame, its MFCCs and spectral contrast, each dimension standardised over the media (so no one dimension's scale decides the cuts).                                                 |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`known_k_cuts`](_autosummary/paces.known_k.html.md#paces.known_k.known_k_cuts)(features, k, \*, frame_s[, ...])    | The `k - 1` interior cut times (s) that best split `features` (one row per frame, `frame_s` apart) into `k` steps, by kernel change-point detection; `[]` for one step, `None` when `k` steps of at least `min_step_s` do not fit in the frames. |
+
+### paces.known_k.DFLT_HOP_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
+
+fine enough for a step boundary, coarse
+enough that kernel change-point detection stays fast on a long video.
+
+* **Type:**
+  Seconds between two feature frames
+
+### paces.known_k.DFLT_KERNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'rbf'*
+
+rbf compares feature distributions, not just means.
+
+* **Type:**
+  The ruptures kernel
+
+### paces.known_k.DFLT_KNOWN_K_CONFIDENCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.35*
+
+the human confirms it on the ask page.
+
+* **Type:**
+  A proposal from the signal alone
+
+### paces.known_k.DFLT_KNOWN_K_MIN_STEP_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.0*
+
+The narrowest step a cut may make (s), from a cut or an end.
+
+### paces.known_k.DFLT_N_MFCC *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 13*
+
+MFCC coefficients per frame.
+
+### paces.known_k.DFLT_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 22050*
+
+The sample rate audio is decoded at for the features.
+
+### paces.known_k.audio_features(path, , hop_s=0.1, n_mfcc=13, sample_rate=22050)
+
+`(features, frame_s, duration_s)` of the audio of `path`: per frame,
+its MFCCs and spectral contrast, each dimension standardised over the
+media (so no one dimension’s scale decides the cuts).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### paces.known_k.known_k_cuts(features, k, , frame_s, min_step_s=2.0, kernel='rbf')
+
+The `k - 1` interior cut times (s) that best split `features` (one
+row per frame, `frame_s` apart) into `k` steps, by kernel
+change-point detection; `[]` for one step, `None` when `k` steps of
+at least `min_step_s` do not fit in the frames.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/paces.measure.html.md
@@ -2681,6 +2792,11 @@ spans. Like `grid-measured` (`paces/measure.py`) they register when
 `paces` is imported — the package `__init__` imports their module, so
 `from paces.segmenters import segment` sees them too.
 
+Plus `known-k` (`paces/known_k.py`, the `[cpd]` extra): media and the
+step count the ask page asked for, cut by kernel change-point detection over
+the audio. Whatever runs, an answered `k` the result disagrees with is
+flagged `k-mismatch`.
+
 Honesty rules (`docs/alignment/07 §9.5`): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -2693,13 +2809,14 @@ by an exception.
 
 ### Functions
 
-| [`capabilities`](_autosummary/paces.segmenters.html.md#paces.segmenters.capabilities)()                                | The registered capability catalog (read-only view).                                                                                |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| [`check_step_durations`](_autosummary/paces.segmenters.html.md#paces.segmenters.check_step_durations)(rows, \*[, who])         | Raise `ValueError` unless every (nested) row has a positive, finite duration — the precondition for placing a step list on a grid. |
-| [`place_on_grid`](_autosummary/paces.segmenters.html.md#paces.segmenters.place_on_grid)(steps, grid)                    | Place an ordered step list on the timeline using a metric grid.                                                                    |
-| [`register`](_autosummary/paces.segmenters.html.md#paces.segmenters.register)(capability)                          | Register a segmentation capability; returns it for assignment.                                                                     |
-| [`segment`](_autosummary/paces.segmenters.html.md#paces.segmenters.segment)([media, segmenter, steps, ...])       | Cut *media* into named steps, using whatever else is present.                                                                      |
-| [`unique_slug_ids`](_autosummary/paces.segmenters.html.md#paces.segmenters.unique_slug_ids)(names, \*[, fallback, taken]) | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.                                                           |
+| [`capabilities`](_autosummary/paces.segmenters.html.md#paces.segmenters.capabilities)()                                  | The registered capability catalog (read-only view).                                                                                                                                                                                          |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`check_step_durations`](_autosummary/paces.segmenters.html.md#paces.segmenters.check_step_durations)(rows, \*[, who])           | Raise `ValueError` unless every (nested) row has a positive, finite duration — the precondition for placing a step list on a grid.                                                                                                           |
+| [`place_on_grid`](_autosummary/paces.segmenters.html.md#paces.segmenters.place_on_grid)(steps, grid)                      | Place an ordered step list on the timeline using a metric grid.                                                                                                                                                                              |
+| [`register`](_autosummary/paces.segmenters.html.md#paces.segmenters.register)(capability)                            | Register a segmentation capability; returns it for assignment.                                                                                                                                                                               |
+| [`segment`](_autosummary/paces.segmenters.html.md#paces.segmenters.segment)([media, segmenter, steps, ...])         | Cut *media* into named steps, using whatever else is present.                                                                                                                                                                                |
+| [`steps_on_boundaries`](_autosummary/paces.segmenters.html.md#paces.segmenters.steps_on_boundaries)(boundaries, step_rows, ...) | `(steps, flags)` for the spans between `boundaries`: the names of `step_rows` zipped on when there is one per span, else honestly unnamed (`seg-1`, ...) and flagged `naming-abstained` or, when the count disagrees, `step-count-mismatch`. |
+| [`unique_slug_ids`](_autosummary/paces.segmenters.html.md#paces.segmenters.unique_slug_ids)(names, \*[, fallback, taken])   | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.                                                                                                                                                                     |
 
 ### Classes
 
@@ -2793,6 +2910,22 @@ that could not be honoured is flagged, never dropped.
 
 * **Return type:**
   [`Segmentation`](_autosummary/paces.segmentation.html.md#paces.segmentation.Segmentation)
+
+### paces.segmenters.steps_on_boundaries(boundaries, step_rows, , confidence, source)
+
+`(steps, flags)` for the spans between `boundaries`: the names of
+`step_rows` zipped on when there is one per span, else honestly unnamed
+(`seg-1`, …) and flagged `naming-abstained` or, when the count
+disagrees, `step-count-mismatch`. Never invented.
+
+```pycon
+>>> steps, flags = steps_on_boundaries([0, 5, 9], [], confidence=0.5, source="x")
+>>> [s.id for s in steps], flags
+(['seg-1', 'seg-2'], ('naming-abstained',))
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SegStep`](_autosummary/paces.segmentation.html.md#paces.segmentation.SegStep), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
 
 ### paces.segmenters.unique_slug_ids(names, , fallback='step', taken=())
 
@@ -3043,7 +3176,7 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-22 14:18 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/ace3f32ae45b0e7bea189897933073b379160582"><code>ace3f32</code></a> on branch <code>main</code>, for **paces 0.0.26** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 20:57 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/b6a835cf2639236b758d095b999723b077d254b2"><code>b6a835c</code></a> on branch <code>main</code>, for **paces 0.0.26** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -3052,7 +3185,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/ace3f32ae45b0e7bea189897933073b379160582"><code>ace3f32ae45b0e7bea189897933073b379160582</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/b6a835cf2639236b758d095b999723b077d254b2"><code>b6a835cf2639236b758d095b999723b077d254b2</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
 | Tags at this commit | none                                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                 |
@@ -3063,9 +3196,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45031767055">45031767055</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45069096040">45069096040</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>77351c0c934cfe758e40f3a8ea3270f398ad6fa7</code> (in the history of the built commit) |
+| Event commit | <code>c1322dd80c7a3169f0ebeaf9dffd51f0845ed503</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3096,7 +3229,7 @@ Latest release: <a href="https://pypi.org/project/paces/0.0.26/">0.0.26</a>, the
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout ace3f32ae45b0e7bea189897933073b379160582
+git checkout b6a835cf2639236b758d095b999723b077d254b2
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

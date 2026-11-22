@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-22T14:18:02Z",
+  "built_at": "2026-11-22T20:57:51Z",
   "package": {
     "name": "paces",
     "version": "0.0.26",
@@ -9,24 +9,24 @@
   },
   "git": {
     "available": true,
-    "commit": "ace3f32ae45b0e7bea189897933073b379160582",
-    "short_commit": "ace3f32",
+    "commit": "b6a835cf2639236b758d095b999723b077d254b2",
+    "short_commit": "b6a835c",
     "branch": "main",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/paces",
-    "commit_url": "https://github.com/reeleehq/paces/commit/ace3f32ae45b0e7bea189897933073b379160582",
+    "commit_url": "https://github.com/reeleehq/paces/commit/b6a835cf2639236b758d095b999723b077d254b2",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/paces",
-    "sha": "77351c0c934cfe758e40f3a8ea3270f398ad6fa7",
+    "sha": "c1322dd80c7a3169f0ebeaf9dffd51f0845ed503",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "45031767055",
-    "run_url": "https://github.com/reeleehq/paces/actions/runs/45031767055",
+    "run_id": "45069096040",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/45069096040",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -55,8 +55,8 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 17,
-    "objects_documented": 192
+    "modules_documented": 18,
+    "objects_documented": 202
   },
   "pypi": {
     "checked": true,
@@ -64,7 +64,7 @@
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout ace3f32ae45b0e7bea189897933073b379160582\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout b6a835cf2639236b758d095b999723b077d254b2\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

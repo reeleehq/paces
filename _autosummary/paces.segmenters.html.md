@@ -30,6 +30,11 @@ spans. Like `grid-measured` (`paces/measure.py`) they register when
 `paces` is imported — the package `__init__` imports their module, so
 `from paces.segmenters import segment` sees them too.
 
+Plus `known-k` (`paces/known_k.py`, the `[cpd]` extra): media and the
+step count the ask page asked for, cut by kernel change-point detection over
+the audio. Whatever runs, an answered `k` the result disagrees with is
+flagged `k-mismatch`.
+
 Honesty rules (`docs/alignment/07 §9.5`): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -42,13 +47,14 @@ by an exception.
 
 ### Functions
 
-| [`capabilities`](#paces.segmenters.capabilities)()                                | The registered capability catalog (read-only view).                                                                                |
-|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| [`check_step_durations`](#paces.segmenters.check_step_durations)(rows, \*[, who])         | Raise `ValueError` unless every (nested) row has a positive, finite duration — the precondition for placing a step list on a grid. |
-| [`place_on_grid`](#paces.segmenters.place_on_grid)(steps, grid)                    | Place an ordered step list on the timeline using a metric grid.                                                                    |
-| [`register`](#paces.segmenters.register)(capability)                          | Register a segmentation capability; returns it for assignment.                                                                     |
-| [`segment`](#paces.segmenters.segment)([media, segmenter, steps, ...])       | Cut *media* into named steps, using whatever else is present.                                                                      |
-| [`unique_slug_ids`](#paces.segmenters.unique_slug_ids)(names, \*[, fallback, taken]) | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.                                                           |
+| [`capabilities`](#paces.segmenters.capabilities)()                                  | The registered capability catalog (read-only view).                                                                                                                                                                                          |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`check_step_durations`](#paces.segmenters.check_step_durations)(rows, \*[, who])           | Raise `ValueError` unless every (nested) row has a positive, finite duration — the precondition for placing a step list on a grid.                                                                                                           |
+| [`place_on_grid`](#paces.segmenters.place_on_grid)(steps, grid)                      | Place an ordered step list on the timeline using a metric grid.                                                                                                                                                                              |
+| [`register`](#paces.segmenters.register)(capability)                            | Register a segmentation capability; returns it for assignment.                                                                                                                                                                               |
+| [`segment`](#paces.segmenters.segment)([media, segmenter, steps, ...])         | Cut *media* into named steps, using whatever else is present.                                                                                                                                                                                |
+| [`steps_on_boundaries`](#paces.segmenters.steps_on_boundaries)(boundaries, step_rows, ...) | `(steps, flags)` for the spans between `boundaries`: the names of `step_rows` zipped on when there is one per span, else honestly unnamed (`seg-1`, ...) and flagged `naming-abstained` or, when the count disagrees, `step-count-mismatch`. |
+| [`unique_slug_ids`](#paces.segmenters.unique_slug_ids)(names, \*[, fallback, taken])   | One unique, git-readable id per name; unnamed ones get `{fallback}-{i}`.                                                                                                                                                                     |
 
 ### Classes
 
@@ -142,6 +148,22 @@ that could not be honoured is flagged, never dropped.
 
 * **Return type:**
   [`Segmentation`](paces.segmentation.html.md#paces.segmentation.Segmentation)
+
+### paces.segmenters.steps_on_boundaries(boundaries, step_rows, , confidence, source)
+
+`(steps, flags)` for the spans between `boundaries`: the names of
+`step_rows` zipped on when there is one per span, else honestly unnamed
+(`seg-1`, …) and flagged `naming-abstained` or, when the count
+disagrees, `step-count-mismatch`. Never invented.
+
+```pycon
+>>> steps, flags = steps_on_boundaries([0, 5, 9], [], confidence=0.5, source="x")
+>>> [s.id for s in steps], flags
+(['seg-1', 'seg-2'], ('naming-abstained',))
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SegStep`](paces.segmentation.html.md#paces.segmentation.SegStep), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
 
 ### paces.segmenters.unique_slug_ids(names, , fallback='step', taken=())
 

@@ -13,6 +13,7 @@
 - [paces.derivation](paces.derivation.html.md): Media derivation: fill
 - [paces.edits](paces.edits.html.md): Document-layer edit protection: typed patches write Locks; regeneration
 - [paces.excerpts](paces.excerpts.html.md): Excerpt suggestion: mark the loopable sub-window each step’s clip is cut
+- [paces.known_k](paces.known_k.html.md): Known-K change points: the step count a human gave turns peak-picking into exact change-point detect...
 - [paces.measure](paces.measure.html.md): Measure a &#96;MetricGrid&#96; from the media itself.
 - [paces.model](paces.model.html.md): The paces intermediate representation: the &#96;StepDocument&#96;.
 - [paces.pose](paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.

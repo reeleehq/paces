@@ -19,6 +19,7 @@ paces.segmenters
       place_on_grid
       register
       segment
+      steps_on_boundaries
       unique_slug_ids
    
    .. rubric:: Classes

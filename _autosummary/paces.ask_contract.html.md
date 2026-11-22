@@ -55,7 +55,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 The proposal/answers contract version. Both documents carry it; a reader
 refuses any other, so a page and a loader of different ages fail loudly.
 
-### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, cutMeets=[], steps, minStepS, snap)
+### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, cutMeets=[], steps, minStepS, timePlaces=3, snap)
 
 Bases: `_Wire`
 
@@ -69,6 +69,10 @@ reads as all `True`.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### time_places *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+The decimal places every time here keeps (the page writes its own the same way).
 
 ### *class* paces.ask_contract.ProposedStep(, id, name=None, spans)
 

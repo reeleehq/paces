@@ -73,6 +73,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.derivation.html">paces.derivation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.edits.html">paces.edits</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.excerpts.html">paces.excerpts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.known_k.html">paces.known_k</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.measure.html">paces.measure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.model.html">paces.model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.pose.html">paces.pose</a></li>
@@ -106,6 +107,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#paces.segmenters.place_on_grid"><code class="docutils literal notranslate"><span class="pre">place_on_grid()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.register"><code class="docutils literal notranslate"><span class="pre">register()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.segment"><code class="docutils literal notranslate"><span class="pre">segment()</span></code></a></li>
+<li><a class="reference internal" href="#paces.segmenters.steps_on_boundaries"><code class="docutils literal notranslate"><span class="pre">steps_on_boundaries()</span></code></a></li>
 <li><a class="reference internal" href="#paces.segmenters.unique_slug_ids"><code class="docutils literal notranslate"><span class="pre">unique_slug_ids()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
@@ -173,6 +175,10 @@ subtitles or any transcript — and return low-confidence, honestly flagged
 spans. Like <code class="docutils literal notranslate"><span class="pre">grid-measured</span></code> (<code class="docutils literal notranslate"><span class="pre">paces/measure.py</span></code>) they register when
 <code class="docutils literal notranslate"><span class="pre">paces</span></code> is imported — the package <code class="docutils literal notranslate"><span class="pre">__init__</span></code> imports their module, so
 <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">paces.segmenters</span> <span class="pre">import</span> <span class="pre">segment</span></code> sees them too.</p>
+<p>Plus <code class="docutils literal notranslate"><span class="pre">known-k</span></code> (<code class="docutils literal notranslate"><span class="pre">paces/known_k.py</span></code>, the <code class="docutils literal notranslate"><span class="pre">[cpd]</span></code> extra): media and the
+step count the ask page asked for, cut by kernel change-point detection over
+the audio. Whatever runs, an answered <code class="docutils literal notranslate"><span class="pre">k</span></code> the result disagrees with is
+flagged <code class="docutils literal notranslate"><span class="pre">k-mismatch</span></code>.</p>
 <p>Honesty rules (<code class="docutils literal notranslate"><span class="pre">docs/alignment/07</span> <span class="pre">§9.5</span></code>): a segmenter may never return a
 step count it has no evidence for. Four legitimate return states — confident /
 found-unnamed / proposed-uncertain / refused — all expressed by the type, none
@@ -206,7 +212,10 @@ by an exception.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.segment" title="paces.segmenters.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, segmenter, steps, ...])</p></td>
 <td><p>Cut <em>media</em> into named steps, using whatever else is present.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.unique_slug_ids" title="paces.segmenters.unique_slug_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique_slug_ids</span></code></a>(names, *[, fallback, taken])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.segmenters.steps_on_boundaries" title="paces.segmenters.steps_on_boundaries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">steps_on_boundaries</span></code></a>(boundaries, step_rows, ...)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(steps,</span> <span class="pre">flags)</span></code> for the spans between <code class="docutils literal notranslate"><span class="pre">boundaries</span></code>: the names of <code class="docutils literal notranslate"><span class="pre">step_rows</span></code> zipped on when there is one per span, else honestly unnamed (<code class="docutils literal notranslate"><span class="pre">seg-1</span></code>, ...) and flagged <code class="docutils literal notranslate"><span class="pre">naming-abstained</span></code> or, when the count disagrees, <code class="docutils literal notranslate"><span class="pre">step-count-mismatch</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.segmenters.unique_slug_ids" title="paces.segmenters.unique_slug_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique_slug_ids</span></code></a>(names, *[, fallback, taken])</p></td>
 <td><p>One unique, git-readable id per name; unnamed ones get <code class="docutils literal notranslate"><span class="pre">{fallback}-{i}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -324,6 +333,25 @@ that could not be honoured is flagged, never dropped.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="paces.segmentation.html#paces.segmentation.Segmentation" title="paces.segmentation.Segmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Segmentation</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.segmenters.steps_on_boundaries">
+<span class="sig-prename descclassname"><span class="pre">paces.segmenters.</span></span><span class="sig-name descname"><span class="pre">steps_on_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_rows</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/segmenters.html#steps_on_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.segmenters.steps_on_boundaries" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(steps,</span> <span class="pre">flags)</span></code> for the spans between <code class="docutils literal notranslate"><span class="pre">boundaries</span></code>: the names of
+<code class="docutils literal notranslate"><span class="pre">step_rows</span></code> zipped on when there is one per span, else honestly unnamed
+(<code class="docutils literal notranslate"><span class="pre">seg-1</span></code>, …) and flagged <code class="docutils literal notranslate"><span class="pre">naming-abstained</span></code> or, when the count
+disagrees, <code class="docutils literal notranslate"><span class="pre">step-count-mismatch</span></code>. Never invented.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">steps</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">steps_on_boundaries</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[],</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"x"</span><span class="p">)</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">],</span> <span class="n">flags</span>
+</span><span data-line="3"><span class="go">(['seg-1', 'seg-2'], ('naming-abstained',))</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="paces.segmentation.html#paces.segmentation.SegStep" title="paces.segmentation.SegStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">SegStep</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
