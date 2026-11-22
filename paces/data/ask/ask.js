@@ -5,22 +5,28 @@
 
 // ── pure core ─────────────────────────────────────────────────────────────
 
-const TIME_PLACES = 3;
+/** The places a time keeps when the proposal does not say (one written before it carried timePlaces). */
+const DFLT_TIME_PLACES = 3;
+
+/** The places the proposal's times keep: Python's paces.segmentation.TIME_PLACES when it wrote it. */
+const timePlaces = (proposal) => proposal.timePlaces ?? DFLT_TIME_PLACES;
 
 /**
  * Seconds as paces' wire decimal, exactly as Python's
- * decimal_str(t, places=3) writes it for t >= 0: 3 places, trailing zeros
+ * decimal_str(t, places=places) writes it for t >= 0: trailing zeros
  * dropped ("95.8"). toFixed breaks an exact binary tie (10.0625) upward;
  * Python's format rounds it to even ("10.062"), so a tie is corrected here.
  * toFixed(20) tells a tie apart: a double >= 0.0005 is never within 5e-21
- * of a tie without being on it.
+ * of a tie without being on it. `places` is an option, not a second
+ * argument, so times.map(timeStr) is not handed the index as places.
  */
-function timeStr(t) {
+function timeStr(t, { places = DFLT_TIME_PLACES } = {}) {
   const x = Number(t);
-  let text = x.toFixed(TIME_PLACES);
-  if (x >= 0 && /\.\d{3}50*$/.test(x.toFixed(20)) && /[13579]$/.test(text)) {
-    const digits = (BigInt(text.replace(".", "")) - 1n).toString().padStart(TIME_PLACES + 1, "0");
-    text = `${digits.slice(0, -TIME_PLACES)}.${digits.slice(-TIME_PLACES)}`;
+  let text = x.toFixed(places);
+  const tie = new RegExp(`\\.\\d{${places}}50*$`);
+  if (x >= 0 && tie.test(x.toFixed(20)) && /[13579]$/.test(text)) {
+    const digits = (BigInt(text.replace(".", "")) - 1n).toString().padStart(places + 1, "0");
+    text = `${digits.slice(0, -places)}.${digits.slice(-places)}`;
   }
   text = text.replace(/0+$/, "").replace(/\.$/, "");
   return text === "-0" || text === "" ? "0" : text;
@@ -98,7 +104,7 @@ const RULES = {
     // M1: a struck cut is not a snap target, so strike + tap = move it.
     const targets = p.snap.targets.filter((c) => !s.struck.includes(c)).map(Number);
     const { t: snappedT, snapped } = snap(Number(raw), targets, Number(p.snap.windowS));
-    const key = timeStr(snappedT);
+    const key = timeStr(snappedT, { places: timePlaces(p) });
     const t = Number(key);
     const at = mmss(key);
     if (p.cuts.includes(key)) {
@@ -188,12 +194,12 @@ const RULES = {
 
   duration(p, s, { seconds }) {
     const d = Number(seconds);
-    if (!Number.isFinite(d) || d <= 0 || timeStr(d) === s.duration) return same(s);
+    if (!Number.isFinite(d) || d <= 0 || timeStr(d, { places: timePlaces(p) }) === s.duration) return same(s);
     const past = s.added.filter((t) => Number(t) >= d);
     const message = past.length
       ? `${past.length} of your cuts lie past the end of this media (${mmss(d)}) and will not be sent.`
       : "";
-    return { state: { ...s, duration: timeStr(d) }, message };
+    return { state: { ...s, duration: timeStr(d, { places: timePlaces(p) }) }, message };
   },
 };
 
@@ -243,7 +249,7 @@ function buildAnswers(proposal, state) {
     for (const [i, step] of proposal.steps.entries()) {
       if (!isAbsent(state, i) || !step.spans.length) continue;
       const [a, b] = step.spans[0].map(Number);
-      corrections.push({ verb: "absent", anchorT: timeStr((a + b) / 2), stepId: step.id, ...meta });
+      corrections.push({ verb: "absent", anchorT: timeStr((a + b) / 2, { places: timePlaces(proposal) }), stepId: step.id, ...meta });
     }
     for (const cut of proposal.cuts) {
       if (state.struck.includes(cut)) corrections.push({ verb: "merge", anchorT: cut, ...meta });
@@ -287,30 +293,42 @@ function draftKey(proposal) {
 /** How long the status line offers to undo a Start over. */
 const UNDO_MS = 15000;
 
-function startPage(doc) {
+// ── DOM layer ─────────────────────────────────────────────────────────────
+// startPage builds one page context and hands it to small wiring and render
+// functions, each reading on its own: the header (k, restore, start over),
+// the media, the keyboard, the lists, and the answers. Every state decision
+// stays in reduce(); these only dispatch actions and draw.
+
+/** The page's shared context: its elements, proposal, state and the two verbs, dispatch and render. */
+function pageContext(doc) {
   const $ = (id) => doc.getElementById(id);
   const proposal = JSON.parse($("proposal").textContent);
   const store = draftStore(draftKey(proposal));
   const saved = store.load();
-  let state = Object.assign(freshState(proposal), saved || {});
-  let fresh = null; // the cut just added: highlighted on the next render only
-  let undoOpen = false;
-  let undoTimer = null;
-  const video = $("video");
-  const tapButton = $("tap");
-
-  const say = (text) => { $("status-text").textContent = text; };
-  const syncK = () => { $("k").value = state.k ?? ""; };
-  function dispatch(action) {
-    const out = reduce(proposal, state, { ...action, at: new Date().toISOString() });
-    if (out.message) say(out.message);
-    if (out.state !== state) { state = out.state; store.save(state); }
-    fresh = out.fresh;
-    render(); // also after a refusal: a checkbox the reducer refused flips back
+  const ctx = {
+    doc, $, proposal, store, saved,
+    state: Object.assign(freshState(proposal), saved || {}),
+    fresh: null, // the cut just added: highlighted on the next render only
+    undo: { open: false, timer: null },
+    video: $("video"),
+    tapButton: $("tap"),
+  };
+  ctx.say = (text) => { $("status-text").textContent = text; };
+  ctx.syncK = () => { $("k").value = ctx.state.k ?? ""; };
+  ctx.render = () => render(ctx);
+  ctx.dispatch = (action) => {
+    const out = reduce(proposal, ctx.state, { ...action, at: new Date().toISOString() });
+    if (out.message) ctx.say(out.message);
+    if (out.state !== ctx.state) { ctx.state = out.state; store.save(ctx.state); }
+    ctx.fresh = out.fresh;
+    ctx.render(); // also after a refusal: a checkbox the reducer refused flips back
     return out;
-  }
+  };
+  return ctx;
+}
 
-  // Pressed feedback in the same frame as the press (the feedback principle).
+/** Pressed feedback in the same frame as the press (the feedback principle). */
+function wirePressedFeedback(doc) {
   doc.addEventListener("pointerdown", (e) => {
     const b = e.target.closest && e.target.closest("button");
     if (b) b.setAttribute("data-pressed", "");
@@ -318,36 +336,44 @@ function startPage(doc) {
   for (const type of ["pointerup", "pointercancel", "pointerleave"]) {
     doc.addEventListener(type, () => doc.querySelectorAll("button[data-pressed]").forEach((b) => b.removeAttribute("data-pressed")), true);
   }
+}
 
+/** The method line, the step count, a restored draft, Start over and its Undo. */
+function wireHeader(ctx) {
+  const { $, proposal } = ctx;
   const methodBits = [proposal.method && `proposed by ${proposal.method}`, ...proposal.flags.filter((f) => !f.startsWith("try:"))];
   $("method").textContent = methodBits.filter(Boolean).join(" · ");
   $("k-evidence").textContent = proposal.kEvidence;
-  if (saved) {
+  if (ctx.saved) {
     $("restored").hidden = false;
-    $("restored-text").textContent = `Picked up where you left off${state.at ? ` (${new Date(state.at).toLocaleString()})` : ""}.`;
+    $("restored-text").textContent = `Picked up where you left off${ctx.state.at ? ` (${new Date(ctx.state.at).toLocaleString()})` : ""}.`;
   }
   $("start-over").addEventListener("click", () => {
-    dispatch({ type: "startOver" });
+    ctx.dispatch({ type: "startOver" });
     $("restored").hidden = true;
-    syncK();
-    undoOpen = true;
-    clearTimeout(undoTimer);
-    undoTimer = setTimeout(() => { undoOpen = false; render(); }, UNDO_MS);
-    render();
+    ctx.syncK();
+    ctx.undo.open = true;
+    clearTimeout(ctx.undo.timer);
+    ctx.undo.timer = setTimeout(() => { ctx.undo.open = false; ctx.render(); }, UNDO_MS);
+    ctx.render();
   });
   $("undo").addEventListener("click", () => {
-    undoOpen = false;
-    clearTimeout(undoTimer);
-    dispatch({ type: "undoStartOver" });
-    syncK();
+    ctx.undo.open = false;
+    clearTimeout(ctx.undo.timer);
+    ctx.dispatch({ type: "undoStartOver" });
+    ctx.syncK();
   });
+  ctx.syncK();
+  $("k").addEventListener("input", (e) => ctx.dispatch({ type: "setK", value: e.target.value }));
+}
 
-  syncK();
-  $("k").addEventListener("input", (e) => dispatch({ type: "setK", value: e.target.value }));
-
-  // Media: the proposal's own, or a file from this device. Loading and
-  // failure each say so (the heavy-media principle); Cut here waits for the
-  // media's metadata, so a tap always has a real clock under it.
+/**
+ * Media: the proposal's own, or a file from this device. Loading and failure
+ * each say so (the heavy-media principle); Cut here waits for the media's
+ * metadata, so a tap always has a real clock under it.
+ */
+function wireMedia(ctx) {
+  const { $, proposal, video, tapButton } = ctx;
   const mediaNote = (text) => { $("no-media-text").textContent = text; };
   const showMedia = (src, name) => {
     tapButton.disabled = true;
@@ -360,13 +386,13 @@ function startPage(doc) {
   video.addEventListener("loadedmetadata", () => {
     $("media-state").hidden = true;
     tapButton.disabled = false;
-    dispatch({ type: "duration", seconds: video.duration });
+    ctx.dispatch({ type: "duration", seconds: video.duration });
   });
   video.addEventListener("error", () => {
     $("player").hidden = true;
     tapButton.disabled = true;
     mediaNote("This browser could not play that media (moved, missing, or a format it does not read). Open a copy from this device:");
-    say("Could not play the media here.");
+    ctx.say("Could not play the media here.");
   });
   if (proposal.media && /youtu\.?be/.test(proposal.media)) {
     mediaNote("This page plays files, not YouTube links. Open a downloaded copy from this device:");
@@ -375,13 +401,19 @@ function startPage(doc) {
   }
   $("file").addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
-    if (file) { showMedia(URL.createObjectURL(file), file.name); say(`Opened ${file.name}.`); }
+    if (file) { showMedia(URL.createObjectURL(file), file.name); ctx.say(`Opened ${file.name}.`); }
   });
+}
 
-  const tap = () => { if (!tapButton.disabled) dispatch({ type: "tap", t: video.currentTime }); };
+/**
+ * Cut here, by button or Space. Space taps only from the page itself, the
+ * video or Cut here; every other button, link and summary keeps its native
+ * Space. A held key taps once.
+ */
+function wireKeyboard(ctx) {
+  const { doc, $, video, tapButton } = ctx;
+  const tap = () => { if (!tapButton.disabled) ctx.dispatch({ type: "tap", t: video.currentTime }); };
   tapButton.addEventListener("click", tap);
-  // Space taps only from the page itself, the video or Cut here; every other
-  // button, link and summary keeps its native Space. A held key taps once.
   const spaceTargets = [doc.body, doc.documentElement, video, tapButton];
   doc.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || !spaceTargets.includes(e.target) || $("player").hidden) return;
@@ -392,115 +424,138 @@ function startPage(doc) {
     // Cut here's own Space-click would tap a second time.
     if (e.code === "Space" && e.target === tapButton) e.preventDefault();
   });
+}
 
-  const button = (label, onClick, extra = {}) => {
-    const b = doc.createElement("button");
-    b.type = "button"; b.textContent = label;
-    Object.assign(b, extra);
-    b.addEventListener("click", onClick);
-    return b;
-  };
-  const seek = (t) => () => { if (!$("player").hidden) { video.currentTime = Number(t); video.play(); } };
+function makeButton(doc, label, onClick, extra = {}) {
+  const b = doc.createElement("button");
+  b.type = "button"; b.textContent = label;
+  Object.assign(b, extra);
+  b.addEventListener("click", onClick);
+  return b;
+}
 
-  function renderCuts() {
-    const list = $("cuts");
-    list.replaceChildren();
-    for (const row of cutRows(proposal, state)) {
-      const li = doc.createElement("li");
-      li.className = row.kind + (row.t === fresh ? " fresh" : "");
-      li.append(button(mmss(row.t), seek(row.t), { className: "time link", title: "Play from here"}));
-      li.lastChild.dataset.focusKey = `time:${row.t}`;
-      const label = doc.createElement("span");
-      label.className = "grow muted small";
-      label.textContent = { proposed: "proposed", struck: "not a cut", added: "added by you" }[row.kind];
-      li.append(label);
-      if (row.kind === "added") {
-        li.append(button("Remove", () => dispatch({ type: "remove", cut: row.t })));
-        li.lastChild.dataset.focusKey = `act:${row.t}`;
-      } else if (!row.meets) {
-        label.textContent = "edge of a gap";
-      } else {
-        const struck = row.kind === "struck";
-        li.append(button(struck ? "Keep it" : "Not a cut", () => dispatch({ type: struck ? "keep" : "strike", cut: row.t })));
-        li.lastChild.setAttribute("aria-pressed", String(struck));
-        li.lastChild.dataset.focusKey = `act:${row.t}`;
-      }
-      list.append(li);
+/** Play the media from t, when it is showing. */
+const seekTo = (ctx, t) => () => {
+  if (!ctx.$("player").hidden) { ctx.video.currentTime = Number(t); ctx.video.play(); }
+};
+
+/** An empty list says why it is empty. */
+function emptyRow(doc, list, text) {
+  if (list.children.length) return;
+  const li = doc.createElement("li");
+  li.className = "muted"; li.textContent = text;
+  list.append(li);
+}
+
+function renderCuts(ctx) {
+  const { doc, $, proposal, state } = ctx;
+  const list = $("cuts");
+  list.replaceChildren();
+  for (const row of cutRows(proposal, state)) {
+    const li = doc.createElement("li");
+    li.className = row.kind + (row.t === ctx.fresh ? " fresh" : "");
+    li.append(makeButton(doc, mmss(row.t), seekTo(ctx, row.t), { className: "time link", title: "Play from here" }));
+    li.lastChild.dataset.focusKey = `time:${row.t}`;
+    const label = doc.createElement("span");
+    label.className = "grow muted small";
+    label.textContent = { proposed: "proposed", struck: "not a cut", added: "added by you" }[row.kind];
+    li.append(label);
+    if (row.kind === "added") {
+      li.append(makeButton(doc, "Remove", () => ctx.dispatch({ type: "remove", cut: row.t })));
+      li.lastChild.dataset.focusKey = `act:${row.t}`;
+    } else if (!row.meets) {
+      label.textContent = "edge of a gap";
+    } else {
+      const struck = row.kind === "struck";
+      li.append(makeButton(doc, struck ? "Keep it" : "Not a cut", () => ctx.dispatch({ type: struck ? "keep" : "strike", cut: row.t })));
+      li.lastChild.setAttribute("aria-pressed", String(struck));
+      li.lastChild.dataset.focusKey = `act:${row.t}`;
     }
-    if (!list.children.length) {
-      const li = doc.createElement("li");
-      li.className = "muted"; li.textContent = "No cuts yet. Tap along with the video to add them.";
-      list.append(li);
-    }
+    list.append(li);
   }
+  emptyRow(doc, list, "No cuts yet. Tap along with the video to add them.");
+}
 
-  function renderSteps() {
-    const list = $("steps");
-    list.replaceChildren();
-    for (const [i, step] of proposal.steps.entries()) {
-      const li = doc.createElement("li");
-      const label = doc.createElement("label");
-      label.className = "grow";
-      const box = doc.createElement("input");
-      box.type = "checkbox";
-      box.checked = isAbsent(state, i);
-      box.disabled = !step.spans.length;
-      box.dataset.focusKey = `step:${i}`;
-      box.addEventListener("change", () => dispatch({ type: "absent", index: i, on: box.checked }));
-      const span = step.spans[0];
-      label.append(box, ` ${step.name || "(unnamed)"} `);
-      const when = doc.createElement("span");
-      when.className = "muted small";
-      when.textContent = span ? `${mmss(span[0])}–${mmss(span[1])} · not in this video` : "has no time in this video to mark";
-      label.append(when);
-      li.append(label);
-      list.append(li);
-    }
-    if (!proposal.steps.length) {
-      const li = doc.createElement("li");
-      li.className = "muted"; li.textContent = "No steps were proposed.";
-      list.append(li);
-    }
+function renderSteps(ctx) {
+  const { doc, $, proposal, state } = ctx;
+  const list = $("steps");
+  list.replaceChildren();
+  for (const [i, step] of proposal.steps.entries()) {
+    const li = doc.createElement("li");
+    const label = doc.createElement("label");
+    label.className = "grow";
+    const box = doc.createElement("input");
+    box.type = "checkbox";
+    box.checked = isAbsent(state, i);
+    box.disabled = !step.spans.length;
+    box.dataset.focusKey = `step:${i}`;
+    box.addEventListener("change", () => ctx.dispatch({ type: "absent", index: i, on: box.checked }));
+    const span = step.spans[0];
+    label.append(box, ` ${step.name || "(unnamed)"} `);
+    const when = doc.createElement("span");
+    when.className = "muted small";
+    when.textContent = span ? `${mmss(span[0])}–${mmss(span[1])} · not in this video` : "has no time in this video to mark";
+    label.append(when);
+    li.append(label);
+    list.append(li);
   }
+  emptyRow(doc, list, "No steps were proposed.");
+}
 
-  const answersText = () => JSON.stringify(buildAnswers(proposal, state), null, 2);
-  // Rows are rebuilt on every change; keep keyboard focus on the same control
-  // (or on its list, never on <body>, where Space would add a cut).
-  function render() {
-    const focused = doc.activeElement;
-    const focusKey = focused && focused.dataset ? focused.dataset.focusKey : undefined;
-    const focusList = focused && focused.closest ? focused.closest("#cuts, #steps") : null;
-    renderCuts();
-    fresh = null; // the highlight plays once, for the row just added
-    renderSteps();
-    if (focusKey) {
-      const again = doc.querySelector(`[data-focus-key="${focusKey}"]`);
-      if (again) again.focus();
-      else if (focusList) focusList.focus();
-    }
-    $("k-state").textContent = !state.kTouched
-      ? "Edit the number to confirm it. Until you do, it is not sent."
-      : state.k === null
-        ? "That is not a step count, so none is sent."
-        : "Saved with your answers for segmenters that use a known step count.";
-    $("undo").hidden = !(undoOpen && state.previous);
-    $("answers").value = answersText();
+const answersText = (ctx) => JSON.stringify(buildAnswers(ctx.proposal, ctx.state), null, 2);
+
+/**
+ * Draw the page from the state. Rows are rebuilt on every change; keyboard
+ * focus stays on the same control (or on its list, never on <body>, where
+ * Space would add a cut).
+ */
+function render(ctx) {
+  const { doc, $, state } = ctx;
+  const focused = doc.activeElement;
+  const focusKey = focused && focused.dataset ? focused.dataset.focusKey : undefined;
+  const focusList = focused && focused.closest ? focused.closest("#cuts, #steps") : null;
+  renderCuts(ctx);
+  ctx.fresh = null; // the highlight plays once, for the row just added
+  renderSteps(ctx);
+  if (focusKey) {
+    const again = doc.querySelector(`[data-focus-key="${focusKey}"]`);
+    if (again) again.focus();
+    else if (focusList) focusList.focus();
   }
+  $("k-state").textContent = !state.kTouched
+    ? "Edit the number to confirm it. Until you do, it is not sent."
+    : state.k === null
+      ? "That is not a step count, so none is sent."
+      : "Saved with your answers for segmenters that use a known step count.";
+  $("undo").hidden = !(ctx.undo.open && state.previous);
+  $("answers").value = answersText(ctx);
+}
 
+/** Download or copy the answers; a refused clipboard selects them instead. */
+function wireAnswers(ctx) {
+  const { doc, $ } = ctx;
   $("download").addEventListener("click", () => {
-    const url = URL.createObjectURL(new Blob([answersText() + "\n"], { type: "application/json" }));
+    const url = URL.createObjectURL(new Blob([answersText(ctx) + "\n"], { type: "application/json" }));
     const a = doc.createElement("a");
     a.href = url; a.download = "answers.json";
     doc.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    say("Downloaded answers.json.");
+    ctx.say("Downloaded answers.json.");
   });
   $("copy").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(answersText()); say("Copied the answers."); }
-    catch { $("answers").closest("details").open = true; $("answers").select(); say("The answers are selected: copy them with your keyboard."); }
+    try { await navigator.clipboard.writeText(answersText(ctx)); ctx.say("Copied the answers."); }
+    catch { $("answers").closest("details").open = true; $("answers").select(); ctx.say("The answers are selected: copy them with your keyboard."); }
   });
+}
 
-  render();
+function startPage(doc) {
+  const ctx = pageContext(doc);
+  wirePressedFeedback(doc);
+  wireHeader(ctx);
+  wireMedia(ctx);
+  wireKeyboard(ctx);
+  wireAnswers(ctx);
+  ctx.render();
 }
 
 if (typeof module !== "undefined" && module.exports) {
