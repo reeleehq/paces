@@ -8,7 +8,6 @@ paces.ask
 
    .. autosummary::
    
-      CONTRACT_VERSION
       DFLT_SNAP_S
       DFLT_MAX_GRID_TICKS
    

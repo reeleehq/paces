@@ -1,0 +1,27 @@
+paces.ask\_contract
+===================
+
+.. automodule:: paces.ask_contract
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CONTRACT_VERSION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      contract_schemas
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AnswersDocument
+      Proposal
+      ProposedStep
+      Snap
+   

@@ -5,21 +5,21 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-11-02 18:49 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd"><code>8316aa7</code></a> on branch <code>main</code>, for **paces 0.0.24** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 14:14 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e"><code>2c4a403</code></a> on branch <code>main</code>, for **paces 0.0.25** (from <code>pyproject.toml</code>).
 
 :::{warning}
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.24) is ahead of the latest release on PyPI (0.0.23): these docs describe unreleased code.
+- The documented version (0.0.25) is ahead of the latest release on PyPI (0.0.24): these docs describe unreleased code.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd"><code>8316aa740559e039da53b34423578b183bfdc9dd</code></a> |
+| Commit | <a href="https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e"><code>2c4a403d23320bb98cd534a0cd4c035c821a0a4e</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.0.24</code> |
+| Tags at this commit | <code>0.0.25</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/reeleehq/paces</code> |
 
@@ -28,18 +28,18 @@ The documentation and the package may be misaligned:
 | | |
 |---|---|
 | Repository | <code>reeleehq/paces</code> |
-| Run | <a href="https://github.com/reeleehq/paces/actions/runs/41503553254">41503553254</a> |
+| Run | <a href="https://github.com/reeleehq/paces/actions/runs/45031428862">45031428862</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>02312223006c6d0734ff5af97f98604c8d7122c7</code> (in the history of the built commit) |
+| Event commit | <code>0808dbc4490212362d1901a6e8e6de45c9185109</code> (in the history of the built commit) |
 
 ## Tools
 
 | | |
 |---|---|
-| epythet | 0.2.22 |
+| epythet | 0.2.23 |
 | Sphinx | 9.1.1 |
 | docutils | 0.22.4 |
-| Python | 3.12.15 |
+| Python | 3.12.16 |
 
 ## Configuration as resolved
 
@@ -55,14 +55,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.23/">0.0.23</a>, older than the documented version (0.0.24).
+Latest release: <a href="https://pypi.org/project/paces/0.0.24/">0.0.24</a>, older than the documented version (0.0.25).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 8316aa740559e039da53b34423578b183bfdc9dd
-pip install "epythet==0.2.22"
+git checkout 2c4a403d23320bb98cd534a0cd4c035c821a0a4e
+pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

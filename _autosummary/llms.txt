@@ -7,6 +7,7 @@
 
 - [paces](paces.html.md): Turn instructional media into structured, interactive learning material.
 - [paces.ask](paces.ask.html.md): The ask segmenter’s interaction half: what the machine proposes, and the page
+- [paces.ask_contract](paces.ask_contract.html.md): The ask contract as types: the proposal a machine writes and the answers a human returns.
 - [paces.corrections](paces.corrections.html.md): Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).
 - [paces.cues](paces.cues.html.md): Lexical cue segmenters: subtitles and transcripts → proposed named spans.
 - [paces.derivation](paces.derivation.html.md): Media derivation: fill

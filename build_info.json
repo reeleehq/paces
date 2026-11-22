@@ -1,41 +1,41 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-02T18:49:59Z",
+  "built_at": "2026-11-22T14:14:45Z",
   "package": {
     "name": "paces",
-    "version": "0.0.24",
+    "version": "0.0.25",
     "display_name": "paces",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "8316aa740559e039da53b34423578b183bfdc9dd",
-    "short_commit": "8316aa7",
+    "commit": "2c4a403d23320bb98cd534a0cd4c035c821a0a4e",
+    "short_commit": "2c4a403",
     "branch": "main",
     "tags": [
-      "0.0.24"
+      "0.0.25"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/paces",
-    "commit_url": "https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd",
+    "commit_url": "https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/paces",
-    "sha": "02312223006c6d0734ff5af97f98604c8d7122c7",
+    "sha": "0808dbc4490212362d1901a6e8e6de45c9185109",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "41503553254",
-    "run_url": "https://github.com/reeleehq/paces/actions/runs/41503553254",
+    "run_id": "45031428862",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/45031428862",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.22",
+    "epythet": "0.2.23",
     "sphinx": "9.1.1",
     "docutils": "0.22.4",
-    "python": "3.12.15"
+    "python": "3.12.16"
   },
   "config": {
     "theme": "auto",
@@ -57,21 +57,21 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 16,
-    "objects_documented": 183
+    "modules_documented": 17,
+    "objects_documented": 192
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.23",
+    "latest": "0.0.24",
     "relation": "ahead",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout 8316aa740559e039da53b34423578b183bfdc9dd\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout 2c4a403d23320bb98cd534a0cd4c035c821a0a4e\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": false,
     "notes": [
-      "The documented version (0.0.24) is ahead of the latest release on PyPI (0.0.23): these docs describe unreleased code."
+      "The documented version (0.0.25) is ahead of the latest release on PyPI (0.0.24): these docs describe unreleased code."
     ]
   }
 }

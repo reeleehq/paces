@@ -1,4 +1,4 @@
-> built 2026-11-02 18:49 UTC from 8316aa7 (main) · paces 0.0.24. Details: build_info.json
+> built 2026-11-22 14:14 UTC from 2c4a403 (main) · paces 0.0.25. Details: build_info.json
 
 # index.html.md
 
@@ -251,9 +251,8 @@ here has to change for it.
 
 ### Module Attributes
 
-| [`CONTRACT_VERSION`](_autosummary/paces.ask.html.md#paces.ask.CONTRACT_VERSION)    | The proposal/answers contract version.                                                                                             |
-|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_SNAP_S`](_autosummary/paces.ask.html.md#paces.ask.DFLT_SNAP_S)         | How far a tap may land from a snap target and still snap to it (§7.3 step 3).                                                      |
+|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_MAX_GRID_TICKS`](_autosummary/paces.ask.html.md#paces.ask.DFLT_MAX_GRID_TICKS) | Above this many grid ticks the page snaps to cuts only — a dense tick list would make every tap snap somewhere and bloat the page. |
 
 ### Functions
@@ -278,11 +277,6 @@ What a human answered on the ask page, ready for the next run.
 `corrections` is a [`paces.corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections) log; `boundaries` holds
 the cuts they tapped when the proposal had none to correct (the refused
 state), from 0 to the media’s end — `None` otherwise.
-
-### paces.ask.CONTRACT_VERSION *= 1*
-
-The proposal/answers contract version. Both documents carry it; a reader
-refuses any other, so a page and a loader of different ages fail loudly.
 
 ### paces.ask.DFLT_MAX_GRID_TICKS *= 2000*
 
@@ -343,6 +337,108 @@ every correction the page emits.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/paces.ask_contract.html.md
+
+# paces.ask_contract
+
+The ask contract as types: the proposal a machine writes and the answers a human returns.
+
+[`paces.ask`](_autosummary/paces.ask.html.md#module-paces.ask) produces and reads these two JSON documents (`docs/alignment/07
+§7.4`), and every other UI (the real frontend, a CLI prompt, an agent) speaks
+the same two. They are declared here as pydantic models, so the shape is
+written once, `load_answers` validates against it, and the JSON Schema a
+TypeScript side needs comes from [`contract_schemas()`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.contract_schemas) and not from a second
+hand-written copy.
+
+Field names are camelCase on the wire, as the page reads them. Times are
+decimal strings, as everywhere on paces’ wire.
+
+```pycon
+>>> sorted(contract_schemas())
+['answers', 'proposal']
+```
+
+### Module Attributes
+
+| [`CONTRACT_VERSION`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.CONTRACT_VERSION)   | The proposal/answers contract version.   |
+|---------------------------------------------------------------------|------------------------------------------|
+
+### Functions
+
+| [`contract_schemas`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.contract_schemas)()   | The JSON Schema of both documents, for a UI written in another language.   |
+|-----------------------------------------------------------------------|----------------------------------------------------------------------------|
+
+### Classes
+
+| [`AnswersDocument`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.AnswersDocument)(\*[, kind, k, corrections, ...])   | What the page exports ([`paces.ask.load_answers()`](_autosummary/paces.ask.html.md#paces.ask.load_answers) reads it).             |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Proposal`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.Proposal)(\*[, kind, version, answersKind, ...])    | What the machine pre-computes for a human to confirm ([`paces.ask.propose()`](_autosummary/paces.ask.html.md#paces.ask.propose)). |
+| [`ProposedStep`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.ProposedStep)(\*, id[, name])                       | A step as the machine found it: its spans, as `[start, end]` time strings.                                                                     |
+| [`Snap`](_autosummary/paces.ask_contract.html.md#paces.ask_contract.Snap)(\*, windowS, targets)                         | Where a tap lands: within `window_s` of a target (a cut, or a grid tick).                                                                      |
+
+### *class* paces.ask_contract.AnswersDocument(, kind='', version, k=None, corrections=[], boundaries=None, proposal=None)
+
+Bases: `_Wire`
+
+What the page exports ([`paces.ask.load_answers()`](_autosummary/paces.ask.html.md#paces.ask.load_answers) reads it).
+
+`corrections` is a [`paces.corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections) log, each entry validated by
+[`paces.corrections.normalize_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.normalize_corrections). `boundaries` holds the
+cuts tapped when the proposal had none to correct, from 0 to the media’s
+end, as time strings or seconds.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### paces.ask_contract.CONTRACT_VERSION *= 1*
+
+The proposal/answers contract version. Both documents carry it; a reader
+refuses any other, so a page and a loader of different ages fail loudly.
+
+### *class* paces.ask_contract.Proposal(, kind='PacesAskProposal', version=1, answersKind='PacesAskAnswers', title='', media=None, method=None, flags=[], k, kEvidence, extent, cuts, steps, minStepS, snap)
+
+Bases: `_Wire`
+
+What the machine pre-computes for a human to confirm ([`paces.ask.propose()`](_autosummary/paces.ask.html.md#paces.ask.propose)).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* paces.ask_contract.ProposedStep(, id, name=None, spans)
+
+Bases: `_Wire`
+
+A step as the machine found it: its spans, as `[start, end]` time strings.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* paces.ask_contract.Snap(, windowS, targets)
+
+Bases: `_Wire`
+
+Where a tap lands: within `window_s` of a target (a cut, or a grid tick).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'frozen': True, 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### paces.ask_contract.contract_schemas()
+
+The JSON Schema of both documents, for a UI written in another language.
+
+```pycon
+>>> contract_schemas()["proposal"]["properties"]["kind"]["const"]
+'PacesAskProposal'
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)]
 
 
 # _autosummary/paces.corrections.html.md
@@ -1688,6 +1784,7 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 
 | [`ask`](_autosummary/paces.ask.html.md#module-paces.ask)                   | The ask segmenter's interaction half: what the machine proposes, and the page a human answers it on (issue #10, `docs/alignment/07 §7.2–7.4`).                                                                                          |
 |-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ask_contract`](_autosummary/paces.ask_contract.html.md#module-paces.ask_contract) | The ask contract as types: the proposal a machine writes and the answers a human returns.                                                                                                                                               |
 | [`corrections`](_autosummary/paces.corrections.html.md#module-paces.corrections)   | Human corrections as a replayable log of constraints (issue #10, ADR-0003 §4).                                                                                                                                                          |
 | [`cues`](_autosummary/paces.cues.html.md#module-paces.cues)                 | Lexical cue segmenters: subtitles and transcripts → proposed named spans.                                                                                                                                                               |
 | [`derivation`](_autosummary/paces.derivation.html.md#module-paces.derivation)     | Media derivation: fill <br/><br/>```<br/>``<br/>```<br/><br/>ArtifactRef\`\`s with real clips, gifs and posters.                                                                                                                        |
@@ -2941,20 +3038,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-02 18:49 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd"><code>8316aa7</code></a> on branch <code>main</code>, for **paces 0.0.24** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-22 14:14 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e"><code>2c4a403</code></a> on branch <code>main</code>, for **paces 0.0.25** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.24) is ahead of the latest release on PyPI (0.0.23): these docs describe unreleased code.
+- The documented version (0.0.25) is ahead of the latest release on PyPI (0.0.24): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/8316aa740559e039da53b34423578b183bfdc9dd"><code>8316aa740559e039da53b34423578b183bfdc9dd</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/2c4a403d23320bb98cd534a0cd4c035c821a0a4e"><code>2c4a403d23320bb98cd534a0cd4c035c821a0a4e</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.24</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.25</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -2963,18 +3060,18 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/41503553254">41503553254</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45031428862">45031428862</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>02312223006c6d0734ff5af97f98604c8d7122c7</code> (in the history of the built commit) |
+| Event commit | <code>0808dbc4490212362d1901a6e8e6de45c9185109</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.22  |
+| epythet  | 0.2.23  |
 | Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
-| Python   | 3.12.15 |
+| Python   | 3.12.16 |
 
 ## Configuration as resolved
 
@@ -2990,14 +3087,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.23/">0.0.23</a>, older than the documented version (0.0.24).
+Latest release: <a href="https://pypi.org/project/paces/0.0.24/">0.0.24</a>, older than the documented version (0.0.25).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 8316aa740559e039da53b34423578b183bfdc9dd
-pip install "epythet==0.2.22"
+git checkout 2c4a403d23320bb98cd534a0cd4c035c821a0a4e
+pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

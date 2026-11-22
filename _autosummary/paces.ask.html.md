@@ -36,9 +36,8 @@ here has to change for it.
 
 ### Module Attributes
 
-| [`CONTRACT_VERSION`](#paces.ask.CONTRACT_VERSION)    | The proposal/answers contract version.                                                                                             |
-|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_SNAP_S`](#paces.ask.DFLT_SNAP_S)         | How far a tap may land from a snap target and still snap to it (§7.3 step 3).                                                      |
+|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_MAX_GRID_TICKS`](#paces.ask.DFLT_MAX_GRID_TICKS) | Above this many grid ticks the page snaps to cuts only — a dense tick list would make every tap snap somewhere and bloat the page. |
 
 ### Functions
@@ -63,11 +62,6 @@ What a human answered on the ask page, ready for the next run.
 `corrections` is a [`paces.corrections`](paces.corrections.html.md#module-paces.corrections) log; `boundaries` holds
 the cuts they tapped when the proposal had none to correct (the refused
 state), from 0 to the media’s end — `None` otherwise.
-
-### paces.ask.CONTRACT_VERSION *= 1*
-
-The proposal/answers contract version. Both documents carry it; a reader
-refuses any other, so a page and a loader of different ages fail loudly.
 
 ### paces.ask.DFLT_MAX_GRID_TICKS *= 2000*
 
