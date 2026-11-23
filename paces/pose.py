@@ -359,6 +359,7 @@ class RtmlibPoseLocator:
         return ";".join([f"{LOCATOR_STEM}@{engine}", *terms])
 
     def __call__(self, query: LocateQuery) -> SubjectObservation | None:
+        """Locate the subject in the media of ``query``; ``None`` when no pose is found."""
         estimate = self.pose_estimator or _body_estimator(self.mode, self.device)
         read_frame = _frame_reader(query.media_path)
         frame_size = (query.frame_width, query.frame_height)
