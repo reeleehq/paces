@@ -1467,6 +1467,7 @@ def corrections_from_store(store, *, asset_id: str, doc_id: str = "guide") -> tu
         ),
         key=lambda row: row.body["ordinal"],
     )
+
     def times(row):
         interval = row.reference.interval
         start = float(_decimal(interval.start))

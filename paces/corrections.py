@@ -201,7 +201,14 @@ def to_wire(correction: Correction) -> dict:
     wire: dict = {"verb": correction.verb, "anchorT": time_str(correction.anchor_t)}
     if correction.span is not None:
         wire["span"] = [time_str(t) for t in correction.span]
-    for field_name in ("step_id", "author", "at", "media_key", "reason", "migrated_from"):
+    for field_name in (
+        "step_id",
+        "author",
+        "at",
+        "media_key",
+        "reason",
+        "migrated_from",
+    ):
         value = getattr(correction, field_name)
         if value:
             wire[_WIRE_KEYS[field_name]] = value
