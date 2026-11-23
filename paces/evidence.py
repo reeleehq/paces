@@ -273,6 +273,7 @@ class StoreWrite:
 
     @property
     def total(self) -> int:
+        """All records handled: written, updated, unchanged and relinked."""
         return self.written + self.updated + self.unchanged + self.relinked
 
 
