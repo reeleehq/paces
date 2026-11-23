@@ -499,117 +499,118 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="359">        <span class="k">return</span> <span class="s2">";"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">LOCATOR_STEM</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">engine</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">*</span><span class="n">terms</span><span class="p">])</span>
 </span><span data-line="360">
 </span><span data-line="361">    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">LocateQuery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubjectObservation</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="362">        <span class="n">estimate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pose_estimator</span> <span class="ow">or</span> <span class="n">_body_estimator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-</span><span data-line="363">        <span class="n">read_frame</span> <span class="o">=</span> <span class="n">_frame_reader</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">media_path</span><span class="p">)</span>
-</span><span data-line="364">        <span class="n">frame_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">frame_width</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">frame_height</span><span class="p">)</span>
-</span><span data-line="365">        <span class="n">samples</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Box</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="366">        <span class="n">unreadable</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="367">        <span class="k">for</span> <span class="n">t_s</span> <span class="ow">in</span> <span class="n">probe_times</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">start_s</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">end_s</span><span class="p">,</span> <span class="n">probe_fps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_fps</span><span class="p">):</span>
-</span><span data-line="368">            <span class="k">try</span><span class="p">:</span>
-</span><span data-line="369">                <span class="n">frame</span> <span class="o">=</span> <span class="n">read_frame</span><span class="p">(</span><span class="n">t_s</span><span class="p">)</span>
-</span><span data-line="370">            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
-</span><span data-line="371">                <span class="c1"># one unreadable probe is a damaged frame, not a verdict on the</span>
-</span><span data-line="372">                <span class="c1"># window; only losing every probe is a fault worth raising</span>
-</span><span data-line="373">                <span class="n">unreadable</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t_s</span><span class="p">)</span>
-</span><span data-line="374">                <span class="k">continue</span>
-</span><span data-line="375">            <span class="n">keypoints</span><span class="p">,</span> <span class="n">scores</span> <span class="o">=</span> <span class="n">estimate</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-</span><span data-line="376">            <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="377">                <span class="p">(</span>
-</span><span data-line="378">                    <span class="n">t_s</span><span class="p">,</span>
-</span><span data-line="379">                    <span class="n">person_boxes</span><span class="p">(</span>
-</span><span data-line="380">                        <span class="n">keypoints</span><span class="p">,</span>
-</span><span data-line="381">                        <span class="n">scores</span><span class="p">,</span>
-</span><span data-line="382">                        <span class="n">frame_size</span><span class="o">=</span><span class="n">frame_size</span><span class="p">,</span>
-</span><span data-line="383">                        <span class="n">keypoint_confidence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keypoint_confidence</span><span class="p">,</span>
-</span><span data-line="384">                        <span class="n">min_keypoints</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_keypoints</span><span class="p">,</span>
-</span><span data-line="385">                    <span class="p">),</span>
-</span><span data-line="386">                <span class="p">)</span>
-</span><span data-line="387">            <span class="p">)</span>
-</span><span data-line="388">        <span class="k">if</span> <span class="ow">not</span> <span class="n">samples</span><span class="p">:</span>
-</span><span data-line="389">            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-</span><span data-line="390">                <span class="sa">f</span><span class="s2">"read no frame of </span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">media_path</span><span class="si">}</span><span class="s2"> in "</span>
-</span><span data-line="391">                <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">start_s</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">end_s</span><span class="si">}</span><span class="s2">) — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unreadable</span><span class="p">)</span><span class="si">}</span><span class="s2"> probes "</span>
-</span><span data-line="392">                <span class="s2">"all failed; the media is unreadable there, which is a fault, "</span>
-</span><span data-line="393">                <span class="s2">"not a 'no crop' answer"</span>
-</span><span data-line="394">            <span class="p">)</span>
-</span><span data-line="395">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">boxes</span> <span class="k">for</span> <span class="n">_t</span><span class="p">,</span> <span class="n">boxes</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">):</span>
-</span><span data-line="396">            <span class="c1"># ADR-0005 §3: None is the zero-detections fallback, and no crop</span>
-</span><span data-line="397">            <span class="c1"># means genuinely uncropped — never letterboxed</span>
-</span><span data-line="398">            <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="399">        <span class="k">return</span> <span class="n">SubjectObservation</span><span class="p">(</span><span class="n">samples</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">samples</span><span class="p">))</span></div>
+</span><span data-line="362"><span class="w">        </span><span class="sd">"""Locate the subject in the media of ``query``; ``None`` when no pose is found."""</span>
+</span><span data-line="363">        <span class="n">estimate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pose_estimator</span> <span class="ow">or</span> <span class="n">_body_estimator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+</span><span data-line="364">        <span class="n">read_frame</span> <span class="o">=</span> <span class="n">_frame_reader</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">media_path</span><span class="p">)</span>
+</span><span data-line="365">        <span class="n">frame_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">frame_width</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">frame_height</span><span class="p">)</span>
+</span><span data-line="366">        <span class="n">samples</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Box</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="367">        <span class="n">unreadable</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="368">        <span class="k">for</span> <span class="n">t_s</span> <span class="ow">in</span> <span class="n">probe_times</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">start_s</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">end_s</span><span class="p">,</span> <span class="n">probe_fps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">probe_fps</span><span class="p">):</span>
+</span><span data-line="369">            <span class="k">try</span><span class="p">:</span>
+</span><span data-line="370">                <span class="n">frame</span> <span class="o">=</span> <span class="n">read_frame</span><span class="p">(</span><span class="n">t_s</span><span class="p">)</span>
+</span><span data-line="371">            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+</span><span data-line="372">                <span class="c1"># one unreadable probe is a damaged frame, not a verdict on the</span>
+</span><span data-line="373">                <span class="c1"># window; only losing every probe is a fault worth raising</span>
+</span><span data-line="374">                <span class="n">unreadable</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t_s</span><span class="p">)</span>
+</span><span data-line="375">                <span class="k">continue</span>
+</span><span data-line="376">            <span class="n">keypoints</span><span class="p">,</span> <span class="n">scores</span> <span class="o">=</span> <span class="n">estimate</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+</span><span data-line="377">            <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="378">                <span class="p">(</span>
+</span><span data-line="379">                    <span class="n">t_s</span><span class="p">,</span>
+</span><span data-line="380">                    <span class="n">person_boxes</span><span class="p">(</span>
+</span><span data-line="381">                        <span class="n">keypoints</span><span class="p">,</span>
+</span><span data-line="382">                        <span class="n">scores</span><span class="p">,</span>
+</span><span data-line="383">                        <span class="n">frame_size</span><span class="o">=</span><span class="n">frame_size</span><span class="p">,</span>
+</span><span data-line="384">                        <span class="n">keypoint_confidence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keypoint_confidence</span><span class="p">,</span>
+</span><span data-line="385">                        <span class="n">min_keypoints</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_keypoints</span><span class="p">,</span>
+</span><span data-line="386">                    <span class="p">),</span>
+</span><span data-line="387">                <span class="p">)</span>
+</span><span data-line="388">            <span class="p">)</span>
+</span><span data-line="389">        <span class="k">if</span> <span class="ow">not</span> <span class="n">samples</span><span class="p">:</span>
+</span><span data-line="390">            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+</span><span data-line="391">                <span class="sa">f</span><span class="s2">"read no frame of </span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">media_path</span><span class="si">}</span><span class="s2"> in "</span>
+</span><span data-line="392">                <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">start_s</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">end_s</span><span class="si">}</span><span class="s2">) — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unreadable</span><span class="p">)</span><span class="si">}</span><span class="s2"> probes "</span>
+</span><span data-line="393">                <span class="s2">"all failed; the media is unreadable there, which is a fault, "</span>
+</span><span data-line="394">                <span class="s2">"not a 'no crop' answer"</span>
+</span><span data-line="395">            <span class="p">)</span>
+</span><span data-line="396">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">boxes</span> <span class="k">for</span> <span class="n">_t</span><span class="p">,</span> <span class="n">boxes</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">):</span>
+</span><span data-line="397">            <span class="c1"># ADR-0005 §3: None is the zero-detections fallback, and no crop</span>
+</span><span data-line="398">            <span class="c1"># means genuinely uncropped — never letterboxed</span>
+</span><span data-line="399">            <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="400">        <span class="k">return</span> <span class="n">SubjectObservation</span><span class="p">(</span><span class="n">samples</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">samples</span><span class="p">))</span></div>
 
-</span><span data-line="400">
 </span><span data-line="401">
-</span><span data-line="402"><span class="c1">#: The ready-made locator: no configuration, and the target a CLI</span>
-</span><span data-line="403"><span class="c1">#: ``--subject-locator paces.pose:rtmlib_pose`` reference resolves to.</span>
-</span><span data-line="404"><span class="n">rtmlib_pose</span> <span class="o">=</span> <span class="n">RtmlibPoseLocator</span><span class="p">()</span>
-</span><span data-line="405">
+</span><span data-line="402">
+</span><span data-line="403"><span class="c1">#: The ready-made locator: no configuration, and the target a CLI</span>
+</span><span data-line="404"><span class="c1">#: ``--subject-locator paces.pose:rtmlib_pose`` reference resolves to.</span>
+</span><span data-line="405"><span class="n">rtmlib_pose</span> <span class="o">=</span> <span class="n">RtmlibPoseLocator</span><span class="p">()</span>
 </span><span data-line="406">
+</span><span data-line="407">
 <div class="viewcode-block" id="check_pose_requirements">
 <a class="viewcode-back" href="../../_autosummary/paces.pose.html#paces.pose.check_pose_requirements">[docs]</a>
-</span><span data-line="407"><span class="k">def</span><span class="w"> </span><span class="nf">check_pose_requirements</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="408"><span class="w">    </span><span class="sd">"""Preflight for the ``[pose]`` extra, per channel and never silently.</span>
-</span><span data-line="409">
-</span><span data-line="410"><span class="sd">    - ``rtmlib`` / ``onnxruntime`` — the locator and its inference backend.</span>
-</span><span data-line="411"><span class="sd">    - ``cv2_providers`` — rtmlib declares BOTH ``opencv-python`` and</span>
-</span><span data-line="412"><span class="sd">      ``opencv-contrib-python``, while the fleet standardises on the contrib</span>
-</span><span data-line="413"><span class="sd">      superset (mixing's single cv2 provider). An install can therefore end up</span>
-</span><span data-line="414"><span class="sd">      with two distributions owning one ``cv2`` package. Reported, not fatal:</span>
-</span><span data-line="415"><span class="sd">      it works until one of them is uninstalled, and a reader deserves to know</span>
-</span><span data-line="416"><span class="sd">      — and, since neither package's uninstall is safe once both are present</span>
-</span><span data-line="417"><span class="sd">      (each claims files the other also claims), the note names the repair</span>
-</span><span data-line="418"><span class="sd">      command rather than only the collision. See README's "Auto-crop" section</span>
-</span><span data-line="419"><span class="sd">      for the install recipe that avoids the pair in the first place</span>
-</span><span data-line="420"><span class="sd">      (issue #20).</span>
-</span><span data-line="421">
-</span><span data-line="422"><span class="sd">    Downloads nothing: weights arrive on first inference, not on this check.</span>
-</span><span data-line="423"><span class="sd">    """</span>
-</span><span data-line="424">    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span><span class="p">,</span> <span class="n">version</span>
-</span><span data-line="425">
-</span><span data-line="426">    <span class="k">def</span><span class="w"> </span><span class="nf">_version</span><span class="p">(</span><span class="n">distribution</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="427">        <span class="k">try</span><span class="p">:</span>
-</span><span data-line="428">            <span class="k">return</span> <span class="n">version</span><span class="p">(</span><span class="n">distribution</span><span class="p">)</span>
-</span><span data-line="429">        <span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
-</span><span data-line="430">            <span class="k">return</span> <span class="kc">None</span>
-</span><span data-line="431">
-</span><span data-line="432">    <span class="n">notes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="433">    <span class="n">rtmlib_version</span> <span class="o">=</span> <span class="n">_version</span><span class="p">(</span><span class="s2">"rtmlib"</span><span class="p">)</span>
-</span><span data-line="434">    <span class="n">onnxruntime_version</span> <span class="o">=</span> <span class="n">_version</span><span class="p">(</span><span class="s2">"onnxruntime"</span><span class="p">)</span>
-</span><span data-line="435">    <span class="k">if</span> <span class="n">rtmlib_version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">onnxruntime_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="436">        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="437">            <span class="n">name</span>
-</span><span data-line="438">            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">found</span> <span class="ow">in</span> <span class="p">(</span>
-</span><span data-line="439">                <span class="p">(</span><span class="s2">"rtmlib"</span><span class="p">,</span> <span class="n">rtmlib_version</span><span class="p">),</span>
-</span><span data-line="440">                <span class="p">(</span><span class="s2">"onnxruntime"</span><span class="p">,</span> <span class="n">onnxruntime_version</span><span class="p">),</span>
-</span><span data-line="441">            <span class="p">)</span>
-</span><span data-line="442">            <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="kc">None</span>
-</span><span data-line="443">        <span class="p">]</span>
-</span><span data-line="444">        <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="445">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> not installed — install the pose extra: "</span>
-</span><span data-line="446">            <span class="sa">f</span><span class="s2">"pip install 'paces[</span><span class="si">{</span><span class="n">POSE_EXTRA</span><span class="si">}</span><span class="s2">]'"</span>
-</span><span data-line="447">        <span class="p">)</span>
-</span><span data-line="448">    <span class="n">cv2_providers</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="449">        <span class="n">name</span>
-</span><span data-line="450">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"opencv-python"</span><span class="p">,</span> <span class="s2">"opencv-contrib-python"</span><span class="p">)</span>
-</span><span data-line="451">        <span class="k">if</span> <span class="n">_version</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-</span><span data-line="452">    <span class="p">]</span>
-</span><span data-line="453">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv2_providers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span data-line="454">        <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="455">            <span class="s2">"two distributions provide cv2 "</span>
-</span><span data-line="456">            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cv2_providers</span><span class="p">)</span><span class="si">}</span><span class="s2">) — rtmlib declares both; uninstalling "</span>
-</span><span data-line="457">            <span class="s2">"either can leave the other's cv2 broken. Repair: "</span>
-</span><span data-line="458">            <span class="s2">"pip uninstall -y opencv-python opencv-contrib-python &amp;&amp; "</span>
-</span><span data-line="459">            <span class="s2">"pip install --force-reinstall opencv-contrib-python — not sticky: "</span>
-</span><span data-line="460">            <span class="s2">"the next plain `pip install paces[pose]` re-adds opencv-python, "</span>
-</span><span data-line="461">            <span class="s2">"so use README's Auto-crop install recipe to avoid it recurring"</span>
-</span><span data-line="462">        <span class="p">)</span>
-</span><span data-line="463">    <span class="k">return</span> <span class="p">{</span>
-</span><span data-line="464">        <span class="s2">"ok"</span><span class="p">:</span> <span class="n">rtmlib_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">onnxruntime_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="465">        <span class="s2">"rtmlib"</span><span class="p">:</span> <span class="n">rtmlib_version</span><span class="p">,</span>
-</span><span data-line="466">        <span class="s2">"onnxruntime"</span><span class="p">:</span> <span class="n">onnxruntime_version</span><span class="p">,</span>
-</span><span data-line="467">        <span class="s2">"cv2_providers"</span><span class="p">:</span> <span class="n">cv2_providers</span><span class="p">,</span>
-</span><span data-line="468">        <span class="s2">"notes"</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
-</span><span data-line="469">    <span class="p">}</span></div>
+</span><span data-line="408"><span class="k">def</span><span class="w"> </span><span class="nf">check_pose_requirements</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="409"><span class="w">    </span><span class="sd">"""Preflight for the ``[pose]`` extra, per channel and never silently.</span>
+</span><span data-line="410">
+</span><span data-line="411"><span class="sd">    - ``rtmlib`` / ``onnxruntime`` — the locator and its inference backend.</span>
+</span><span data-line="412"><span class="sd">    - ``cv2_providers`` — rtmlib declares BOTH ``opencv-python`` and</span>
+</span><span data-line="413"><span class="sd">      ``opencv-contrib-python``, while the fleet standardises on the contrib</span>
+</span><span data-line="414"><span class="sd">      superset (mixing's single cv2 provider). An install can therefore end up</span>
+</span><span data-line="415"><span class="sd">      with two distributions owning one ``cv2`` package. Reported, not fatal:</span>
+</span><span data-line="416"><span class="sd">      it works until one of them is uninstalled, and a reader deserves to know</span>
+</span><span data-line="417"><span class="sd">      — and, since neither package's uninstall is safe once both are present</span>
+</span><span data-line="418"><span class="sd">      (each claims files the other also claims), the note names the repair</span>
+</span><span data-line="419"><span class="sd">      command rather than only the collision. See README's "Auto-crop" section</span>
+</span><span data-line="420"><span class="sd">      for the install recipe that avoids the pair in the first place</span>
+</span><span data-line="421"><span class="sd">      (issue #20).</span>
+</span><span data-line="422">
+</span><span data-line="423"><span class="sd">    Downloads nothing: weights arrive on first inference, not on this check.</span>
+</span><span data-line="424"><span class="sd">    """</span>
+</span><span data-line="425">    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span><span class="p">,</span> <span class="n">version</span>
+</span><span data-line="426">
+</span><span data-line="427">    <span class="k">def</span><span class="w"> </span><span class="nf">_version</span><span class="p">(</span><span class="n">distribution</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="428">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="429">            <span class="k">return</span> <span class="n">version</span><span class="p">(</span><span class="n">distribution</span><span class="p">)</span>
+</span><span data-line="430">        <span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
+</span><span data-line="431">            <span class="k">return</span> <span class="kc">None</span>
+</span><span data-line="432">
+</span><span data-line="433">    <span class="n">notes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="434">    <span class="n">rtmlib_version</span> <span class="o">=</span> <span class="n">_version</span><span class="p">(</span><span class="s2">"rtmlib"</span><span class="p">)</span>
+</span><span data-line="435">    <span class="n">onnxruntime_version</span> <span class="o">=</span> <span class="n">_version</span><span class="p">(</span><span class="s2">"onnxruntime"</span><span class="p">)</span>
+</span><span data-line="436">    <span class="k">if</span> <span class="n">rtmlib_version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">onnxruntime_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="437">        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="438">            <span class="n">name</span>
+</span><span data-line="439">            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">found</span> <span class="ow">in</span> <span class="p">(</span>
+</span><span data-line="440">                <span class="p">(</span><span class="s2">"rtmlib"</span><span class="p">,</span> <span class="n">rtmlib_version</span><span class="p">),</span>
+</span><span data-line="441">                <span class="p">(</span><span class="s2">"onnxruntime"</span><span class="p">,</span> <span class="n">onnxruntime_version</span><span class="p">),</span>
+</span><span data-line="442">            <span class="p">)</span>
+</span><span data-line="443">            <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span data-line="444">        <span class="p">]</span>
+</span><span data-line="445">        <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="446">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> not installed — install the pose extra: "</span>
+</span><span data-line="447">            <span class="sa">f</span><span class="s2">"pip install 'paces[</span><span class="si">{</span><span class="n">POSE_EXTRA</span><span class="si">}</span><span class="s2">]'"</span>
+</span><span data-line="448">        <span class="p">)</span>
+</span><span data-line="449">    <span class="n">cv2_providers</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="450">        <span class="n">name</span>
+</span><span data-line="451">        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"opencv-python"</span><span class="p">,</span> <span class="s2">"opencv-contrib-python"</span><span class="p">)</span>
+</span><span data-line="452">        <span class="k">if</span> <span class="n">_version</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="453">    <span class="p">]</span>
+</span><span data-line="454">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv2_providers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span data-line="455">        <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="456">            <span class="s2">"two distributions provide cv2 "</span>
+</span><span data-line="457">            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cv2_providers</span><span class="p">)</span><span class="si">}</span><span class="s2">) — rtmlib declares both; uninstalling "</span>
+</span><span data-line="458">            <span class="s2">"either can leave the other's cv2 broken. Repair: "</span>
+</span><span data-line="459">            <span class="s2">"pip uninstall -y opencv-python opencv-contrib-python &amp;&amp; "</span>
+</span><span data-line="460">            <span class="s2">"pip install --force-reinstall opencv-contrib-python — not sticky: "</span>
+</span><span data-line="461">            <span class="s2">"the next plain `pip install paces[pose]` re-adds opencv-python, "</span>
+</span><span data-line="462">            <span class="s2">"so use README's Auto-crop install recipe to avoid it recurring"</span>
+</span><span data-line="463">        <span class="p">)</span>
+</span><span data-line="464">    <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="465">        <span class="s2">"ok"</span><span class="p">:</span> <span class="n">rtmlib_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">onnxruntime_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="466">        <span class="s2">"rtmlib"</span><span class="p">:</span> <span class="n">rtmlib_version</span><span class="p">,</span>
+</span><span data-line="467">        <span class="s2">"onnxruntime"</span><span class="p">:</span> <span class="n">onnxruntime_version</span><span class="p">,</span>
+</span><span data-line="468">        <span class="s2">"cv2_providers"</span><span class="p">:</span> <span class="n">cv2_providers</span><span class="p">,</span>
+</span><span data-line="469">        <span class="s2">"notes"</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
+</span><span data-line="470">    <span class="p">}</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
