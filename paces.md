@@ -1,4 +1,4 @@
-> built 2026-11-23 00:51 UTC from 3a67382 (main) · paces 0.0.29. Details: build_info.json
+> built 2026-11-23 04:36 UTC from da84e4d (main) · paces 0.0.30. Details: build_info.json
 
 # index.html.md
 
@@ -300,7 +300,7 @@ and the boundaries.
 ```pycon
 >>> load_answers({"kind": "PacesAskAnswers", "version": 1, "k": 4,
 ...               "corrections": [{"verb": "split", "anchorT": "15"}]})
-Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason=''),), boundaries=None)
+Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason='', migrated_from=None),), boundaries=None)
 ```
 
 * **Return type:**
@@ -498,23 +498,26 @@ infeasible, is reported in `Segmentation.flags`.
 
 ### Functions
 
-| [`absent`](_autosummary/paces.corrections.html.md#paces.corrections.absent)(anchor_t, \*\*meta)          | Absent — "the step placed at `anchor_t` is not in this media".                                                 |
-|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| [`forbid`](_autosummary/paces.corrections.html.md#paces.corrections.forbid)(anchor_t, span, \*\*meta)    | Forbid — "the step at `anchor_t` is not in `span`".                                                            |
-| [`from_wire`](_autosummary/paces.corrections.html.md#paces.corrections.from_wire)(wire)                     | Parse one wire dict.                                                                                           |
-| [`merge`](_autosummary/paces.corrections.html.md#paces.corrections.merge)(at_t, \*\*meta)               | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                          |
-| [`normalize_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.normalize_corrections)(corrections)  | Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.  |
-| [`pin`](_autosummary/paces.corrections.html.md#paces.corrections.pin)(span, \*[, anchor_t])           | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`. |
-| [`replay`](_autosummary/paces.corrections.html.md#paces.corrections.replay)(seg, corrections, \*[, ...]) | Apply a correction log to a segmentation, in log order.                                                        |
-| [`split`](_autosummary/paces.corrections.html.md#paces.corrections.split)(at_t, \*\*meta)               | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                      |
-| [`to_wire`](_autosummary/paces.corrections.html.md#paces.corrections.to_wire)(correction)                 | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                 |
+| [`absent`](_autosummary/paces.corrections.html.md#paces.corrections.absent)(anchor_t, \*\*meta)                      | Absent — "the step placed at `anchor_t` is not in this media".                                                                           |
+|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| [`forbid`](_autosummary/paces.corrections.html.md#paces.corrections.forbid)(anchor_t, span, \*\*meta)                | Forbid — "the step at `anchor_t` is not in `span`".                                                                                      |
+| [`from_wire`](_autosummary/paces.corrections.html.md#paces.corrections.from_wire)(wire)                                 | Parse one wire dict.                                                                                                                     |
+| [`merge`](_autosummary/paces.corrections.html.md#paces.corrections.merge)(at_t, \*\*meta)                           | Merge — "those are one step": remove the cut nearest `at_t` (K -= 1).                                                                    |
+| [`migrate_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections)(corrections, \*, cuts, ...) | Move the corrections made against `from_media_key` onto the rendering `to_media_key`, which is that media with `cuts` removed.           |
+| [`normalize_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.normalize_corrections)(corrections)              | Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.                            |
+| [`pin`](_autosummary/paces.corrections.html.md#paces.corrections.pin)(span, \*[, anchor_t])                       | Pin — "the step is HERE": the step covering `anchor_t` (default: the span's midpoint) occupies exactly `span`.                           |
+| [`replay`](_autosummary/paces.corrections.html.md#paces.corrections.replay)(seg, corrections, \*[, ...])             | Apply a correction log to a segmentation, in log order.                                                                                  |
+| [`split`](_autosummary/paces.corrections.html.md#paces.corrections.split)(at_t, \*\*meta)                           | Split — "that is two steps": cut the step covering `at_t` there (K += 1).                                                                |
+| [`stale_corrections`](_autosummary/paces.corrections.html.md#paces.corrections.stale_corrections)(corrections, media_key)       | `(current, flags)`: the log without the corrections made against another rendering of the media, and a `correction-stale` flag for each. |
+| [`to_wire`](_autosummary/paces.corrections.html.md#paces.corrections.to_wire)(correction)                             | A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.                                                           |
 
 ### Classes
 
-| [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)(\*, verb, anchor_t[, span, ...])   | One thing a human said about a segmentation, keyed by media time.   |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)(\*, verb, anchor_t[, span, ...])      | One thing a human said about a segmentation, keyed by media time.                                                         |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| [`CorrectionMigration`](_autosummary/paces.corrections.html.md#paces.corrections.CorrectionMigration)(corrections[, dropped, ...]) | What [`migrate_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections) did: the new log, and what it could not move. |
 
-### *class* paces.corrections.Correction(, verb, anchor_t, span=None, step_id=None, author='', at='', media_key=None, reason='')
+### *class* paces.corrections.Correction(, verb, anchor_t, span=None, step_id=None, author='', at='', media_key=None, reason='', migrated_from=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -522,7 +525,9 @@ One thing a human said about a segmentation, keyed by media time.
 
 `step_id` is for display only and is NEVER the join key: replay finds
 its target by `anchor_t`. `media_key` records which rendering of the
-media the correction was true of, so a later re-cut can migrate the log.
+media the correction was true of, so a later re-cut can migrate the log
+([`migrate_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections), which sets `migrated_from`), and a replay
+told another key skips it as stale ([`stale_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.stale_corrections)).
 Times are kept to the millisecond (`TIME_PLACES`), so the wire form
 round-trips exactly.
 
@@ -534,6 +539,18 @@ round-trips exactly.
 #### *property* label *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `'split@95.8'` — how flags name this correction.
+
+### *class* paces.corrections.CorrectionMigration(corrections, dropped=(), moved=0, untagged=0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`migrate_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections) did: the new log, and what it could not move.
+
+#### *property* flags *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
+
+One `correction-unmigrated` line per dropped correction, saying why;
+and `correction-migration-empty` when nothing was made against the old
+rendering, so a no-op is never mistaken for a migration.
 
 ### paces.corrections.DFLT_MERGE_TOLERANCE_S *= 1.5*
 
@@ -580,6 +597,33 @@ Merge — “those are one step”: remove the cut nearest `at_t` (K -= 1).
 * **Return type:**
   [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
 
+### paces.corrections.migrate_corrections(corrections, , cuts, from_media_key, to_media_key, remap=None)
+
+Move the corrections made against `from_media_key` onto the rendering
+`to_media_key`, which is that media with `cuts` removed.
+
+`cuts` are `(start, end)` pairs or `{"start", "end"}` mappings on the
+old timeline (`mixing`’s cut list). Each moved correction’s times go
+through `remap` (default: `mixing.transcript.formats.remap_time_after_cuts`,
+the fleet’s one rule), its `media_key` becomes `to_media_key` and
+`migrated_from` records the old one. A correction whose anchor was cut
+out, or whose span the cuts remove or collapse, has nothing left to say
+about the new rendering: it is returned in `dropped` with the reason,
+never silently lost. Corrections made against any other rendering, or with
+no `media_key`, are kept unchanged, in log order.
+
+```pycon
+>>> remap = lambda t, cuts: t - sum(c["end"] - c["start"] for c in cuts if c["end"] <= t)
+>>> moved = migrate_corrections([split(30, media_key="v1"), merge(5, media_key="v1")],
+...                             cuts=[(10, 20)], from_media_key="v1", to_media_key="v2",
+...                             remap=remap)
+>>> [(c.label, c.media_key, c.migrated_from) for c in moved.corrections]
+[('split@20', 'v2', 'v1'), ('merge@5', 'v2', 'v1')]
+```
+
+* **Return type:**
+  [`CorrectionMigration`](_autosummary/paces.corrections.html.md#paces.corrections.CorrectionMigration)
+
 ### paces.corrections.normalize_corrections(corrections)
 
 Accept [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction) objects or their wire dicts, in log order.
@@ -605,9 +649,13 @@ midpoint) occupies exactly `span`.
 * **Return type:**
   [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
 
-### paces.corrections.replay(seg, corrections, , merge_tolerance_s=1.5, min_step_s=0.25)
+### paces.corrections.replay(seg, corrections, , merge_tolerance_s=1.5, min_step_s=0.25, media_key=None)
 
 Apply a correction log to a segmentation, in log order.
+
+`media_key` names the rendering `seg` was made from: a correction made
+against another one is skipped and flagged `correction-stale`
+([`stale_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.stale_corrections)). `None` (default) applies every correction.
 
 Each correction acts on the result of the ones before it, as the human
 made them. Applied ones are flagged `corrected: <verb>@<t>`; one that
@@ -639,6 +687,30 @@ Split — “that is two steps”: cut the step covering `at_t` there (K += 1).
 
 * **Return type:**
   [`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction)
+
+### paces.corrections.stale_corrections(corrections, media_key)
+
+`(current, flags)`: the log without the corrections made against
+another rendering of the media, and a `correction-stale` flag for each.
+
+A correction recorded against another `media_key` is about different
+times (a re-cut moved everything after its cut), so replaying it would act
+on the wrong moment. It is skipped and said, never dropped silently; once
+[`migrate_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections) moves it to this rendering it applies again. A
+correction with no `media_key` (a hand-written log), or a call with
+`media_key=None` (the rendering is not known), is current.
+
+```pycon
+>>> log = [split(5, media_key="cut-a"), split(9, media_key="cut-b"), merge(20)]
+>>> current, flags = stale_corrections(log, "cut-b")
+>>> [c.label for c in current]
+['split@9', 'merge@20']
+>>> flags
+("correction-stale: split@5 (made against media 'cut-a', not 'cut-b'; migrate it with migrate_corrections)",)
+```
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Correction`](_autosummary/paces.corrections.html.md#paces.corrections.Correction), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)], [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
 
 ### paces.corrections.to_wire(correction)
 
@@ -1720,7 +1792,7 @@ Seconds one domain unit lasts under *grid*, or None without a tempo.
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### paces.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, catalog=None)
+### paces.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, media_key=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -1735,7 +1807,10 @@ The seam: `segmenter=None` selects from what is present; a name pins it.
 constraints that survive re-runs. A segmenter that lists
 `"corrections"` in `reads` receives the log and honours it itself;
 for any other, the log is replayed over its result, and every correction
-that could not be honoured is flagged, never dropped.
+that could not be honoured is flagged, never dropped. `media_key` names
+the rendering of *media* being cut: a correction made against another one
+is held back from both paths and flagged `correction-stale` until
+[`paces.corrections.migrate_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections) moves it (paces#34).
 
 ```pycon
 >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
@@ -2891,7 +2966,7 @@ Register a segmentation capability; returns it for assignment.
 * **Return type:**
   [`Capability`](_autosummary/paces.segmenters.html.md#paces.segmenters.Capability)
 
-### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, catalog=None)
+### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, media_key=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -2906,7 +2981,10 @@ The seam: `segmenter=None` selects from what is present; a name pins it.
 constraints that survive re-runs. A segmenter that lists
 `"corrections"` in `reads` receives the log and honours it itself;
 for any other, the log is replayed over its result, and every correction
-that could not be honoured is flagged, never dropped.
+that could not be honoured is flagged, never dropped. `media_key` names
+the rendering of *media* being cut: a correction made against another one
+is held back from both paths and flagged `correction-stale` until
+[`paces.corrections.migrate_corrections()`](_autosummary/paces.corrections.html.md#paces.corrections.migrate_corrections) moves it (paces#34).
 
 ```pycon
 >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
@@ -3121,7 +3199,7 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, answers=None, output=None)
+### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, rendering=None, answers=None, output=None)
 
 Cut media into steps using whatever else is present (ADR-0003).
 
@@ -3134,7 +3212,11 @@ is timed text — SRT text, an `.srt`/`.vtt` path, or JSON cues
 `corrections` is a human’s correction log — a JSON list of
 `{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}`
 (inline, or a path) — replayed as constraints; any it could not honour
-is reported in `flags`. `answers` is the JSON the `ask` page exports
+is reported in `flags`. `rendering` is the media key of the rendering
+being cut (the `mediaKey` a correction records): a correction made
+against another one is skipped and flagged `correction-stale`. (It is
+not named after the media key because argparse would then take the media
+option’s spelling as an abbreviation of it.) `answers` is the JSON the `ask` page exports
 (inline, or a path): its step count fills `k` unless `k` is given, its
 boundaries (tapped on a page that had no cuts to correct) fill
 `boundaries` unless it is given, and its corrections run after
@@ -3182,16 +3264,18 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-23 00:51 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/3a67382caaf9b149b2b67ba5dfa51d17f8282bad"><code>3a67382</code></a> on branch <code>main</code>, for **paces 0.0.29** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-23 04:36 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/da84e4ddc44432057ce21b6b4c6f1653dc19b5e0"><code>da84e4d</code></a> on branch <code>main</code>, for **paces 0.0.30** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.30) is ahead of the latest release on PyPI (0.0.29): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/3a67382caaf9b149b2b67ba5dfa51d17f8282bad"><code>3a67382caaf9b149b2b67ba5dfa51d17f8282bad</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/da84e4ddc44432057ce21b6b4c6f1653dc19b5e0"><code>da84e4ddc44432057ce21b6b4c6f1653dc19b5e0</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
 | Tags at this commit | none                                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                 |
@@ -3202,9 +3286,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45090850869">45090850869</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45112508446">45112508446</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>3a67382caaf9b149b2b67ba5dfa51d17f8282bad</code> (in the history of the built commit) |
+| Event commit | <code>f89497128b83bd81fede671a010733cf4f9a3cfd</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3229,13 +3313,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.29/">0.0.29</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.29/">0.0.29</a>, older than the documented version (0.0.30).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 3a67382caaf9b149b2b67ba5dfa51d17f8282bad
+git checkout da84e4ddc44432057ce21b6b4c6f1653dc19b5e0
 pip install "epythet==0.2.23"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

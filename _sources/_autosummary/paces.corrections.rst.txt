@@ -19,10 +19,12 @@ paces.corrections
       forbid
       from_wire
       merge
+      migrate_corrections
       normalize_corrections
       pin
       replay
       split
+      stale_corrections
       to_wire
    
    .. rubric:: Classes
@@ -30,4 +32,5 @@ paces.corrections
    .. autosummary::
    
       Correction
+      CorrectionMigration
    

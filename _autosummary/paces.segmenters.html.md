@@ -123,7 +123,7 @@ Register a segmentation capability; returns it for assignment.
 * **Return type:**
   [`Capability`](#paces.segmenters.Capability)
 
-### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, catalog=None)
+### paces.segmenters.segment(media=None, , segmenter=None, steps=None, boundaries=None, grid=None, metadata=None, transcript=None, k=None, corrections=None, media_key=None, catalog=None)
 
 Cut *media* into named steps, using whatever else is present.
 
@@ -138,7 +138,10 @@ The seam: `segmenter=None` selects from what is present; a name pins it.
 constraints that survive re-runs. A segmenter that lists
 `"corrections"` in `reads` receives the log and honours it itself;
 for any other, the log is replayed over its result, and every correction
-that could not be honoured is flagged, never dropped.
+that could not be honoured is flagged, never dropped. `media_key` names
+the rendering of *media* being cut: a correction made against another one
+is held back from both paths and flagged `correction-stale` until
+[`paces.corrections.migrate_corrections()`](paces.corrections.html.md#paces.corrections.migrate_corrections) moves it (paces#34).
 
 ```pycon
 >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])

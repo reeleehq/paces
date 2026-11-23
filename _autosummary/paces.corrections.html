@@ -104,16 +104,22 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#paces.corrections.Correction.label"><code class="docutils literal notranslate"><span class="pre">Correction.label</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#paces.corrections.CorrectionMigration"><code class="docutils literal notranslate"><span class="pre">CorrectionMigration</span></code></a><ul>
+<li><a class="reference internal" href="#paces.corrections.CorrectionMigration.flags"><code class="docutils literal notranslate"><span class="pre">CorrectionMigration.flags</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#paces.corrections.DFLT_MERGE_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">DFLT_MERGE_TOLERANCE_S</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.DFLT_MIN_STEP_S"><code class="docutils literal notranslate"><span class="pre">DFLT_MIN_STEP_S</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.absent"><code class="docutils literal notranslate"><span class="pre">absent()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.forbid"><code class="docutils literal notranslate"><span class="pre">forbid()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.from_wire"><code class="docutils literal notranslate"><span class="pre">from_wire()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.merge"><code class="docutils literal notranslate"><span class="pre">merge()</span></code></a></li>
+<li><a class="reference internal" href="#paces.corrections.migrate_corrections"><code class="docutils literal notranslate"><span class="pre">migrate_corrections()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.normalize_corrections"><code class="docutils literal notranslate"><span class="pre">normalize_corrections()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.pin"><code class="docutils literal notranslate"><span class="pre">pin()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.replay"><code class="docutils literal notranslate"><span class="pre">replay()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.split"><code class="docutils literal notranslate"><span class="pre">split()</span></code></a></li>
+<li><a class="reference internal" href="#paces.corrections.stale_corrections"><code class="docutils literal notranslate"><span class="pre">stale_corrections()</span></code></a></li>
 <li><a class="reference internal" href="#paces.corrections.to_wire"><code class="docutils literal notranslate"><span class="pre">to_wire()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
@@ -216,17 +222,23 @@ infeasible, is reported in <code class="docutils literal notranslate"><span clas
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.merge" title="paces.corrections.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(at_t, **meta)</p></td>
 <td><p>Merge — &quot;those are one step&quot;: remove the cut nearest <code class="docutils literal notranslate"><span class="pre">at_t</span></code> (K -= 1).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.normalize_corrections" title="paces.corrections.normalize_corrections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_corrections</span></code></a>(corrections)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.migrate_corrections" title="paces.corrections.migrate_corrections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">migrate_corrections</span></code></a>(corrections, *, cuts, ...)</p></td>
+<td><p>Move the corrections made against <code class="docutils literal notranslate"><span class="pre">from_media_key</span></code> onto the rendering <code class="docutils literal notranslate"><span class="pre">to_media_key</span></code>, which is that media with <code class="docutils literal notranslate"><span class="pre">cuts</span></code> removed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.normalize_corrections" title="paces.corrections.normalize_corrections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_corrections</span></code></a>(corrections)</p></td>
 <td><p>Accept <a class="reference internal" href="#paces.corrections.Correction" title="paces.corrections.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a> objects or their wire dicts, in log order.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.pin" title="paces.corrections.pin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pin</span></code></a>(span, *[, anchor_t])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.pin" title="paces.corrections.pin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pin</span></code></a>(span, *[, anchor_t])</p></td>
 <td><p>Pin — &quot;the step is HERE&quot;: the step covering <code class="docutils literal notranslate"><span class="pre">anchor_t</span></code> (default: the span's midpoint) occupies exactly <code class="docutils literal notranslate"><span class="pre">span</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.replay" title="paces.corrections.replay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replay</span></code></a>(seg, corrections, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.replay" title="paces.corrections.replay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replay</span></code></a>(seg, corrections, *[, ...])</p></td>
 <td><p>Apply a correction log to a segmentation, in log order.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.split" title="paces.corrections.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code></a>(at_t, **meta)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.split" title="paces.corrections.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code></a>(at_t, **meta)</p></td>
 <td><p>Split — &quot;that is two steps&quot;: cut the step covering <code class="docutils literal notranslate"><span class="pre">at_t</span></code> there (K += 1).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.stale_corrections" title="paces.corrections.stale_corrections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stale_corrections</span></code></a>(corrections, media_key)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(current,</span> <span class="pre">flags)</span></code>: the log without the corrections made against another rendering of the media, and a <code class="docutils literal notranslate"><span class="pre">correction-stale</span></code> flag for each.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.to_wire" title="paces.corrections.to_wire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_wire</span></code></a>(correction)</p></td>
 <td><p>A JSON-ready dict: camelCase keys, times as decimal strings, defaults omitted.</p></td>
@@ -241,17 +253,22 @@ infeasible, is reported in <code class="docutils literal notranslate"><span clas
 <tr class="row-odd"><td><p><a class="reference internal" href="#paces.corrections.Correction" title="paces.corrections.Correction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Correction</span></code></a>(*, verb, anchor_t[, span, ...])</p></td>
 <td><p>One thing a human said about a segmentation, keyed by media time.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.corrections.CorrectionMigration" title="paces.corrections.CorrectionMigration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CorrectionMigration</span></code></a>(corrections[, dropped, ...])</p></td>
+<td><p>What <a class="reference internal" href="#paces.corrections.migrate_corrections" title="paces.corrections.migrate_corrections"><code class="xref py py-func docutils literal notranslate"><span class="pre">migrate_corrections()</span></code></a> did: the new log, and what it could not move.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="paces.corrections.Correction">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">Correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">verb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#Correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.Correction" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">Correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">verb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migrated_from</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#Correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.Correction" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One thing a human said about a segmentation, keyed by media time.</p>
 <p><code class="docutils literal notranslate"><span class="pre">step_id</span></code> is for display only and is NEVER the join key: replay finds
 its target by <code class="docutils literal notranslate"><span class="pre">anchor_t</span></code>. <code class="docutils literal notranslate"><span class="pre">media_key</span></code> records which rendering of the
-media the correction was true of, so a later re-cut can migrate the log.
+media the correction was true of, so a later re-cut can migrate the log
+(<a class="reference internal" href="#paces.corrections.migrate_corrections" title="paces.corrections.migrate_corrections"><code class="xref py py-func docutils literal notranslate"><span class="pre">migrate_corrections()</span></code></a>, which sets <code class="docutils literal notranslate"><span class="pre">migrated_from</span></code>), and a replay
+told another key skips it as stale (<a class="reference internal" href="#paces.corrections.stale_corrections" title="paces.corrections.stale_corrections"><code class="xref py py-func docutils literal notranslate"><span class="pre">stale_corrections()</span></code></a>).
 Times are kept to the millisecond (<code class="xref py py-data docutils literal notranslate"><span class="pre">TIME_PLACES</span></code>), so the wire form
 round-trips exactly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">split</span><span class="p">(</span><span class="mf">0.8550444</span><span class="p">)</span><span class="o">.</span><span class="n">anchor_t</span>
@@ -264,6 +281,23 @@ round-trips exactly.</p>
 <dt class="sig sig-object py" id="paces.corrections.Correction.label">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#paces.corrections.Correction.label" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">'split&#64;95.8'</span></code> — how flags name this correction.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="paces.corrections.CorrectionMigration">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">CorrectionMigration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moved</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">untagged</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#CorrectionMigration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.CorrectionMigration" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What <a class="reference internal" href="#paces.corrections.migrate_corrections" title="paces.corrections.migrate_corrections"><code class="xref py py-func docutils literal notranslate"><span class="pre">migrate_corrections()</span></code></a> did: the new log, and what it could not move.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="paces.corrections.CorrectionMigration.flags">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">flags</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#paces.corrections.CorrectionMigration.flags" title="Link to this definition">#</a></dt>
+<dd><p>One <code class="docutils literal notranslate"><span class="pre">correction-unmigrated</span></code> line per dropped correction, saying why;
+and <code class="docutils literal notranslate"><span class="pre">correction-migration-empty</span></code> when nothing was made against the old
+rendering, so a no-op is never mistaken for a migration.</p>
 </dd></dl>
 
 </dd></dl>
@@ -333,6 +367,35 @@ must not vanish, and a correction without a verb or a time is not one).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="paces.corrections.migrate_corrections">
+<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">migrate_corrections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrections</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">cuts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_media_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_media_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#migrate_corrections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.migrate_corrections" title="Link to this definition">#</a></dt>
+<dd><p>Move the corrections made against <code class="docutils literal notranslate"><span class="pre">from_media_key</span></code> onto the rendering
+<code class="docutils literal notranslate"><span class="pre">to_media_key</span></code>, which is that media with <code class="docutils literal notranslate"><span class="pre">cuts</span></code> removed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cuts</span></code> are <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">end)</span></code> pairs or <code class="docutils literal notranslate"><span class="pre">{&quot;start&quot;,</span> <span class="pre">&quot;end&quot;}</span></code> mappings on the
+old timeline (<code class="docutils literal notranslate"><span class="pre">mixing</span></code>’s cut list). Each moved correction’s times go
+through <code class="docutils literal notranslate"><span class="pre">remap</span></code> (default: <code class="docutils literal notranslate"><span class="pre">mixing.transcript.formats.remap_time_after_cuts</span></code>,
+the fleet’s one rule), its <code class="docutils literal notranslate"><span class="pre">media_key</span></code> becomes <code class="docutils literal notranslate"><span class="pre">to_media_key</span></code> and
+<code class="docutils literal notranslate"><span class="pre">migrated_from</span></code> records the old one. A correction whose anchor was cut
+out, or whose span the cuts remove or collapse, has nothing left to say
+about the new rendering: it is returned in <code class="docutils literal notranslate"><span class="pre">dropped</span></code> with the reason,
+never silently lost. Corrections made against any other rendering, or with
+no <code class="docutils literal notranslate"><span class="pre">media_key</span></code>, are kept unchanged, in log order.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">remap</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">cuts</span><span class="p">:</span> <span class="n">t</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cuts</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">)</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">moved</span> <span class="o">=</span> <span class="n">migrate_corrections</span><span class="p">([</span><span class="n">split</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">media_key</span><span class="o">=</span><span class="s2">"v1"</span><span class="p">),</span> <span class="n">merge</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">media_key</span><span class="o">=</span><span class="s2">"v1"</span><span class="p">)],</span>
+</span><span data-line="3"><span class="gp">... </span>                            <span class="n">cuts</span><span class="o">=</span><span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)],</span> <span class="n">from_media_key</span><span class="o">=</span><span class="s2">"v1"</span><span class="p">,</span> <span class="n">to_media_key</span><span class="o">=</span><span class="s2">"v2"</span><span class="p">,</span>
+</span><span data-line="4"><span class="gp">... </span>                            <span class="n">remap</span><span class="o">=</span><span class="n">remap</span><span class="p">)</span>
+</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">c</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">media_key</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">migrated_from</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">moved</span><span class="o">.</span><span class="n">corrections</span><span class="p">]</span>
+</span><span data-line="6"><span class="go">[('split@20', 'v2', 'v1'), ('merge@5', 'v2', 'v1')]</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#paces.corrections.CorrectionMigration" title="paces.corrections.CorrectionMigration"><code class="xref py py-class docutils literal notranslate"><span class="pre">CorrectionMigration</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="paces.corrections.normalize_corrections">
 <span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">normalize_corrections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrections</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#normalize_corrections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.normalize_corrections" title="Link to this definition">#</a></dt>
 <dd><p>Accept <a class="reference internal" href="#paces.corrections.Correction" title="paces.corrections.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a> objects or their wire dicts, in log order.</p>
@@ -365,8 +428,11 @@ midpoint) occupies exactly <code class="docutils literal notranslate"><span clas
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.corrections.replay">
-<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_tolerance_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_step_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.replay" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_tolerance_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_step_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.replay" title="Link to this definition">#</a></dt>
 <dd><p>Apply a correction log to a segmentation, in log order.</p>
+<p><code class="docutils literal notranslate"><span class="pre">media_key</span></code> names the rendering <code class="docutils literal notranslate"><span class="pre">seg</span></code> was made from: a correction made
+against another one is skipped and flagged <code class="docutils literal notranslate"><span class="pre">correction-stale</span></code>
+(<a class="reference internal" href="#paces.corrections.stale_corrections" title="paces.corrections.stale_corrections"><code class="xref py py-func docutils literal notranslate"><span class="pre">stale_corrections()</span></code></a>). <code class="docutils literal notranslate"><span class="pre">None</span></code> (default) applies every correction.</p>
 <p>Each correction acts on the result of the ones before it, as the human
 made them. Applied ones are flagged <code class="docutils literal notranslate"><span class="pre">corrected:</span> <span class="pre">&lt;verb&gt;&#64;&lt;t&gt;</span></code>; one that
 finds nothing to act on is flagged <code class="docutils literal notranslate"><span class="pre">correction-unmatched</span></code>, one that
@@ -400,6 +466,32 @@ given (duplicates included); once one does, they are rebuilt from it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#paces.corrections.Correction" title="paces.corrections.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.corrections.stale_corrections">
+<span class="sig-prename descclassname"><span class="pre">paces.corrections.</span></span><span class="sig-name descname"><span class="pre">stale_corrections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/corrections.html#stale_corrections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.corrections.stale_corrections" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(current,</span> <span class="pre">flags)</span></code>: the log without the corrections made against
+another rendering of the media, and a <code class="docutils literal notranslate"><span class="pre">correction-stale</span></code> flag for each.</p>
+<p>A correction recorded against another <code class="docutils literal notranslate"><span class="pre">media_key</span></code> is about different
+times (a re-cut moved everything after its cut), so replaying it would act
+on the wrong moment. It is skipped and said, never dropped silently; once
+<a class="reference internal" href="#paces.corrections.migrate_corrections" title="paces.corrections.migrate_corrections"><code class="xref py py-func docutils literal notranslate"><span class="pre">migrate_corrections()</span></code></a> moves it to this rendering it applies again. A
+correction with no <code class="docutils literal notranslate"><span class="pre">media_key</span></code> (a hand-written log), or a call with
+<code class="docutils literal notranslate"><span class="pre">media_key=None</span></code> (the rendering is not known), is current.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="gp">&gt;&gt;&gt; </span><span class="n">log</span> <span class="o">=</span> <span class="p">[</span><span class="n">split</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">media_key</span><span class="o">=</span><span class="s2">"cut-a"</span><span class="p">),</span> <span class="n">split</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="n">media_key</span><span class="o">=</span><span class="s2">"cut-b"</span><span class="p">),</span> <span class="n">merge</span><span class="p">(</span><span class="mi">20</span><span class="p">)]</span>
+</span><span data-line="2"><span class="gp">&gt;&gt;&gt; </span><span class="n">current</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">stale_corrections</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="s2">"cut-b"</span><span class="p">)</span>
+</span><span data-line="3"><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">label</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">current</span><span class="p">]</span>
+</span><span data-line="4"><span class="go">['split@9', 'merge@20']</span>
+</span><span data-line="5"><span class="gp">&gt;&gt;&gt; </span><span class="n">flags</span>
+</span><span data-line="6"><span class="go">("correction-stale: split@5 (made against media 'cut-a', not 'cut-b'; migrate it with migrate_corrections)",)</span>
+</span></pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="#paces.corrections.Correction" title="paces.corrections.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>]]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -457,7 +549,7 @@ given (duplicates included); once one does, they are rebuilt from it.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=828725f0"></script>
+      <script src="../_static/documentation_options.js?v=61a342a2"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

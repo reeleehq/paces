@@ -120,7 +120,7 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, answers=None, output=None)
+### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, rendering=None, answers=None, output=None)
 
 Cut media into steps using whatever else is present (ADR-0003).
 
@@ -133,7 +133,11 @@ is timed text — SRT text, an `.srt`/`.vtt` path, or JSON cues
 `corrections` is a human’s correction log — a JSON list of
 `{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}`
 (inline, or a path) — replayed as constraints; any it could not honour
-is reported in `flags`. `answers` is the JSON the `ask` page exports
+is reported in `flags`. `rendering` is the media key of the rendering
+being cut (the `mediaKey` a correction records): a correction made
+against another one is skipped and flagged `correction-stale`. (It is
+not named after the media key because argparse would then take the media
+option’s spelling as an abbreviation of it.) `answers` is the JSON the `ask` page exports
 (inline, or a path): its step count fills `k` unless `k` is given, its
 boundaries (tapped on a page that had no cuts to correct) fill
 `boundaries` unless it is given, and its corrections run after

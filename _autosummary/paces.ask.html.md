@@ -85,7 +85,7 @@ and the boundaries.
 ```pycon
 >>> load_answers({"kind": "PacesAskAnswers", "version": 1, "k": 4,
 ...               "corrections": [{"verb": "split", "anchorT": "15"}]})
-Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason=''),), boundaries=None)
+Answers(k=4, corrections=(Correction(verb='split', anchor_t=15.0, span=None, step_id=None, author='', at='', media_key=None, reason='', migrated_from=None),), boundaries=None)
 ```
 
 * **Return type:**
