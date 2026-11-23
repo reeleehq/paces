@@ -103,6 +103,9 @@ except ImportError as error:  # pragma: no cover
     ) from error
 
 from paces.bodies import (
+    CORRECTION_BODY_SCHEMA_URI,
+    CORRECTION_TIER,
+    GuideCorrectionBodyV1,
     BEAT_BODY_SCHEMA_URI,
     BEAT_TIER,
     CUE_BODY_SCHEMA_URI,
@@ -177,6 +180,7 @@ TIERS: tuple[Tier, ...] = (
         stereotype=TierStereotype.SYMBOLIC_ASSOCIATION,
         parent=STEP_TIER,
     ),
+    Tier(CORRECTION_TIER),
 )
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -326,6 +330,7 @@ class _Writer:
         generated_by: str = DFLT_GENERATED_BY,
         derived_from: Iterable[Any] = (),
         confidence: float | None = None,
+        activity: str = "derive",
     ) -> tuple[UUID, str]:
         """Upsert one annotation; return its ``(id, value_digest)``."""
         annotation_id = uuid5(PACES_NAMESPACE, f"{tier}\n{key}")
@@ -348,7 +353,7 @@ class _Writer:
                 was_attributed_to=self._attributed_to,
                 was_derived_from=list(derived_from),
                 generated_at_time=self._generated_at,
-                activity="derive",
+                activity=activity,
             ),
             confidence=confidence,
         )
@@ -388,6 +393,10 @@ class _Writer:
         self._index[annotation_id] = candidate
         self._record(annotation_id)
         return annotation_id, digest
+
+    def existing(self, tier: str, key: str) -> Annotation | None:
+        """The row already stored under this evidence key, if any."""
+        return self._index.get(uuid5(PACES_NAMESPACE, f"{tier}\n{key}"))
 
     def _record(self, annotation_id: UUID) -> None:
         self.ids.append(str(annotation_id))
@@ -645,6 +654,12 @@ ASSET_SCOPED_TIERS = frozenset({PASS_TIER, BEAT_TIER, WORD_TIER})
 DOC_SCOPED_TIERS = frozenset(
     {DOC_TIER, SOURCE_TIER, GRID_TIER, STEP_TIER, SUB_STEP_TIER, CUE_TIER, RECIPE_TIER}
 )
+
+#: Tiers whose rows belong to one guide (each carries a ``doc_id``) but hold
+#: human input, not analysis: the correction log (paces#34). A re-derivation is
+#: NOT authoritative over them, so :func:`to_store` never prunes them; only
+#: :func:`corrections_to_store`, which holds the whole log, rewrites them.
+LOG_TIERS = frozenset({CORRECTION_TIER})
 
 #: The doc-scoped tiers every ``to_store`` writes, because they are projected
 #: from the ``Segmentation`` itself.
@@ -1301,3 +1316,175 @@ def recipes_from_store(store, *, asset_id: str, doc_id: str | None = None) -> di
         }
         for row in rows
     }
+
+
+# ── the correction log (paces#34) ───────────────────────────────────────────
+
+#: What wrote a stored correction row: the human's log, put in by this call.
+CORRECTIONS_GENERATED_BY = "processor:paces.corrections_to_store"
+
+
+@dataclass(frozen=True)
+class CorrectionsWrite:
+    """What :func:`corrections_to_store` did."""
+
+    written: int
+    updated: int
+    unchanged: int
+    removed: int  # rows of a longer, earlier log this one replaced
+    annotation_ids: tuple[str, ...]
+
+
+def corrections_to_store(
+    corrections,
+    *,
+    store,
+    asset_id: str,
+    doc_id: str = "guide",
+    author: str = "",
+    at: str | None = None,
+    attributed_to: str = DFLT_ATTRIBUTED_TO,
+    generated_at: RationalTime | None = None,
+    rate: int = DEFAULT_RATE,
+) -> CorrectionsWrite:
+    """Store a guide's correction log in *store*, one row per entry, in order.
+
+    The log is kept **separately from the result** (``docs/alignment/07
+    §7.5``): its rows are on the ``correction`` tier, which :func:`to_store`'s
+    re-derivation never prunes, and this call is the only writer. A call holds
+    the guide's whole log, so rows of corrections it no longer has are removed.
+
+    **A row's id is the correction's identity**, not its position: the asset,
+    the guide, the verb, its times and its rendering (``uuid5``, like every
+    paces row). Inserting or deleting an entry leaves every other row (and
+    anything derived from it) alone; ``ordinal`` in the body is the order.
+    Rows are digest-gated: storing the same log again writes nothing.
+
+    Provenance pays here, so a stored correction must name its ``author``
+    (its own, else ``author=``; ``ValueError`` when neither) and gets ``at``
+    filled: its own, else the one already stored for the same correction (a
+    log reloaded from the wire has none, and re-storing it must not restamp
+    it), else ``at=``, else now. Each row's activity is ``create`` (a human
+    made it), or ``migrate`` for one a re-cut moved
+    (:func:`paces.corrections.migrate_corrections`).
+
+    Args:
+        corrections: :class:`~paces.corrections.Correction` objects or their
+            wire mappings, in log order.
+        store: Any ``lacing.IntervalAnnotationStore``.
+        asset_id: The media the corrections are about.
+        doc_id: Which guide's log this is.
+        rate: Ticks per second. Correction times are kept to the millisecond,
+            so it must be a multiple of 1000.
+    """
+    from paces.corrections import normalize_corrections
+    from paces.edits import _now_iso
+    from paces.segmentation import time_str
+
+    if rate % 1000:
+        raise ValueError(
+            f"rate={rate}: correction times are kept to the millisecond, so the "
+            "tick rate must be a multiple of 1000"
+        )
+    log = normalize_corrections(corrections)
+    unnamed = [c.label for c in log if not (c.author or author)]
+    if unnamed:
+        raise ValueError(
+            f"a stored correction names its author; {unnamed} have none: pass "
+            "author= or set Correction.author"
+        )
+    stamp = at or _now_iso()
+    register_tiers(store)
+    writer = _Writer(
+        store,
+        attributed_to=attributed_to,
+        generated_at=generated_at or RationalTime.now(),
+    )
+    seen: dict[str, int] = {}
+    for ordinal, c in enumerate(log):
+        identity = "\n".join(
+            [
+                asset_id,
+                doc_id,
+                c.verb,
+                time_str(c.anchor_t),
+                "" if c.span is None else "/".join(map(time_str, c.span)),
+                c.media_key or "",
+            ]
+        )
+        seen[identity] = seen.get(identity, 0) + 1  # the same correction twice
+        key = f"correction:{identity}\n{seen[identity]}"
+        stored = writer.existing(CORRECTION_TIER, key)
+        spanned = c.span is not None
+        writer.put(
+            tier=CORRECTION_TIER,
+            key=key,
+            interval=(
+                _interval(*(time_str(t) for t in c.span), rate=rate)
+                if spanned
+                else _point(time_str(c.anchor_t), rate=rate)
+            ),
+            asset_id=asset_id,
+            body=GuideCorrectionBodyV1(
+                doc_id=doc_id,
+                ordinal=ordinal,
+                verb=c.verb,
+                anchor_t=time_str(c.anchor_t) if spanned else None,
+                step_id=c.step_id,
+                author=c.author or author,
+                at=c.at or (stored.body.get("at") if stored else None) or stamp,
+                media_key=c.media_key,
+                migrated_from=c.migrated_from,
+                reason=c.reason,
+            ).model_dump(mode="json"),
+            schema_uri=CORRECTION_BODY_SCHEMA_URI,
+            generated_by=CORRECTIONS_GENERATED_BY,
+            activity="create" if c.migrated_from is None else "migrate",
+        )
+    writer.prune(asset_id=asset_id, doc_id=doc_id, tiers={CORRECTION_TIER})
+    return CorrectionsWrite(
+        written=writer.written,
+        updated=writer.updated + writer.relinked,
+        unchanged=writer.unchanged,
+        removed=writer.removed,
+        annotation_ids=tuple(writer.ids),
+    )
+
+
+def corrections_from_store(store, *, asset_id: str, doc_id: str = "guide") -> tuple:
+    """The correction log held for one guide, in log order: the inverse of
+    :func:`corrections_to_store` (the ``author`` and ``at`` it filled come back
+    filled)."""
+    from paces.corrections import Correction
+
+    rows = sorted(
+        (
+            row
+            for row in store.all()
+            if row.tier == CORRECTION_TIER
+            and getattr(row.reference, "asset_id", None) == asset_id
+            and row.body.get("doc_id") == doc_id
+        ),
+        key=lambda row: row.body["ordinal"],
+    )
+    def times(row):
+        interval = row.reference.interval
+        start = float(_decimal(interval.start))
+        if row.body.get("anchor_t") is None:  # a point at the anchor
+            return start, None
+        return float(row.body["anchor_t"]), (start, float(_decimal(interval.end)))
+
+    return tuple(
+        Correction(
+            verb=row.body["verb"],
+            anchor_t=times(row)[0],
+            span=times(row)[1],
+            step_id=row.body["step_id"],
+            author=row.body["author"],
+            at=row.body["at"],
+            media_key=row.body["media_key"],
+            migrated_from=row.body["migrated_from"],
+            reason=row.body["reason"],
+        )
+        for row in rows
+    )

@@ -374,9 +374,12 @@ def test_the_two_scopes_partition_every_tier_paces_writes():
     them; asset-scoped rows do not and are shared. A tier in neither set (or
     in both) would be pruned on a rule nobody chose.
     """
+    from paces.evidence import LOG_TIERS
+
     written = {tier.name for tier in TIERS}
-    assert ASSET_SCOPED_TIERS | DOC_SCOPED_TIERS == written
+    assert ASSET_SCOPED_TIERS | DOC_SCOPED_TIERS | LOG_TIERS == written
     assert not ASSET_SCOPED_TIERS & DOC_SCOPED_TIERS
+    assert not LOG_TIERS & (ASSET_SCOPED_TIERS | DOC_SCOPED_TIERS)
 
 
 def test_asset_scoped_bodies_carry_no_doc_id_and_doc_scoped_ones_do():

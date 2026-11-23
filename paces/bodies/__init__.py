@@ -24,6 +24,11 @@ Two rules hold across every body here:
   document itself already makes.
 """
 
+from paces.bodies.correction import (
+    CORRECTION_BODY_SCHEMA_URI,
+    CORRECTION_TIER,
+    GuideCorrectionBodyV1,
+)
 from paces.bodies.derivation import (
     RECIPE_BODY_SCHEMA_URI,
     RECIPE_TIER,
@@ -73,10 +78,15 @@ PACES_BODY_SCHEMA_URIS = (
     GRID_BODY_SCHEMA_URI,
     BEAT_BODY_SCHEMA_URI,
     RECIPE_BODY_SCHEMA_URI,
+    CORRECTION_BODY_SCHEMA_URI,
 )
 
 __all__ = [
     "PACES_BODY_SCHEMA_URIS",
+    # the correction log (paces#34)
+    "CORRECTION_TIER",
+    "CORRECTION_BODY_SCHEMA_URI",
+    "GuideCorrectionBodyV1",
     # document envelope
     "DOC_TIER",
     "DOC_BODY_SCHEMA_URI",

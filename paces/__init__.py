@@ -139,6 +139,8 @@ _LAZY = {
     "from_store": "paces.evidence",
     "StoreWrite": "paces.evidence",
     "recipes_from_store": "paces.evidence",
+    "corrections_to_store": "paces.evidence",
+    "corrections_from_store": "paces.evidence",
 }
 
 

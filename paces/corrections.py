@@ -85,7 +85,9 @@ class Correction:
 
     ``step_id`` is for display only and is NEVER the join key: replay finds
     its target by ``anchor_t``. ``media_key`` records which rendering of the
-    media the correction was true of, so a later re-cut can migrate the log.
+    media the correction was true of, so a later re-cut can migrate the log
+    (:func:`migrate_corrections`, which sets ``migrated_from``), and a replay
+    told another key skips it as stale (:func:`stale_corrections`).
     Times are kept to the millisecond (:data:`TIME_PLACES`), so the wire form
     round-trips exactly.
 
@@ -101,6 +103,7 @@ class Correction:
     at: str = ""  # ISO-8601 timestamp
     media_key: str | None = None
     reason: str = ""
+    migrated_from: str | None = None  # the media key a re-cut moved it from
 
     def __post_init__(self):
         for name in ("author", "at", "reason"):
@@ -108,7 +111,7 @@ class Correction:
                 raise ValueError(
                     f"{name} must be a string, got {getattr(self, name)!r}"
                 )
-        for name in ("step_id", "media_key"):
+        for name in ("step_id", "media_key", "migrated_from"):
             if getattr(self, name) is not None and not isinstance(
                 getattr(self, name), str
             ):
@@ -118,6 +121,8 @@ class Correction:
         if self.verb not in VERBS:
             raise ValueError(f"unknown verb {self.verb!r}; expected one of {VERBS}")
         object.__setattr__(self, "anchor_t", _to_ms(self.anchor_t, what="anchor_t"))
+        if self.anchor_t < 0:
+            raise ValueError(f"anchor_t is a time on the media, got {self.anchor_t}")
         needs_span = self.verb in ("pin", "forbid")
         if needs_span != (self.span is not None):
             raise ValueError(
@@ -127,7 +132,7 @@ class Correction:
             if not isinstance(self.span, (tuple, list)) or len(self.span) != 2:
                 raise ValueError(f"span must be (start, end), got {self.span!r}")
             start, end = (_to_ms(t, what="span") for t in self.span)
-            if not start < end:
+            if not 0 <= start < end:
                 raise ValueError(
                     f"span must be (start, end) with start < end: {self.span}"
                 )
@@ -186,6 +191,7 @@ _WIRE_KEYS = {
     "at": "at",
     "media_key": "mediaKey",
     "reason": "reason",
+    "migrated_from": "migratedFrom",
 }
 _REQUIRED_WIRE_KEYS = ("verb", "anchorT")
 
@@ -195,7 +201,7 @@ def to_wire(correction: Correction) -> dict:
     wire: dict = {"verb": correction.verb, "anchorT": time_str(correction.anchor_t)}
     if correction.span is not None:
         wire["span"] = [time_str(t) for t in correction.span]
-    for field_name in ("step_id", "author", "at", "media_key", "reason"):
+    for field_name in ("step_id", "author", "at", "media_key", "reason", "migrated_from"):
         value = getattr(correction, field_name)
         if value:
             wire[_WIRE_KEYS[field_name]] = value
@@ -255,6 +261,186 @@ def normalize_corrections(
     return tuple(c if isinstance(c, Correction) else from_wire(c) for c in corrections)
 
 
+# ── renderings: stale corrections and migrating a log across a re-cut ───────
+
+
+def stale_corrections(
+    corrections: Iterable[Correction | Mapping], media_key: str | None
+) -> tuple[tuple[Correction, ...], tuple[str, ...]]:
+    """``(current, flags)``: the log without the corrections made against
+    another rendering of the media, and a ``correction-stale`` flag for each.
+
+    A correction recorded against another ``media_key`` is about different
+    times (a re-cut moved everything after its cut), so replaying it would act
+    on the wrong moment. It is skipped and said, never dropped silently; once
+    :func:`migrate_corrections` moves it to this rendering it applies again. A
+    correction with no ``media_key`` (a hand-written log), or a call with
+    ``media_key=None`` (the rendering is not known), is current.
+
+    >>> log = [split(5, media_key="cut-a"), split(9, media_key="cut-b"), merge(20)]
+    >>> current, flags = stale_corrections(log, "cut-b")
+    >>> [c.label for c in current]
+    ['split@9', 'merge@20']
+    >>> flags
+    ("correction-stale: split@5 (made against media 'cut-a', not 'cut-b'; migrate it with migrate_corrections)",)
+    """
+    log = normalize_corrections(corrections)
+    if media_key is None:
+        return log, ()
+    current, flags = [], []
+    for c in log:
+        if c.media_key is not None and c.media_key != media_key:
+            flags.append(
+                f"correction-stale: {c.label} (made against media {c.media_key!r}, "
+                f"not {media_key!r}; migrate it with migrate_corrections)"
+            )
+        else:
+            current.append(c)
+    return tuple(current), tuple(flags)
+
+
+@dataclass(frozen=True, slots=True)
+class CorrectionMigration:
+    """What :func:`migrate_corrections` did: the new log, and what it could not move."""
+
+    corrections: tuple[Correction, ...]
+    dropped: tuple[tuple[Correction, str], ...] = ()
+    moved: int = 0  # how many were made against the old rendering and moved
+    untagged: int = 0  # corrections with no media_key: left as they were
+
+    @property
+    def flags(self) -> tuple[str, ...]:
+        """One ``correction-unmigrated`` line per dropped correction, saying why;
+        and ``correction-migration-empty`` when nothing was made against the old
+        rendering, so a no-op is never mistaken for a migration."""
+        flags = tuple(
+            f"correction-unmigrated: {c.label} ({why})" for c, why in self.dropped
+        )
+        if not self.moved and not self.dropped:
+            note = (
+                f"; {self.untagged} correction(s) carry no media key and replay "
+                "unchanged on every rendering: tag them with media_key= first"
+                if self.untagged
+                else ""
+            )
+            flags += (
+                "correction-migration-empty: no correction was made against the "
+                f"old rendering{note}",
+            )
+        return flags
+
+
+def _remap_after_cuts():
+    """The fleet's one rule for moving a time across cuts (``mixing``'s)."""
+    try:
+        from mixing.transcript.formats import remap_time_after_cuts
+    except ImportError as error:  # pragma: no cover - the message is the point
+        raise ImportError(
+            "migrating corrections across a re-cut uses mixing's "
+            "remap_time_after_cuts, which the [audio] extra installs; or pass remap="
+        ) from error
+    return remap_time_after_cuts
+
+
+def _cut_dicts(cuts) -> list[dict]:
+    """The cuts as sorted, merged ``{"start", "end"}`` spans: the remap sums cut
+    lengths, so an overlap (or a duplicate) would be removed twice.
+
+    >>> _cut_dicts([(15, 25), (10, 20), (30, 40), (30, 40)])
+    [{'start': 10.0, 'end': 25.0}, {'start': 30.0, 'end': 40.0}]
+    """
+    spans = []
+    for cut in cuts:
+        start, end = (cut["start"], cut["end"]) if isinstance(cut, Mapping) else cut
+        start = _to_ms(start, what="a cut's start")
+        end = _to_ms(end, what="a cut's end")
+        if not 0 <= start < end:
+            raise ValueError(
+                f"a cut must be (start, end) with 0 <= start < end, got {cut!r}"
+            )
+        spans.append([start, end])
+    merged: list[list[float]] = []
+    for start, end in sorted(spans):
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return [{"start": start, "end": end} for start, end in merged]
+
+
+def migrate_corrections(
+    corrections: Iterable[Correction | Mapping],
+    *,
+    cuts,
+    from_media_key: str,
+    to_media_key: str,
+    remap=None,
+) -> CorrectionMigration:
+    """Move the corrections made against ``from_media_key`` onto the rendering
+    ``to_media_key``, which is that media with ``cuts`` removed.
+
+    ``cuts`` are ``(start, end)`` pairs or ``{"start", "end"}`` mappings on the
+    old timeline (``mixing``'s cut list). Each moved correction's times go
+    through ``remap`` (default: ``mixing.transcript.formats.remap_time_after_cuts``,
+    the fleet's one rule), its ``media_key`` becomes ``to_media_key`` and
+    ``migrated_from`` records the old one. A correction whose anchor was cut
+    out, or whose span the cuts remove or collapse, has nothing left to say
+    about the new rendering: it is returned in ``dropped`` with the reason,
+    never silently lost. Corrections made against any other rendering, or with
+    no ``media_key``, are kept unchanged, in log order.
+
+    >>> remap = lambda t, cuts: t - sum(c["end"] - c["start"] for c in cuts if c["end"] <= t)
+    >>> moved = migrate_corrections([split(30, media_key="v1"), merge(5, media_key="v1")],
+    ...                             cuts=[(10, 20)], from_media_key="v1", to_media_key="v2",
+    ...                             remap=remap)
+    >>> [(c.label, c.media_key, c.migrated_from) for c in moved.corrections]
+    [('split@20', 'v2', 'v1'), ('merge@5', 'v2', 'v1')]
+    """
+    remap = remap or _remap_after_cuts()
+    cut_list = _cut_dicts(cuts)
+
+    def inside_a_cut(t: float) -> bool:
+        return any(c["start"] <= t < c["end"] for c in cut_list)
+
+    kept: list[Correction] = []
+    dropped: list[tuple[Correction, str]] = []
+    moved_count = untagged = 0
+    for c in normalize_corrections(corrections):
+        if c.media_key != from_media_key:
+            untagged += c.media_key is None
+            kept.append(c)
+            continue
+        if inside_a_cut(c.anchor_t):
+            dropped.append((c, "its time was cut out"))
+            continue
+        span = None
+        if c.span is not None:
+            start, end = c.span
+            span = (remap(start, cut_list), remap(end, cut_list))
+            if not span[0] < span[1]:
+                dropped.append((c, "the cuts remove its span"))
+                continue
+        try:
+            moved = dataclasses.replace(
+                c,
+                anchor_t=remap(c.anchor_t, cut_list),
+                span=span,
+                media_key=to_media_key,
+                migrated_from=from_media_key,
+            )
+        except ValueError as error:
+            dropped.append((c, f"it no longer holds after the cuts: {error}"))
+            continue
+        kept.append(moved)
+        moved_count += 1
+    return CorrectionMigration(
+        corrections=tuple(kept),
+        dropped=tuple(dropped),
+        moved=moved_count,
+        untagged=untagged,
+    )
+
+
 # ── replay: the fallback for segmenters that do not read the log ────────────
 
 
@@ -288,8 +474,13 @@ def replay(
     *,
     merge_tolerance_s: float = DFLT_MERGE_TOLERANCE_S,
     min_step_s: float = DFLT_MIN_STEP_S,
+    media_key: str | None = None,
 ) -> Segmentation:
     """Apply a correction log to a segmentation, in log order.
+
+    ``media_key`` names the rendering ``seg`` was made from: a correction made
+    against another one is skipped and flagged ``correction-stale``
+    (:func:`stale_corrections`). ``None`` (default) applies every correction.
 
     Each correction acts on the result of the ones before it, as the human
     made them. Applied ones are flagged ``corrected: <verb>@<t>``; one that
@@ -322,12 +513,13 @@ def replay(
     )
     outcomes: list = []
     cuts_touched = False  # once a correction edits the cut set, it is rebuilt
-    for correction in normalize_corrections(corrections):
+    current, stale = stale_corrections(corrections, media_key)
+    for correction in current:
         before = state.boundaries
         state, outcome = _APPLY[correction.verb](state, correction, options)
         cuts_touched = cuts_touched or state.boundaries != before
         outcomes.append(outcome)
-    flags = tuple(_final_flags(state.steps, outcomes))
+    flags = stale + tuple(_final_flags(state.steps, outcomes))
     unchanged = not cuts_touched
     return dataclasses.replace(
         seg,

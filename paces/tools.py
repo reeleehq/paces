@@ -132,6 +132,7 @@ def segment(
     segmenter: str | None = None,
     k: int | None = None,
     corrections=None,
+    rendering: str | None = None,
     answers=None,
     output: str | None = None,
 ) -> dict:
@@ -146,7 +147,11 @@ def segment(
     ``corrections`` is a human's correction log — a JSON list of
     ``{"verb": "split"|"merge"|"pin"|"forbid"|"absent", "anchorT": "95.8", ...}``
     (inline, or a path) — replayed as constraints; any it could not honour
-    is reported in ``flags``. ``answers`` is the JSON the ``ask`` page exports
+    is reported in ``flags``. ``rendering`` is the media key of the rendering
+    being cut (the ``mediaKey`` a correction records): a correction made
+    against another one is skipped and flagged ``correction-stale``. (It is
+    not named after the media key because argparse would then take the media
+    option's spelling as an abbreviation of it.) ``answers`` is the JSON the ``ask`` page exports
     (inline, or a path): its step count fills ``k`` unless ``k`` is given, its
     boundaries (tapped on a page that had no cuts to correct) fill
     ``boundaries`` unless it is given, and its corrections run after
@@ -173,6 +178,7 @@ def segment(
         transcript=_timed_text(transcript),
         k=k,
         corrections=log,
+        media_key=rendering,
     )
     payload = _segmentation_to_dict(result)
     if output:
