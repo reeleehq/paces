@@ -103,6 +103,9 @@ except ImportError as error:  # pragma: no cover
     ) from error
 
 from paces.bodies import (
+    CORRECTION_BODY_SCHEMA_URI,
+    CORRECTION_TIER,
+    GuideCorrectionBodyV1,
     BEAT_BODY_SCHEMA_URI,
     BEAT_TIER,
     CUE_BODY_SCHEMA_URI,
@@ -177,6 +180,7 @@ TIERS: tuple[Tier, ...] = (
         stereotype=TierStereotype.SYMBOLIC_ASSOCIATION,
         parent=STEP_TIER,
     ),
+    Tier(CORRECTION_TIER),
 )
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -326,6 +330,7 @@ class _Writer:
         generated_by: str = DFLT_GENERATED_BY,
         derived_from: Iterable[Any] = (),
         confidence: float | None = None,
+        activity: str = "derive",
     ) -> tuple[UUID, str]:
         """Upsert one annotation; return its ``(id, value_digest)``."""
         annotation_id = uuid5(PACES_NAMESPACE, f"{tier}\n{key}")
@@ -348,7 +353,7 @@ class _Writer:
                 was_attributed_to=self._attributed_to,
                 was_derived_from=list(derived_from),
                 generated_at_time=self._generated_at,
-                activity="derive",
+                activity=activity,
             ),
             confidence=confidence,
         )
@@ -645,6 +650,12 @@ ASSET_SCOPED_TIERS = frozenset({PASS_TIER, BEAT_TIER, WORD_TIER})
 DOC_SCOPED_TIERS = frozenset(
     {DOC_TIER, SOURCE_TIER, GRID_TIER, STEP_TIER, SUB_STEP_TIER, CUE_TIER, RECIPE_TIER}
 )
+
+#: Tiers whose rows belong to one guide (each carries a ``doc_id``) but hold
+#: human input, not analysis: the correction log (paces#34). A re-derivation is
+#: NOT authoritative over them, so :func:`to_store` never prunes them; only
+#: :func:`corrections_to_store`, which holds the whole log, rewrites them.
+LOG_TIERS = frozenset({CORRECTION_TIER})
 
 #: The doc-scoped tiers every ``to_store`` writes, because they are projected
 #: from the ``Segmentation`` itself.
@@ -1301,3 +1312,137 @@ def recipes_from_store(store, *, asset_id: str, doc_id: str | None = None) -> di
         }
         for row in rows
     }
+
+
+# ── the correction log (paces#34) ───────────────────────────────────────────
+
+#: What wrote a stored correction row: the human's log, put in by this call.
+CORRECTIONS_GENERATED_BY = "processor:paces.corrections_to_store"
+
+
+@dataclass(frozen=True)
+class CorrectionsWrite:
+    """What :func:`corrections_to_store` did."""
+
+    written: int
+    updated: int
+    unchanged: int
+    removed: int  # rows of a longer, earlier log this one replaced
+    annotation_ids: tuple[str, ...]
+
+
+def corrections_to_store(
+    corrections,
+    *,
+    store,
+    asset_id: str,
+    doc_id: str = "guide",
+    author: str = "",
+    at: str | None = None,
+    attributed_to: str = DFLT_ATTRIBUTED_TO,
+    generated_at: RationalTime | None = None,
+    rate: int = DEFAULT_RATE,
+) -> CorrectionsWrite:
+    """Store a guide's correction log in *store*, one row per entry, in order.
+
+    The log is kept **separately from the result** (``docs/alignment/07
+    §7.5``): its rows are on the ``correction`` tier, which :func:`to_store`'s
+    re-derivation never prunes, and this call is the only writer. A call holds
+    the guide's whole log, so rows a longer earlier log left behind are removed.
+    Rows are digest-gated like every other paces row: storing the same log
+    again writes nothing.
+
+    Provenance pays here, so a stored correction must name its ``author``
+    (its own, else ``author=``; ``ValueError`` when neither) and gets ``at``
+    filled (its own, else ``at=``, else now). Each row's activity is
+    ``create`` (a human made it), or ``migrate`` for one a re-cut moved
+    (:func:`paces.corrections.migrate_corrections`).
+
+    Args:
+        corrections: :class:`~paces.corrections.Correction` objects or their
+            wire mappings, in log order.
+        store: Any ``lacing.IntervalAnnotationStore``.
+        asset_id: The media the corrections are about.
+        doc_id: Which guide's log this is.
+        rate: Ticks per second for the anchor points.
+    """
+    from paces.corrections import normalize_corrections
+    from paces.edits import _now_iso
+    from paces.segmentation import time_str
+
+    log = normalize_corrections(corrections)
+    unnamed = [c.label for c in log if not (c.author or author)]
+    if unnamed:
+        raise ValueError(
+            f"a stored correction names its author; {unnamed} have none: pass "
+            "author= or set Correction.author"
+        )
+    stamp = at or _now_iso()
+    register_tiers(store)
+    writer = _Writer(
+        store,
+        attributed_to=attributed_to,
+        generated_at=generated_at or RationalTime.now(),
+    )
+    for ordinal, c in enumerate(log):
+        writer.put(
+            tier=CORRECTION_TIER,
+            key=f"correction:{doc_id}/{ordinal}",
+            interval=_point(time_str(c.anchor_t), rate=rate),
+            asset_id=asset_id,
+            body=GuideCorrectionBodyV1(
+                doc_id=doc_id,
+                ordinal=ordinal,
+                verb=c.verb,
+                span=None if c.span is None else [time_str(t) for t in c.span],
+                step_id=c.step_id,
+                author=c.author or author,
+                at=c.at or stamp,
+                media_key=c.media_key,
+                migrated_from=c.migrated_from,
+                reason=c.reason,
+            ).model_dump(mode="json"),
+            schema_uri=CORRECTION_BODY_SCHEMA_URI,
+            generated_by=CORRECTIONS_GENERATED_BY,
+            activity="create" if c.migrated_from is None else "migrate",
+        )
+    writer.prune(asset_id=asset_id, doc_id=doc_id, tiers={CORRECTION_TIER})
+    return CorrectionsWrite(
+        written=writer.written,
+        updated=writer.updated + writer.relinked,
+        unchanged=writer.unchanged,
+        removed=writer.removed,
+        annotation_ids=tuple(writer.ids),
+    )
+
+
+def corrections_from_store(store, *, asset_id: str, doc_id: str = "guide") -> tuple:
+    """The correction log held for one guide, in log order: the inverse of
+    :func:`corrections_to_store` (the ``author`` and ``at`` it filled come back
+    filled)."""
+    from paces.corrections import Correction
+
+    rows = sorted(
+        (
+            row
+            for row in store.all()
+            if row.tier == CORRECTION_TIER
+            and getattr(row.reference, "asset_id", None) == asset_id
+            and row.body.get("doc_id") == doc_id
+        ),
+        key=lambda row: row.body["ordinal"],
+    )
+    return tuple(
+        Correction(
+            verb=row.body["verb"],
+            anchor_t=float(_decimal(row.reference.interval.start)),
+            span=None if row.body["span"] is None else tuple(map(float, row.body["span"])),
+            step_id=row.body["step_id"],
+            author=row.body["author"],
+            at=row.body["at"],
+            media_key=row.body["media_key"],
+            migrated_from=row.body["migrated_from"],
+            reason=row.body["reason"],
+        )
+        for row in rows
+    )

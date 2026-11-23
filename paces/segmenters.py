@@ -438,6 +438,7 @@ def segment(
     transcript: str | Sequence | None = None,
     k: int | None = None,
     corrections: Sequence | None = None,
+    media_key: str | None = None,
     catalog: Mapping[str, Capability] | None = None,
 ) -> Segmentation:
     """Cut *media* into named steps, using whatever else is present.
@@ -453,7 +454,10 @@ def segment(
     constraints that survive re-runs. A segmenter that lists
     ``"corrections"`` in ``reads`` receives the log and honours it itself;
     for any other, the log is replayed over its result, and every correction
-    that could not be honoured is flagged, never dropped.
+    that could not be honoured is flagged, never dropped. ``media_key`` names
+    the rendering of *media* being cut: a correction made against another one
+    is held back from both paths and flagged ``correction-stale`` until
+    :func:`paces.corrections.migrate_corrections` moves it (paces#34).
 
     >>> seg = segment(boundaries=[0, 10, 20], steps=['intro', 'verse'])
     >>> [(s.name, s.spans) for s in seg.steps]
@@ -478,6 +482,10 @@ def segment(
         if corrections is not None
         else ()
     )
+    correction_log, stale_flags = corrections_module.stale_corrections(
+        correction_log, media_key
+    )
+    problem_flags += stale_flags
     facts = _facts(
         media=media,
         steps=step_rows,

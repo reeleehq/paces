@@ -15,6 +15,120 @@
     "title": "GuideBeatBodyV1",
     "type": "object"
   },
+  "annot://schema/guide-correction/v1": {
+    "additionalProperties": false,
+    "description": "One entry of a guide's correction log.",
+    "properties": {
+      "at": {
+        "description": "When (ISO-8601).",
+        "minLength": 1,
+        "title": "At",
+        "type": "string"
+      },
+      "author": {
+        "description": "Who made the correction.",
+        "minLength": 1,
+        "title": "Author",
+        "type": "string"
+      },
+      "doc_id": {
+        "description": "Which guide this correction belongs to.",
+        "title": "Doc Id",
+        "type": "string"
+      },
+      "media_key": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Which rendering of the media the correction was true of. A replay told another key skips it as stale until it is migrated.",
+        "title": "Media Key"
+      },
+      "migrated_from": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "The media key it was migrated from, when a re-cut moved it.",
+        "title": "Migrated From"
+      },
+      "ordinal": {
+        "description": "The entry's position in the log. Replay applies corrections in this order, each to the result of the ones before it.",
+        "minimum": 0,
+        "title": "Ordinal",
+        "type": "integer"
+      },
+      "reason": {
+        "default": "",
+        "description": "Why, in the human's words.",
+        "title": "Reason",
+        "type": "string"
+      },
+      "span": {
+        "anyOf": [
+          {
+            "items": {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "[start, end] in seconds: where the step is (pin) or is not (forbid). None for the other verbs.",
+        "title": "Span"
+      },
+      "step_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "The step id shown when it was made; display only.",
+        "title": "Step Id"
+      },
+      "verb": {
+        "description": "What the human said (paces.corrections.VERBS).",
+        "enum": [
+          "pin",
+          "forbid",
+          "absent",
+          "split",
+          "merge"
+        ],
+        "title": "Verb",
+        "type": "string"
+      }
+    },
+    "required": [
+      "doc_id",
+      "ordinal",
+      "verb",
+      "author",
+      "at"
+    ],
+    "title": "GuideCorrectionBodyV1",
+    "type": "object"
+  },
   "annot://schema/guide-cue/v1": {
     "additionalProperties": false,
     "description": "A landmark the learner can hear or watch for, anchored to a step.",
