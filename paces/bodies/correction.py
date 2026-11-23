@@ -7,11 +7,12 @@ with provenance, not analysis, so :func:`paces.evidence.to_store`'s
 re-derivation never prunes it, and only
 :func:`paces.evidence.corrections_to_store` rewrites it.
 
-The annotation's reference is a point at the correction's ``anchor_t``: the
-durable key, "where on the media clock". A ``pin``'s or ``forbid``'s ``span``
-is the verb's *argument* (where the step is, or is not), not the annotation's
-extent, so it crosses as two decimal strings in the body, the way a recipe's
-box does.
+The annotation's reference is the stretch of media the correction is about:
+a ``pin``'s or ``forbid``'s ``span`` (where the step is, or is not), so an
+interval query finds it, and a point at ``anchor_t`` for the other verbs. A
+``pin``'s or ``forbid``'s ``anchor_t`` is then not the reference's start (a
+forbid's anchor lies outside its span), so it travels in the body as a
+decimal string: the *key* naming which step is meant, not an interval.
 
 ``author`` and ``at`` are required here, though optional on
 :class:`~paces.corrections.Correction`: a hand-written log stays easy to type,
@@ -46,13 +47,12 @@ class GuideCorrectionBodyV1(BodyBase):
     verb: Literal["pin", "forbid", "absent", "split", "merge"] = Field(
         ..., description="What the human said (paces.corrections.VERBS)."
     )
-    span: list[Decimal] | None = Field(
+    anchor_t: Decimal | None = Field(
         None,
-        min_length=2,
-        max_length=2,
         description=(
-            "[start, end] in seconds: where the step is (pin) or is not "
-            "(forbid). None for the other verbs."
+            "For pin and forbid, whose reference is their span: the time naming "
+            "the step meant, in seconds. None for the other verbs, whose "
+            "reference is a point at it."
         ),
     )
     step_id: str | None = Field(

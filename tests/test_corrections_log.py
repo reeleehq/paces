@@ -225,3 +225,86 @@ def test_the_cli_takes_the_rendering(tmp_path):
     log = json.dumps([{"verb": "split", "anchorT": "15", "mediaKey": "v1"}])
     out = segment_tool(boundaries="[0, 10, 20, 30]", corrections=log, rendering="v2")
     assert any(f.startswith("correction-stale: split@15") for f in out["flags"])
+
+
+# ── from the adversarial review of PR #60 ───────────────────────────────────
+
+
+def test_re_storing_a_log_without_times_keeps_the_stored_times(store):
+    from paces.evidence import corrections_from_store, corrections_to_store
+
+    corrections_to_store([split(5), merge(9)], store=store, asset_id="x", author="a", at="T1")
+    again = corrections_to_store([split(5), merge(9)], store=store, asset_id="x", author="a", at="T2")
+    assert (again.written, again.updated, again.unchanged) == (0, 0, 2)
+    assert {c.at for c in corrections_from_store(store, asset_id="x")} == {"T1"}
+
+
+def test_two_assets_never_share_a_row(store):
+    from paces.evidence import corrections_from_store, corrections_to_store
+
+    corrections_to_store([split(5.001)], store=store, asset_id="A", author="a")
+    corrections_to_store([split(7)], store=store, asset_id="B", author="a")
+    assert corrections_from_store(store, asset_id="A")[0].anchor_t == 5.001
+    assert corrections_from_store(store, asset_id="B")[0].anchor_t == 7.0
+
+
+def test_a_row_is_its_correction_not_its_position(store):
+    from paces.evidence import corrections_to_store
+
+    first = corrections_to_store([split(1), split(2), split(3)], store=store, asset_id="x", author="a")
+    after = corrections_to_store([split(2), split(3)], store=store, asset_id="x", author="a")
+    assert set(after.annotation_ids) == set(first.annotation_ids[1:])
+    assert (after.removed, after.written) == (1, 0)
+
+
+def test_the_same_correction_twice_is_two_rows(store):
+    from paces.evidence import corrections_from_store, corrections_to_store
+
+    corrections_to_store([split(5), split(5)], store=store, asset_id="x", author="a")
+    assert len(corrections_from_store(store, asset_id="x")) == 2
+
+
+def test_a_pin_or_forbid_is_found_by_its_span(store):
+    from paces.evidence import corrections_from_store, corrections_to_store
+
+    log = [forbid(4, (10, 12)), pin((20, 30), anchor_t=21), split(40)]
+    corrections_to_store(log, store=store, asset_id="x", author="a")
+    by_verb = {row.body["verb"]: row for row in store.all()}
+    assert float(by_verb["forbid"].reference.interval.start.to_seconds()) == 10.0
+    assert float(by_verb["forbid"].reference.interval.end.to_seconds()) == 12.0
+    assert by_verb["forbid"].body["anchor_t"] == "4"
+    assert by_verb["split"].body["anchor_t"] is None
+    back = corrections_from_store(store, asset_id="x")
+    assert [(c.anchor_t, c.span) for c in back] == [(4.0, (10.0, 12.0)), (21.0, (20.0, 30.0)), (40.0, None)]
+
+
+def test_a_rate_that_cannot_hold_milliseconds_is_refused_up_front(store):
+    from paces.evidence import corrections_to_store
+
+    with pytest.raises(ValueError, match="multiple of 1000"):
+        corrections_to_store([split(1)], store=store, asset_id="x", author="a", rate=44100)
+
+
+def test_overlapping_and_duplicate_cuts_are_removed_once():
+    moved = migrate_corrections(
+        [split(30, media_key="v1")], cuts=[(10, 20), (15, 25), (15, 25)],
+        from_media_key="v1", to_media_key="v2", remap=_shift,
+    )
+    assert moved.corrections[0].anchor_t == 15.0
+
+
+def test_times_before_the_media_starts_are_refused():
+    with pytest.raises(ValueError):
+        split(-5)
+    with pytest.raises(ValueError):
+        pin((-1, 3))
+
+
+def test_a_migration_that_matched_nothing_says_so():
+    moved = migrate_corrections(
+        [split(5), split(6)], cuts=[(1, 2)], from_media_key="v1", to_media_key="v2",
+        remap=_shift,
+    )
+    assert moved.moved == 0 and moved.untagged == 2
+    assert moved.flags[0].startswith("correction-migration-empty")
+    assert "tag them with media_key=" in moved.flags[0]

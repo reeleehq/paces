@@ -121,6 +121,8 @@ class Correction:
         if self.verb not in VERBS:
             raise ValueError(f"unknown verb {self.verb!r}; expected one of {VERBS}")
         object.__setattr__(self, "anchor_t", _to_ms(self.anchor_t, what="anchor_t"))
+        if self.anchor_t < 0:
+            raise ValueError(f"anchor_t is a time on the media, got {self.anchor_t}")
         needs_span = self.verb in ("pin", "forbid")
         if needs_span != (self.span is not None):
             raise ValueError(
@@ -130,7 +132,7 @@ class Correction:
             if not isinstance(self.span, (tuple, list)) or len(self.span) != 2:
                 raise ValueError(f"span must be (start, end), got {self.span!r}")
             start, end = (_to_ms(t, what="span") for t in self.span)
-            if not start < end:
+            if not 0 <= start < end:
                 raise ValueError(
                     f"span must be (start, end) with start < end: {self.span}"
                 )
@@ -303,13 +305,29 @@ class CorrectionMigration:
 
     corrections: tuple[Correction, ...]
     dropped: tuple[tuple[Correction, str], ...] = ()
+    moved: int = 0  # how many were made against the old rendering and moved
+    untagged: int = 0  # corrections with no media_key: left as they were
 
     @property
     def flags(self) -> tuple[str, ...]:
-        """One ``correction-unmigrated`` line per dropped correction, saying why."""
-        return tuple(
+        """One ``correction-unmigrated`` line per dropped correction, saying why;
+        and ``correction-migration-empty`` when nothing was made against the old
+        rendering, so a no-op is never mistaken for a migration."""
+        flags = tuple(
             f"correction-unmigrated: {c.label} ({why})" for c, why in self.dropped
         )
+        if not self.moved and not self.dropped:
+            note = (
+                f"; {self.untagged} correction(s) carry no media key and replay "
+                "unchanged on every rendering: tag them with media_key= first"
+                if self.untagged
+                else ""
+            )
+            flags += (
+                "correction-migration-empty: no correction was made against the "
+                f"old rendering{note}",
+            )
+        return flags
 
 
 def _remap_after_cuts():
@@ -325,15 +343,29 @@ def _remap_after_cuts():
 
 
 def _cut_dicts(cuts) -> list[dict]:
-    out = []
+    """The cuts as sorted, merged ``{"start", "end"}`` spans: the remap sums cut
+    lengths, so an overlap (or a duplicate) would be removed twice.
+
+    >>> _cut_dicts([(15, 25), (10, 20), (30, 40), (30, 40)])
+    [{'start': 10.0, 'end': 25.0}, {'start': 30.0, 'end': 40.0}]
+    """
+    spans = []
     for cut in cuts:
         start, end = (cut["start"], cut["end"]) if isinstance(cut, Mapping) else cut
         start = _to_ms(start, what="a cut's start")
         end = _to_ms(end, what="a cut's end")
-        if not start < end:
-            raise ValueError(f"a cut must be (start, end) with start < end, got {cut!r}")
-        out.append({"start": start, "end": end})
-    return out
+        if not 0 <= start < end:
+            raise ValueError(
+                f"a cut must be (start, end) with 0 <= start < end, got {cut!r}"
+            )
+        spans.append([start, end])
+    merged: list[list[float]] = []
+    for start, end in sorted(spans):
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return [{"start": start, "end": end} for start, end in merged]
 
 
 def migrate_corrections(
@@ -372,8 +404,10 @@ def migrate_corrections(
 
     kept: list[Correction] = []
     dropped: list[tuple[Correction, str]] = []
+    moved_count = untagged = 0
     for c in normalize_corrections(corrections):
         if c.media_key != from_media_key:
+            untagged += c.media_key is None
             kept.append(c)
             continue
         if inside_a_cut(c.anchor_t):
@@ -398,7 +432,13 @@ def migrate_corrections(
             dropped.append((c, f"it no longer holds after the cuts: {error}"))
             continue
         kept.append(moved)
-    return CorrectionMigration(corrections=tuple(kept), dropped=tuple(dropped))
+        moved_count += 1
+    return CorrectionMigration(
+        corrections=tuple(kept),
+        dropped=tuple(dropped),
+        moved=moved_count,
+        untagged=untagged,
+    )
 
 
 # ── replay: the fallback for segmenters that do not read the log ────────────

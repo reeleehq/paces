@@ -19,6 +19,20 @@
     "additionalProperties": false,
     "description": "One entry of a guide's correction log.",
     "properties": {
+      "anchor_t": {
+        "anyOf": [
+          {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "For pin and forbid, whose reference is their span: the time naming the step meant, in seconds. None for the other verbs, whose reference is a point at it.",
+        "title": "Anchor T"
+      },
       "at": {
         "description": "When (ISO-8601).",
         "minLength": 1,
@@ -73,25 +87,6 @@
         "description": "Why, in the human's words.",
         "title": "Reason",
         "type": "string"
-      },
-      "span": {
-        "anyOf": [
-          {
-            "items": {
-              "pattern": "^-?\\d+(\\.\\d+)?$",
-              "type": "string"
-            },
-            "maxItems": 2,
-            "minItems": 2,
-            "type": "array"
-          },
-          {
-            "type": "null"
-          }
-        ],
-        "default": null,
-        "description": "[start, end] in seconds: where the step is (pin) or is not (forbid). None for the other verbs.",
-        "title": "Span"
       },
       "step_id": {
         "anyOf": [

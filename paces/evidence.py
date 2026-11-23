@@ -394,6 +394,10 @@ class _Writer:
         self._record(annotation_id)
         return annotation_id, digest
 
+    def existing(self, tier: str, key: str) -> Annotation | None:
+        """The row already stored under this evidence key, if any."""
+        return self._index.get(uuid5(PACES_NAMESPACE, f"{tier}\n{key}"))
+
     def _record(self, annotation_id: UUID) -> None:
         self.ids.append(str(annotation_id))
         self.touched.add(annotation_id)
@@ -1348,14 +1352,20 @@ def corrections_to_store(
     The log is kept **separately from the result** (``docs/alignment/07
     §7.5``): its rows are on the ``correction`` tier, which :func:`to_store`'s
     re-derivation never prunes, and this call is the only writer. A call holds
-    the guide's whole log, so rows a longer earlier log left behind are removed.
-    Rows are digest-gated like every other paces row: storing the same log
-    again writes nothing.
+    the guide's whole log, so rows of corrections it no longer has are removed.
+
+    **A row's id is the correction's identity**, not its position: the asset,
+    the guide, the verb, its times and its rendering (``uuid5``, like every
+    paces row). Inserting or deleting an entry leaves every other row (and
+    anything derived from it) alone; ``ordinal`` in the body is the order.
+    Rows are digest-gated: storing the same log again writes nothing.
 
     Provenance pays here, so a stored correction must name its ``author``
     (its own, else ``author=``; ``ValueError`` when neither) and gets ``at``
-    filled (its own, else ``at=``, else now). Each row's activity is
-    ``create`` (a human made it), or ``migrate`` for one a re-cut moved
+    filled: its own, else the one already stored for the same correction (a
+    log reloaded from the wire has none, and re-storing it must not restamp
+    it), else ``at=``, else now. Each row's activity is ``create`` (a human
+    made it), or ``migrate`` for one a re-cut moved
     (:func:`paces.corrections.migrate_corrections`).
 
     Args:
@@ -1364,12 +1374,18 @@ def corrections_to_store(
         store: Any ``lacing.IntervalAnnotationStore``.
         asset_id: The media the corrections are about.
         doc_id: Which guide's log this is.
-        rate: Ticks per second for the anchor points.
+        rate: Ticks per second. Correction times are kept to the millisecond,
+            so it must be a multiple of 1000.
     """
     from paces.corrections import normalize_corrections
     from paces.edits import _now_iso
     from paces.segmentation import time_str
 
+    if rate % 1000:
+        raise ValueError(
+            f"rate={rate}: correction times are kept to the millisecond, so the "
+            "tick rate must be a multiple of 1000"
+        )
     log = normalize_corrections(corrections)
     unnamed = [c.label for c in log if not (c.author or author)]
     if unnamed:
@@ -1384,20 +1400,39 @@ def corrections_to_store(
         attributed_to=attributed_to,
         generated_at=generated_at or RationalTime.now(),
     )
+    seen: dict[str, int] = {}
     for ordinal, c in enumerate(log):
+        identity = "\n".join(
+            [
+                asset_id,
+                doc_id,
+                c.verb,
+                time_str(c.anchor_t),
+                "" if c.span is None else "/".join(map(time_str, c.span)),
+                c.media_key or "",
+            ]
+        )
+        seen[identity] = seen.get(identity, 0) + 1  # the same correction twice
+        key = f"correction:{identity}\n{seen[identity]}"
+        stored = writer.existing(CORRECTION_TIER, key)
+        spanned = c.span is not None
         writer.put(
             tier=CORRECTION_TIER,
-            key=f"correction:{doc_id}/{ordinal}",
-            interval=_point(time_str(c.anchor_t), rate=rate),
+            key=key,
+            interval=(
+                _interval(*(time_str(t) for t in c.span), rate=rate)
+                if spanned
+                else _point(time_str(c.anchor_t), rate=rate)
+            ),
             asset_id=asset_id,
             body=GuideCorrectionBodyV1(
                 doc_id=doc_id,
                 ordinal=ordinal,
                 verb=c.verb,
-                span=None if c.span is None else [time_str(t) for t in c.span],
+                anchor_t=time_str(c.anchor_t) if spanned else None,
                 step_id=c.step_id,
                 author=c.author or author,
-                at=c.at or stamp,
+                at=c.at or (stored.body.get("at") if stored else None) or stamp,
                 media_key=c.media_key,
                 migrated_from=c.migrated_from,
                 reason=c.reason,
@@ -1432,11 +1467,18 @@ def corrections_from_store(store, *, asset_id: str, doc_id: str = "guide") -> tu
         ),
         key=lambda row: row.body["ordinal"],
     )
+    def times(row):
+        interval = row.reference.interval
+        start = float(_decimal(interval.start))
+        if row.body.get("anchor_t") is None:  # a point at the anchor
+            return start, None
+        return float(row.body["anchor_t"]), (start, float(_decimal(interval.end)))
+
     return tuple(
         Correction(
             verb=row.body["verb"],
-            anchor_t=float(_decimal(row.reference.interval.start)),
-            span=None if row.body["span"] is None else tuple(map(float, row.body["span"])),
+            anchor_t=times(row)[0],
+            span=times(row)[1],
             step_id=row.body["step_id"],
             author=row.body["author"],
             at=row.body["at"],
