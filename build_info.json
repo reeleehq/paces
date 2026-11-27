@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-27T18:20:41Z",
+  "built_at": "2026-11-27T18:52:23Z",
   "package": {
     "name": "paces",
-    "version": "0.0.43",
+    "version": "0.0.44",
     "display_name": "paces",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "afa3b15fe801afca1f1cc628324421a9224a3306",
-    "short_commit": "afa3b15",
+    "commit": "8fc4ac179983289e10bb148d4bc5343a213f7853",
+    "short_commit": "8fc4ac1",
     "branch": "main",
     "tags": [
-      "0.0.43"
+      "0.0.44"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/paces",
-    "commit_url": "https://github.com/reeleehq/paces/commit/afa3b15fe801afca1f1cc628324421a9224a3306",
+    "commit_url": "https://github.com/reeleehq/paces/commit/8fc4ac179983289e10bb148d4bc5343a213f7853",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/paces",
-    "sha": "aa145addf413eeecee8aa1804a2c7696e47f3da4",
+    "sha": "38f5b755212f28cf640a2565f12b017a6f13c3ed",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "46048286104",
-    "run_url": "https://github.com/reeleehq/paces/actions/runs/46048286104",
+    "run_id": "46052201583",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/46052201583",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,16 +62,14 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.42",
-    "relation": "ahead",
+    "latest": "0.0.44",
+    "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout afa3b15fe801afca1f1cc628324421a9224a3306\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout 8fc4ac179983289e10bb148d4bc5343a213f7853\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": false,
-    "notes": [
-      "The documented version (0.0.43) is ahead of the latest release on PyPI (0.0.42): these docs describe unreleased code."
-    ]
+    "aligned": true,
+    "notes": []
   }
 }

@@ -103,7 +103,7 @@ analysis never eats a hand edit.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.render(document, , output=None, renderer='html', paper=None, media_from=None, media_root=None)
+### paces.tools.render(document, , output=None, renderer='html', paper=None, media_from=None, media_root=None, strings=None)
 
 Render a step document into learning material.
 
@@ -115,6 +115,9 @@ and timed), `document.json` and the document’s media; it needs
 the `paces[pdf]` extra is installed; `paper` is `'a4'` (default) or
 `'letter'`. Returns the output path when `output=` is given, otherwise
 the rendered text itself.
+
+`strings` overrides entries of the renderer’s strings table (a JSON object
+or a path to one; flow and card): a translation, or “stations” for “steps”.
 
 `media_from` is the folder the document’s relative artifact uris are
 relative to (default: the document’s own folder), and `media_root` the
