@@ -268,13 +268,17 @@ improve what nobody protected) — except <code class="docutils literal notransl
 wins per key.</p></li>
 <li><p>Committed-only steps survive when protected (locks in their subtree or
 a <code class="docutils literal notranslate"><span class="pre">user:</span></code> origin); unprotected ones are superseded analysis output.</p></li>
-<li><p>Cues, questions and sources are unioned by id (fresh wins on shared
+<li><p>Cues, questions, sources and resources are unioned by id (and committed
+<code class="docutils literal notranslate"><span class="pre">notes</span></code> survive a regeneration that has none) (fresh wins on shared
 ids) — analysis rarely regenerates them, and dropping committed
 content silently is the failure this module exists to prevent.</p></li>
 <li><p>Repeated steps are matched by name and time, not by their generated
 <code class="docutils literal notranslate"><span class="pre">-N</span></code> suffix (<code class="xref py py-func docutils literal notranslate"><span class="pre">_repeat_ids()</span></code>): a repeat inserted earlier
 does not move a lock onto the wrong occurrence (paces#50).</p></li>
 </ol>
+<p>Notes are plain strings with no id, so an edit to <code class="docutils literal notranslate"><span class="pre">/notes/0</span></code> is matched by
+position: lock the whole <code class="docutils literal notranslate"><span class="pre">/notes</span></code> list to protect them across a
+regeneration that reorders them.</p>
 <p>Edits made through <a class="reference internal" href="#paces.edits.apply_edits" title="paces.edits.apply_edits"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_edits()</span></code></a> are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the
 JSON without locks are, deliberately, not protected.</p>
@@ -327,7 +331,7 @@ JSON without locks are, deliberately, not protected.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=aa2ad26f"></script>
+      <script src="../_static/documentation_options.js?v=423071ad"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

@@ -1,4 +1,4 @@
-> built 2026-11-27 16:34 UTC from 35c31e9 (main) · paces 0.0.37. Details: build_info.json
+> built 2026-11-27 17:05 UTC from 54636ca (main) · paces 0.0.38. Details: build_info.json
 
 # index.html.md
 
@@ -1199,12 +1199,17 @@ The rules, in order of authority:
    wins per key.
 3. Committed-only steps survive when protected (locks in their subtree or
    a `user:` origin); unprotected ones are superseded analysis output.
-4. Cues, questions and sources are unioned by id (fresh wins on shared
+4. Cues, questions, sources and resources are unioned by id (and committed
+   `notes` survive a regeneration that has none) (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
 5. Repeated steps are matched by name and time, not by their generated
    `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
    does not move a lock onto the wrong occurrence (paces#50).
+
+Notes are plain strings with no id, so an edit to `/notes/0` is matched by
+position: lock the whole `/notes` list to protect them across a
+regeneration that reorders them.
 
 Edits made through [`apply_edits()`](_autosummary/paces.edits.html.md#paces.edits.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the
@@ -1408,7 +1413,7 @@ eventual planner and the segmenter registry share one declaration format.
 `target` is a lazy `"module:func"` ref — listing a heavy capability
 must not import its dependencies.
 
-### *class* paces.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, attrs=<factory>)
+### *class* paces.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, label=None, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -1577,7 +1582,7 @@ sub-steps — structure, where the original hand-wrote a display override).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* paces.StepDocument(\*, kind='StepDocument', schemaVersion='0.1.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
+### *class* paces.StepDocument(\*, kind='StepDocument', schemaVersion='0.2.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, resources=<factory>, notes=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -1727,12 +1732,17 @@ The rules, in order of authority:
    wins per key.
 3. Committed-only steps survive when protected (locks in their subtree or
    a `user:` origin); unprotected ones are superseded analysis output.
-4. Cues, questions and sources are unioned by id (fresh wins on shared
+4. Cues, questions, sources and resources are unioned by id (and committed
+   `notes` survive a regeneration that has none) (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
 5. Repeated steps are matched by name and time, not by their generated
    `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
    does not move a lock onto the wrong occurrence (paces#50).
+
+Notes are plain strings with no id, so an edit to `/notes/0` is matched by
+position: lock the whole `/notes` list to protect them across a
+regeneration that reorders them.
 
 Edits made through [`apply_edits()`](_autosummary/paces.html.md#paces.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the
@@ -2190,9 +2200,10 @@ Design decisions, each argued in `docs/07-annotation-model.md`:
 
 ### Module Attributes
 
-| [`Slug`](_autosummary/paces.model.html.md#paces.model.Slug)    | Git-readable stable identifier — deliberately NOT a uuid4.                  |
-|----------------------------------------------------------|-----------------------------------------------------------------------------|
-| [`Decimal`](_autosummary/paces.model.html.md#paces.model.Decimal) | Exact decimal number as a string ("231.3") — no float representation drift. |
+| [`SCHEMA_VERSION`](_autosummary/paces.model.html.md#paces.model.SCHEMA_VERSION)   | additive — `StepDocument.notes`, `StepDocument.resources` and `Cue.label`, all optional with defaults; every 0.1.0 document is valid.   |
+|-------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`Slug`](_autosummary/paces.model.html.md#paces.model.Slug)             | Git-readable stable identifier — deliberately NOT a uuid4.                                                                              |
+| [`Decimal`](_autosummary/paces.model.html.md#paces.model.Decimal)          | Exact decimal number as a string ("231.3") — no float representation drift.                                                             |
 
 ### Functions
 
@@ -2215,6 +2226,7 @@ Design decisions, each argued in `docs/07-annotation-model.md`:
 | [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid)(\*, unit[, subdivisions, ...])          | How the domain unit relates to wall-clock time, when it does at all.                                                                                                                                                                                                           |
 | [`OpenQuestion`](_autosummary/paces.model.html.md#paces.model.OpenQuestion)(\*, id, text[, status, ...])          | The POC's `note` fields, promoted: uncertainty and its resolution are first-class content, not scratch.                                                                                                                                                                        |
 | [`Origin`](_autosummary/paces.model.html.md#paces.model.Origin)(\*[, annotationId, valueDigest, ...])       | Back-reference into the evidence layer: why this node says what it says, and what a regeneration may replace.                                                                                                                                                                  |
+| [`Resource`](_autosummary/paces.model.html.md#paces.model.Resource)(\*, id, name[, kind, quantity, ...])      | One thing the routine needs (an item, a tool, a space, an ingredient).                                                                                                                                                                                                         |
 | [`Source`](_autosummary/paces.model.html.md#paces.model.Source)(\*, id, kind, uri[, assetId, ...])          | One input the document's spans refer into (a video, a notes doc, ...).                                                                                                                                                                                                         |
 | [`SourceSpan`](_autosummary/paces.model.html.md#paces.model.SourceSpan)(\*, source[, role, end, excerpt, ...])  | ONE step's presence in ONE source, in ONE role.                                                                                                                                                                                                                                |
 | [`Step`](_autosummary/paces.model.html.md#paces.model.Step)(\*, id, name, duration[, description, ...])   | One named piece of the routine — the unit a learner practises.                                                                                                                                                                                                                 |
@@ -2244,7 +2256,7 @@ which stay in step: both are keyed by the same span address.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* paces.model.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, attrs=<factory>)
+### *class* paces.model.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, label=None, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -2321,6 +2333,29 @@ and what a regeneration may replace.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### *class* paces.model.Resource(, id, name, kind='item', quantity=None, optional=False, note=None)
+
+Bases: `_Base`
+
+One thing the routine needs (an item, a tool, a space, an ingredient).
+
+The document-level half of the resource track docs/09 names: the printed
+“what you need” list. A step does not reference it yet (additive later).
+`quantity` is a [`Measure`](_autosummary/paces.model.html.md#paces.model.Measure) in the domain’s own unit, so there is no
+second number format.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### paces.model.SCHEMA_VERSION *= '0.2.0'*
+
+additive — `StepDocument.notes`, `StepDocument.resources`
+and `Cue.label`, all optional with defaults; every 0.1.0 document is valid.
+
+* **Type:**
+  0.2.0 (paces#75)
+
 ### paces.model.Slug
 
 Git-readable stable identifier — deliberately NOT a uuid4.
@@ -2366,7 +2401,7 @@ sub-steps — structure, where the original hand-wrote a display override).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* paces.model.StepDocument(\*, kind='StepDocument', schemaVersion='0.1.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
+### *class* paces.model.StepDocument(\*, kind='StepDocument', schemaVersion='0.2.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, resources=<factory>, notes=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -2802,9 +2837,8 @@ stay pydantic-only (ADR-0004), and importing this module imports nothing
 heavy. Without the extra, asking for a PDF says exactly what to install.
 
 The card reads the document and one strings table; it never depends on the
-analyser. “What you need” comes from `attrs["render.card"]["needs"]` (a list
-of strings), the same `render.*` presentation namespace the document already
-uses for the web page, since the document has no equipment field.
+analyser. “What you need” is the document’s `resources` and “Notes” its
+`notes`; a cue’s `label` is printed beside it.
 
 ### Module Attributes
 
@@ -3533,20 +3567,18 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 16:34 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7"><code>35c31e9</code></a> on branch <code>main</code>, for **paces 0.0.37** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 17:05 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca"><code>54636ca</code></a> on branch <code>main</code>, for **paces 0.0.38** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.0.37) is ahead of the latest release on PyPI (0.0.36): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7"><code>35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca"><code>54636ca1d01cf2105d52931299e1d325d7ee14ca</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.37</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.38</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3555,9 +3587,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46034227922">46034227922</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46038530034">46038530034</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>38744931f1f955d402d7dd8cace4a1eb66e1abf4</code> (in the history of the built commit) |
+| Event commit | <code>71c0c23927569ea6705110a269e97a5ea2086994</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3582,13 +3614,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.36/">0.0.36</a>, older than the documented version (0.0.37).
+Latest release: <a href="https://pypi.org/project/paces/0.0.38/">0.0.38</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7
+git checkout 54636ca1d01cf2105d52931299e1d325d7ee14ca
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

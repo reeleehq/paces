@@ -160,9 +160,8 @@ when <code class="docutils literal notranslate"><span class="pre">media_from</sp
 stay pydantic-only (ADR-0004), and importing this module imports nothing
 heavy. Without the extra, asking for a PDF says exactly what to install.</p>
 <p>The card reads the document and one strings table; it never depends on the
-analyser. “What you need” comes from <code class="docutils literal notranslate"><span class="pre">attrs[&quot;render.card&quot;][&quot;needs&quot;]</span></code> (a list
-of strings), the same <code class="docutils literal notranslate"><span class="pre">render.*</span></code> presentation namespace the document already
-uses for the web page, since the document has no equipment field.</p>
+analyser. “What you need” is the document’s <code class="docutils literal notranslate"><span class="pre">resources</span></code> and “Notes” its
+<code class="docutils literal notranslate"><span class="pre">notes</span></code>; a cue’s <code class="docutils literal notranslate"><span class="pre">label</span></code> is printed beside it.</p>
 <p class="rubric">Module Attributes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -271,7 +270,7 @@ prints with headless Chromium (needs <code class="docutils literal notranslate">
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=aa2ad26f"></script>
+      <script src="../_static/documentation_options.js?v=423071ad"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

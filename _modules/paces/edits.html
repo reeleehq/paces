@@ -870,33 +870,42 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="729"><span class="sd">       wins per key.</span>
 </span><span data-line="730"><span class="sd">    3. Committed-only steps survive when protected (locks in their subtree or</span>
 </span><span data-line="731"><span class="sd">       a ``user:`` origin); unprotected ones are superseded analysis output.</span>
-</span><span data-line="732"><span class="sd">    4. Cues, questions and sources are unioned by id (fresh wins on shared</span>
-</span><span data-line="733"><span class="sd">       ids) — analysis rarely regenerates them, and dropping committed</span>
-</span><span data-line="734"><span class="sd">       content silently is the failure this module exists to prevent.</span>
-</span><span data-line="735"><span class="sd">    5. Repeated steps are matched by name and time, not by their generated</span>
-</span><span data-line="736"><span class="sd">       ``-N`` suffix (:func:`_repeat_ids`): a repeat inserted earlier</span>
-</span><span data-line="737"><span class="sd">       does not move a lock onto the wrong occurrence (paces#50).</span>
-</span><span data-line="738">
-</span><span data-line="739"><span class="sd">    Edits made through :func:`apply_edits` are always locked, so "hand edit"</span>
-</span><span data-line="740"><span class="sd">    and "protected" coincide by construction; edits made by hand-editing the</span>
-</span><span data-line="741"><span class="sd">    JSON without locks are, deliberately, not protected.</span>
-</span><span data-line="742"><span class="sd">    """</span>
-</span><span data-line="743">    <span class="n">committed_dump</span> <span class="o">=</span> <span class="n">committed</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"python"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span data-line="744">    <span class="n">out</span> <span class="o">=</span> <span class="n">fresh</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"python"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span data-line="745">    <span class="n">renamed</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="746">        <span class="n">was</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_walk</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span> <span class="k">if</span> <span class="p">(</span><span class="n">was</span> <span class="o">:=</span> <span class="n">_renamed_was</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-</span><span data-line="747">    <span class="p">}</span>
-</span><span data-line="748">    <span class="n">out</span> <span class="o">=</span> <span class="n">_renumbered</span><span class="p">(</span>
-</span><span data-line="749">        <span class="n">out</span><span class="p">,</span> <span class="n">_repeat_ids</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]),</span> <span class="n">renamed</span><span class="o">=</span><span class="n">renamed</span>
-</span><span data-line="750">    <span class="p">)</span>
-</span><span data-line="751">    <span class="n">out</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_merge_steps</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span>
-</span><span data-line="752">    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"cues"</span><span class="p">,</span> <span class="s2">"questions"</span><span class="p">,</span> <span class="s2">"sources"</span><span class="p">):</span>
-</span><span data-line="753">        <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_union_by_id</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-</span><span data-line="754">    <span class="n">out</span><span class="p">[</span><span class="s2">"attrs"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_merged_attrs</span><span class="p">(</span><span class="n">committed_dump</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"attrs"</span><span class="p">,</span> <span class="p">{}),</span> <span class="n">out</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"attrs"</span><span class="p">,</span> <span class="p">{}))</span>
-</span><span data-line="755">    <span class="n">out</span><span class="p">[</span><span class="s2">"locks"</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">committed_dump</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"locks"</span><span class="p">,</span> <span class="p">[]))</span>
-</span><span data-line="756">    <span class="k">for</span> <span class="n">lock</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="s2">"locks"</span><span class="p">]:</span>
-</span><span data-line="757">        <span class="n">_apply_lock</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">committed_dump</span><span class="p">,</span> <span class="n">lock</span><span class="p">[</span><span class="s2">"path"</span><span class="p">])</span>
-</span><span data-line="758">    <span class="k">return</span> <span class="n">StepDocument</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+</span><span data-line="732"><span class="sd">    4. Cues, questions, sources and resources are unioned by id (and committed</span>
+</span><span data-line="733"><span class="sd">       ``notes`` survive a regeneration that has none) (fresh wins on shared</span>
+</span><span data-line="734"><span class="sd">       ids) — analysis rarely regenerates them, and dropping committed</span>
+</span><span data-line="735"><span class="sd">       content silently is the failure this module exists to prevent.</span>
+</span><span data-line="736"><span class="sd">    5. Repeated steps are matched by name and time, not by their generated</span>
+</span><span data-line="737"><span class="sd">       ``-N`` suffix (:func:`_repeat_ids`): a repeat inserted earlier</span>
+</span><span data-line="738"><span class="sd">       does not move a lock onto the wrong occurrence (paces#50).</span>
+</span><span data-line="739">
+</span><span data-line="740"><span class="sd">    Notes are plain strings with no id, so an edit to ``/notes/0`` is matched by</span>
+</span><span data-line="741"><span class="sd">    position: lock the whole ``/notes`` list to protect them across a</span>
+</span><span data-line="742"><span class="sd">    regeneration that reorders them.</span>
+</span><span data-line="743">
+</span><span data-line="744"><span class="sd">    Edits made through :func:`apply_edits` are always locked, so "hand edit"</span>
+</span><span data-line="745"><span class="sd">    and "protected" coincide by construction; edits made by hand-editing the</span>
+</span><span data-line="746"><span class="sd">    JSON without locks are, deliberately, not protected.</span>
+</span><span data-line="747"><span class="sd">    """</span>
+</span><span data-line="748">    <span class="n">committed_dump</span> <span class="o">=</span> <span class="n">committed</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"python"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span data-line="749">    <span class="n">out</span> <span class="o">=</span> <span class="n">fresh</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"python"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span data-line="750">    <span class="n">renamed</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="751">        <span class="n">was</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">_walk</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span> <span class="k">if</span> <span class="p">(</span><span class="n">was</span> <span class="o">:=</span> <span class="n">_renamed_was</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+</span><span data-line="752">    <span class="p">}</span>
+</span><span data-line="753">    <span class="n">out</span> <span class="o">=</span> <span class="n">_renumbered</span><span class="p">(</span>
+</span><span data-line="754">        <span class="n">out</span><span class="p">,</span> <span class="n">_repeat_ids</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]),</span> <span class="n">renamed</span><span class="o">=</span><span class="n">renamed</span>
+</span><span data-line="755">    <span class="p">)</span>
+</span><span data-line="756">    <span class="n">out</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_merge_steps</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span>
+</span><span data-line="757">    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"cues"</span><span class="p">,</span> <span class="s2">"questions"</span><span class="p">,</span> <span class="s2">"sources"</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">):</span>
+</span><span data-line="758">        <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_union_by_id</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+</span><span data-line="759">    <span class="c1"># notes are plain strings with no id: analysis never writes them, so a</span>
+</span><span data-line="760">    <span class="c1"># regeneration that has none keeps the committed ones</span>
+</span><span data-line="761">    <span class="k">if</span> <span class="ow">not</span> <span class="n">out</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]:</span>
+</span><span data-line="762">        <span class="n">out</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">committed_dump</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">])</span>
+</span><span data-line="763">    <span class="n">out</span><span class="p">[</span><span class="s2">"attrs"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_merged_attrs</span><span class="p">(</span><span class="n">committed_dump</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"attrs"</span><span class="p">,</span> <span class="p">{}),</span> <span class="n">out</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"attrs"</span><span class="p">,</span> <span class="p">{}))</span>
+</span><span data-line="764">    <span class="n">out</span><span class="p">[</span><span class="s2">"locks"</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">committed_dump</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"locks"</span><span class="p">,</span> <span class="p">[]))</span>
+</span><span data-line="765">    <span class="k">for</span> <span class="n">lock</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="s2">"locks"</span><span class="p">]:</span>
+</span><span data-line="766">        <span class="n">_apply_lock</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">committed_dump</span><span class="p">,</span> <span class="n">lock</span><span class="p">[</span><span class="s2">"path"</span><span class="p">])</span>
+</span><span data-line="767">    <span class="k">return</span> <span class="n">StepDocument</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -925,7 +934,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=aa2ad26f"></script>
+      <script src="../../_static/documentation_options.js?v=423071ad"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

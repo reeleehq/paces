@@ -113,7 +113,7 @@ eventual planner and the segmenter registry share one declaration format.
 `target` is a lazy `"module:func"` ref — listing a heavy capability
 must not import its dependencies.
 
-### *class* paces.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, attrs=<factory>)
+### *class* paces.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, label=None, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -282,7 +282,7 @@ sub-steps — structure, where the original hand-wrote a display override).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* paces.StepDocument(\*, kind='StepDocument', schemaVersion='0.1.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
+### *class* paces.StepDocument(\*, kind='StepDocument', schemaVersion='0.2.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, resources=<factory>, notes=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -432,12 +432,17 @@ The rules, in order of authority:
    wins per key.
 3. Committed-only steps survive when protected (locks in their subtree or
    a `user:` origin); unprotected ones are superseded analysis output.
-4. Cues, questions and sources are unioned by id (fresh wins on shared
+4. Cues, questions, sources and resources are unioned by id (and committed
+   `notes` survive a regeneration that has none) (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
 5. Repeated steps are matched by name and time, not by their generated
    `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
    does not move a lock onto the wrong occurrence (paces#50).
+
+Notes are plain strings with no id, so an edit to `/notes/0` is matched by
+position: lock the whole `/notes` list to protect them across a
+regeneration that reorders them.
 
 Edits made through [`apply_edits()`](#paces.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the

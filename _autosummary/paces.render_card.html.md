@@ -15,9 +15,8 @@ stay pydantic-only (ADR-0004), and importing this module imports nothing
 heavy. Without the extra, asking for a PDF says exactly what to install.
 
 The card reads the document and one strings table; it never depends on the
-analyser. “What you need” comes from `attrs["render.card"]["needs"]` (a list
-of strings), the same `render.*` presentation namespace the document already
-uses for the web page, since the document has no equipment field.
+analyser. “What you need” is the document’s `resources` and “Notes” its
+`notes`; a cue’s `label` is printed beside it.
 
 ### Module Attributes
 

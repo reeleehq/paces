@@ -107,12 +107,17 @@ The rules, in order of authority:
    wins per key.
 3. Committed-only steps survive when protected (locks in their subtree or
    a `user:` origin); unprotected ones are superseded analysis output.
-4. Cues, questions and sources are unioned by id (fresh wins on shared
+4. Cues, questions, sources and resources are unioned by id (and committed
+   `notes` survive a regeneration that has none) (fresh wins on shared
    ids) — analysis rarely regenerates them, and dropping committed
    content silently is the failure this module exists to prevent.
 5. Repeated steps are matched by name and time, not by their generated
    `-N` suffix (`_repeat_ids()`): a repeat inserted earlier
    does not move a lock onto the wrong occurrence (paces#50).
+
+Notes are plain strings with no id, so an edit to `/notes/0` is matched by
+position: lock the whole `/notes` list to protect them across a
+regeneration that reorders them.
 
 Edits made through [`apply_edits()`](#paces.edits.apply_edits) are always locked, so “hand edit”
 and “protected” coincide by construction; edits made by hand-editing the

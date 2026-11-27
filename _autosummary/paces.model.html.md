@@ -25,9 +25,10 @@ Design decisions, each argued in `docs/07-annotation-model.md`:
 
 ### Module Attributes
 
-| [`Slug`](#paces.model.Slug)    | Git-readable stable identifier — deliberately NOT a uuid4.                  |
-|----------------------------------------------------------|-----------------------------------------------------------------------------|
-| [`Decimal`](#paces.model.Decimal) | Exact decimal number as a string ("231.3") — no float representation drift. |
+| [`SCHEMA_VERSION`](#paces.model.SCHEMA_VERSION)   | additive — `StepDocument.notes`, `StepDocument.resources` and `Cue.label`, all optional with defaults; every 0.1.0 document is valid.   |
+|-------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`Slug`](#paces.model.Slug)             | Git-readable stable identifier — deliberately NOT a uuid4.                                                                              |
+| [`Decimal`](#paces.model.Decimal)          | Exact decimal number as a string ("231.3") — no float representation drift.                                                             |
 
 ### Functions
 
@@ -50,6 +51,7 @@ Design decisions, each argued in `docs/07-annotation-model.md`:
 | [`MetricGrid`](#paces.model.MetricGrid)(\*, unit[, subdivisions, ...])          | How the domain unit relates to wall-clock time, when it does at all.                                                                                                                                                                                                           |
 | [`OpenQuestion`](#paces.model.OpenQuestion)(\*, id, text[, status, ...])          | The POC's `note` fields, promoted: uncertainty and its resolution are first-class content, not scratch.                                                                                                                                                                        |
 | [`Origin`](#paces.model.Origin)(\*[, annotationId, valueDigest, ...])       | Back-reference into the evidence layer: why this node says what it says, and what a regeneration may replace.                                                                                                                                                                  |
+| [`Resource`](#paces.model.Resource)(\*, id, name[, kind, quantity, ...])      | One thing the routine needs (an item, a tool, a space, an ingredient).                                                                                                                                                                                                         |
 | [`Source`](#paces.model.Source)(\*, id, kind, uri[, assetId, ...])          | One input the document's spans refer into (a video, a notes doc, ...).                                                                                                                                                                                                         |
 | [`SourceSpan`](#paces.model.SourceSpan)(\*, source[, role, end, excerpt, ...])  | ONE step's presence in ONE source, in ONE role.                                                                                                                                                                                                                                |
 | [`Step`](#paces.model.Step)(\*, id, name, duration[, description, ...])   | One named piece of the routine — the unit a learner practises.                                                                                                                                                                                                                 |
@@ -79,7 +81,7 @@ which stay in step: both are keyed by the same span address.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* paces.model.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, attrs=<factory>)
+### *class* paces.model.Cue(\*, id, kind, text, anchor, duration=None, source=None, atS=None, label=None, attrs=<factory>)
 
 Bases: `_Base`
 
@@ -156,6 +158,29 @@ and what a regeneration may replace.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### *class* paces.model.Resource(, id, name, kind='item', quantity=None, optional=False, note=None)
+
+Bases: `_Base`
+
+One thing the routine needs (an item, a tool, a space, an ingredient).
+
+The document-level half of the resource track docs/09 names: the printed
+“what you need” list. A step does not reference it yet (additive later).
+`quantity` is a [`Measure`](#paces.model.Measure) in the domain’s own unit, so there is no
+second number format.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'alias_generator': <function to_camel>, 'extra': 'forbid', 'populate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### paces.model.SCHEMA_VERSION *= '0.2.0'*
+
+additive — `StepDocument.notes`, `StepDocument.resources`
+and `Cue.label`, all optional with defaults; every 0.1.0 document is valid.
+
+* **Type:**
+  0.2.0 (paces#75)
+
 ### paces.model.Slug
 
 Git-readable stable identifier — deliberately NOT a uuid4.
@@ -201,7 +226,7 @@ sub-steps — structure, where the original hand-wrote a display override).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-### *class* paces.model.StepDocument(\*, kind='StepDocument', schemaVersion='0.1.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
+### *class* paces.model.StepDocument(\*, kind='StepDocument', schemaVersion='0.2.0', id, title, lang='en', domain='generic', metric=None, sources=<factory>, steps=<factory>, cues=<factory>, resources=<factory>, notes=<factory>, questions=<factory>, credits=None, locks=<factory>, attrs=<factory>)
 
 Bases: `_Base`
 
