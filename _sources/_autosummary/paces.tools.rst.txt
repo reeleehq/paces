@@ -16,6 +16,7 @@ paces.tools
       merge
       render
       resolve
+      schema
       segment
       suggest_excerpts
       to_document

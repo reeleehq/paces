@@ -20,6 +20,7 @@ a JSON file, so the same function serves the library, the shell, and an agent.
 | [`merge`](#paces.tools.merge)(committed, fresh, \*[, output])                | Merge a fresh analysis projection against the committed document.                                            |
 | [`render`](#paces.tools.render)(document, \*[, output, renderer])             | Render a step document into learning material.                                                               |
 | [`resolve`](#paces.tools.resolve)(document)                                    | Compute absolute offsets and wall-clock times for a document's steps.                                        |
+| [`schema`](#paces.tools.schema)(\*[, output])                                 | The JSON Schema of a step document (for other languages and agents).                                         |
 | [`segment`](#paces.tools.segment)([media, steps, boundaries, grid, ...])       | Cut media into steps using whatever else is present (ADR-0003).                                              |
 | [`suggest_excerpts`](#paces.tools.suggest_excerpts)(document, \*[, units, role, ...])   | Mark each step's loopable sub-window (the `excerpt` derive cuts).                                            |
 | [`to_document`](#paces.tools.to_document)(segmentation, \*[, doc_id, ...])         | Project a segmentation into a step document (the committed artifact).                                        |
@@ -119,6 +120,17 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+### paces.tools.schema(, output=None)
+
+The JSON Schema of a step document (for other languages and agents).
+
+Returns the schema text; with `output=` also writes it to that path and
+returns the path. The same text is committed as package data and checked
+against the model by the test suite.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, rendering=None, answers=None, output=None)
 

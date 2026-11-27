@@ -74,6 +74,7 @@
    pose
    projection
    render
+   schema
    segmentation
    segmenters
    timed_text

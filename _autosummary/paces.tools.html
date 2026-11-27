@@ -79,6 +79,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.pose.html">paces.pose</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.projection.html">paces.projection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.render.html">paces.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.schema.html">paces.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.segmentation.html">paces.segmentation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.segmenters.html">paces.segmenters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.timed_text.html">paces.timed_text</a></li>
@@ -108,6 +109,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#paces.tools.merge"><code class="docutils literal notranslate"><span class="pre">merge()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.render"><code class="docutils literal notranslate"><span class="pre">render()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.resolve"><code class="docutils literal notranslate"><span class="pre">resolve()</span></code></a></li>
+<li><a class="reference internal" href="#paces.tools.schema"><code class="docutils literal notranslate"><span class="pre">schema()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.segment"><code class="docutils literal notranslate"><span class="pre">segment()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.suggest_excerpts"><code class="docutils literal notranslate"><span class="pre">suggest_excerpts()</span></code></a></li>
 <li><a class="reference internal" href="#paces.tools.to_document"><code class="docutils literal notranslate"><span class="pre">to_document()</span></code></a></li>
@@ -187,16 +189,19 @@ a JSON file, so the same function serves the library, the shell, and an agent.</
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.resolve" title="paces.tools.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(document)</p></td>
 <td><p>Compute absolute offsets and wall-clock times for a document's steps.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.segment" title="paces.tools.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, steps, boundaries, grid, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.schema" title="paces.tools.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a>(*[, output])</p></td>
+<td><p>The JSON Schema of a step document (for other languages and agents).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.segment" title="paces.tools.segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment</span></code></a>([media, steps, boundaries, grid, ...])</p></td>
 <td><p>Cut media into steps using whatever else is present (ADR-0003).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.suggest_excerpts" title="paces.tools.suggest_excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suggest_excerpts</span></code></a>(document, *[, units, role, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.suggest_excerpts" title="paces.tools.suggest_excerpts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suggest_excerpts</span></code></a>(document, *[, units, role, ...])</p></td>
 <td><p>Mark each step's loopable sub-window (the <code class="docutils literal notranslate"><span class="pre">excerpt</span></code> derive cuts).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.to_document" title="paces.tools.to_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_document</span></code></a>(segmentation, *[, doc_id, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.to_document" title="paces.tools.to_document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_document</span></code></a>(segmentation, *[, doc_id, ...])</p></td>
 <td><p>Project a segmentation into a step document (the committed artifact).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.validate" title="paces.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(document)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.validate" title="paces.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(document)</p></td>
 <td><p>Schema + semantic check of a step document; returns <code class="docutils literal notranslate"><span class="pre">{&quot;issues&quot;:</span> <span class="pre">[...]}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -324,6 +329,20 @@ otherwise the rendered text itself.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="paces.tools.schema">
+<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.schema" title="Link to this definition">#</a></dt>
+<dd><p>The JSON Schema of a step document (for other languages and agents).</p>
+<p>Returns the schema text; with <code class="docutils literal notranslate"><span class="pre">output=</span></code> also writes it to that path and
+returns the path. The same text is committed as package data and checked
+against the model by the test suite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="paces.tools.segment">
 <span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">media</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corrections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rendering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">answers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.segment" title="Link to this definition">#</a></dt>
 <dd><p>Cut media into steps using whatever else is present (ADR-0003).</p>
@@ -436,7 +455,7 @@ canonical wire form is also written to that path.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=61a342a2"></script>
+      <script src="../_static/documentation_options.js?v=c5dbc6bb"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

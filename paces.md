@@ -1,4 +1,4 @@
-> built 2026-11-23 04:36 UTC from da84e4d (main) · paces 0.0.30. Details: build_info.json
+> built 2026-11-27 14:39 UTC from ad2b7b6 (main) · paces 0.0.31. Details: build_info.json
 
 # index.html.md
 
@@ -1886,6 +1886,7 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 | [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                                                                                                               |
 | [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)     | The projection from analysis result to document: `to_document`.                                                                                                                                                                         |
 | [`render`](_autosummary/paces.render.html.md#module-paces.render)             | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                                                                                                                 |
+| [`schema`](_autosummary/paces.schema.html.md#module-paces.schema)             | The JSON Schema of a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument), for other languages.                                                                                                       |
 | [`segmentation`](_autosummary/paces.segmentation.html.md#module-paces.segmentation) | What a segmenter returns: [`Segmentation`](_autosummary/paces.html.md#paces.Segmentation), its [`SegStep`](_autosummary/paces.html.md#paces.SegStep) records and the `Span` they cover — the analysis-result types, with nothing else. |
 | [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters)     | Segmentation is a seam, not a stage (ADR-0003).                                                                                                                                                                                         |
 | [`timed_text`](_autosummary/paces.timed_text.html.md#module-paces.timed_text)     | Timed-text normalisation: any subtitle/transcript shape → `{start, end, text}` rows.                                                                                                                                                    |
@@ -2729,6 +2730,75 @@ derived clips arrive via `ArtifactRef` when the media layer exists.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
+# _autosummary/paces.schema.html.md
+
+# paces.schema
+
+The JSON Schema of a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument), for other languages.
+
+A TypeScript form, a validator in another service or an agent checking a
+document before it renders all need the wire shape without importing pydantic.
+The schema is derived from the model (never hand-written), committed as package
+data, and a test fails when the two drift; `paces schema` writes it.
+
+Synthetic pass/fail fixture documents ship beside it, so another implementation
+can test against the same files.
+
+```pycon
+>>> step_document_schema()["title"]
+'StepDocument'
+```
+
+### Module Attributes
+
+| [`JSON_SCHEMA_DRAFT`](_autosummary/paces.schema.html.md#paces.schema.JSON_SCHEMA_DRAFT)   | The draft the schema is written in (it uses `prefixItems`).   |
+|----------------------------------------------------------------------|---------------------------------------------------------------|
+
+### Functions
+
+| [`dumps_schema`](_autosummary/paces.schema.html.md#paces.schema.dumps_schema)([schema])   | The canonical text of the schema file: 2-space indent, trailing newline.   |
+|---------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`fixture_paths`](_autosummary/paces.schema.html.md#paces.schema.fixture_paths)(kind)      | The shipped fixture documents.                                             |
+| [`packaged_schema_text`](_autosummary/paces.schema.html.md#paces.schema.packaged_schema_text)()   | The committed copy of the schema that ships with the package.              |
+| [`step_document_schema`](_autosummary/paces.schema.html.md#paces.schema.step_document_schema)()   | The JSON Schema of the document's wire form (camelCase keys).              |
+
+### paces.schema.JSON_SCHEMA_DRAFT *= 'https://json-schema.org/draft/2020-12/schema'*
+
+The draft the schema is written in (it uses `prefixItems`).
+
+### paces.schema.dumps_schema(schema=None)
+
+The canonical text of the schema file: 2-space indent, trailing newline.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### paces.schema.fixture_paths(kind)
+
+The shipped fixture documents.
+
+`"pass"` validate; `"fail"` are rejected by the JSON Schema itself (and
+by pydantic); `"fail-python"` break rules a JSON Schema cannot express
+(a positive tempo, an ISO lock time), so only the Python model rejects them.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
+
+### paces.schema.packaged_schema_text()
+
+The committed copy of the schema that ships with the package.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### paces.schema.step_document_schema()
+
+The JSON Schema of the document’s wire form (camelCase keys).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+
 # _autosummary/paces.segmentation.html.md
 
 # paces.segmentation
@@ -3099,6 +3169,7 @@ a JSON file, so the same function serves the library, the shell, and an agent.
 | [`merge`](_autosummary/paces.tools.html.md#paces.tools.merge)(committed, fresh, \*[, output])                | Merge a fresh analysis projection against the committed document.                                            |
 | [`render`](_autosummary/paces.tools.html.md#paces.tools.render)(document, \*[, output, renderer])             | Render a step document into learning material.                                                               |
 | [`resolve`](_autosummary/paces.tools.html.md#paces.tools.resolve)(document)                                    | Compute absolute offsets and wall-clock times for a document's steps.                                        |
+| [`schema`](_autosummary/paces.tools.html.md#paces.tools.schema)(\*[, output])                                 | The JSON Schema of a step document (for other languages and agents).                                         |
 | [`segment`](_autosummary/paces.tools.html.md#paces.tools.segment)([media, steps, boundaries, grid, ...])       | Cut media into steps using whatever else is present (ADR-0003).                                              |
 | [`suggest_excerpts`](_autosummary/paces.tools.html.md#paces.tools.suggest_excerpts)(document, \*[, units, role, ...])   | Mark each step's loopable sub-window (the `excerpt` derive cuts).                                            |
 | [`to_document`](_autosummary/paces.tools.html.md#paces.tools.to_document)(segmentation, \*[, doc_id, ...])         | Project a segmentation into a step document (the committed artifact).                                        |
@@ -3199,6 +3270,17 @@ Compute absolute offsets and wall-clock times for a document’s steps.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
+### paces.tools.schema(, output=None)
+
+The JSON Schema of a step document (for other languages and agents).
+
+Returns the schema text; with `output=` also writes it to that path and
+returns the path. The same text is committed as package data and checked
+against the model by the test suite.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 ### paces.tools.segment(media=None, , steps=None, boundaries=None, grid=None, metadata=None, transcript=None, segmenter=None, k=None, corrections=None, rendering=None, answers=None, output=None)
 
 Cut media into steps using whatever else is present (ADR-0003).
@@ -3264,20 +3346,18 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-23 04:36 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/da84e4ddc44432057ce21b6b4c6f1653dc19b5e0"><code>da84e4d</code></a> on branch <code>main</code>, for **paces 0.0.30** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 14:39 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/ad2b7b67f5a1bc791e79070b6e3d9add97f064c4"><code>ad2b7b6</code></a> on branch <code>main</code>, for **paces 0.0.31** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.0.30) is ahead of the latest release on PyPI (0.0.29): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/da84e4ddc44432057ce21b6b4c6f1653dc19b5e0"><code>da84e4ddc44432057ce21b6b4c6f1653dc19b5e0</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/ad2b7b67f5a1bc791e79070b6e3d9add97f064c4"><code>ad2b7b67f5a1bc791e79070b6e3d9add97f064c4</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | none                                                                                                                                                  |
+| Tags at this commit | <code>0.0.31</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3286,15 +3366,15 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/45112508446">45112508446</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46017356133">46017356133</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>f89497128b83bd81fede671a010733cf4f9a3cfd</code> (in the history of the built commit) |
+| Event commit | <code>2c2bdbbf33155adb721b222f4f28c03299f2fa89</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.23  |
+| epythet  | 0.2.25  |
 | Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.16 |
@@ -3313,14 +3393,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.29/">0.0.29</a>, older than the documented version (0.0.30).
+Latest release: <a href="https://pypi.org/project/paces/0.0.31/">0.0.31</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout da84e4ddc44432057ce21b6b4c6f1653dc19b5e0
-pip install "epythet==0.2.23"
+git checkout ad2b7b67f5a1bc791e79070b6e3d9add97f064c4
+pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

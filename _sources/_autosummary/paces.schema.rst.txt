@@ -1,0 +1,21 @@
+paces.schema
+============
+
+.. automodule:: paces.schema
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      JSON_SCHEMA_DRAFT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      dumps_schema
+      fixture_paths
+      packaged_schema_text
+      step_document_schema
+   
