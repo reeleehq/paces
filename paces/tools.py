@@ -20,6 +20,7 @@ from paces import (
     model,
     projection,
     render as render_module,
+    render_flow as render_flow_module,
     schema as schema_module,
     segmenters as segment_module,
 )
@@ -225,25 +226,52 @@ def to_document(
     return json.loads(text)
 
 
+def _render_html_page(doc, output, media_from):
+    """The ``html`` renderer: returns the page text; writes it to ``output``."""
+    text = render_module.render_html(doc)
+    if output:
+        Path(output).write_text(text, encoding="utf-8")
+    return text
+
+
+def _render_flow_folder(doc, output, media_from):
+    """The ``flow`` renderer: writes a player folder at ``output``."""
+    render_flow_module.render_flow(doc, output, media_from=media_from)
+
+
+#: name -> (run(doc, output, media_from), needs_output). Every renderer takes the
+#: same arguments, so a new one (a card, a deck) is one more row here and no
+#: change to ``render`` or its callers. A renderer that writes returns None
+#: (or, for text, its text); ``render`` answers with ``output`` when given.
+_RENDERERS = {
+    "html": (_render_html_page, False),
+    "flow": (_render_flow_folder, True),
+}
+
+
 def render(document, *, output: str | None = None, renderer: str = "html") -> str:
     """Render a step document into learning material.
 
-    ``renderer='html'`` (v1's one implementation) produces the self-contained
-    practice page. Returns the output path when ``output=`` is given,
-    otherwise the rendered text itself.
+    ``renderer='html'`` produces the self-contained practice page.
+    ``renderer='flow'`` produces a folder: a static step-through player (manual
+    and timed), ``document.json`` and the document's media; it needs
+    ``output=`` (the folder). Returns the output path when ``output=`` is
+    given, otherwise the rendered text itself.
     """
-    renderers = {"html": render_module.render_html}
-    if renderer not in renderers:
+    if renderer not in _RENDERERS:
         raise ValueError(
-            f"unknown renderer {renderer!r}; available: {sorted(renderers)}"
+            f"unknown renderer {renderer!r}; available: {sorted(_RENDERERS)}"
         )
+    run, needs_output = _RENDERERS[renderer]
+    if needs_output and not output:
+        raise ValueError(f"the {renderer!r} renderer writes files: pass output=<path>")
     doc = _as_document(document)
-    text = renderers[renderer](doc)
-    if output:
+    from_a_file = isinstance(document, str) and Path(document).is_file()
+    media_from = Path(document).resolve().parent if from_a_file else None
+    if output and not needs_output:
         _warn_if_page_leaves_media_behind(doc, document, output)
-        Path(output).write_text(text, encoding="utf-8")
-        return output
-    return text
+    text = run(doc, output, media_from)
+    return output if output else text
 
 
 def ask(
