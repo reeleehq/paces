@@ -12,18 +12,22 @@
    * its top-level group (for the ribbon) and the chain of ancestors. */
   function buildStops(doc) {
     var stops = [];
-    function walk(step, ctx) {
-      var rounds = step.repeat || 1;
+    /* `heads`: the ancestors for which this stop is the first of a round, so
+     * their own description and media are shown once per round, on that stop. */
+    function walk(step, ctx, first) {
+      var rounds = Math.max(1, step.repeat || 1);
       if (step.steps && step.steps.length) {
         for (var r = 1; r <= rounds; r++) {
           var inner = { group: ctx.group, parents: ctx.parents.concat([step]),
             rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: r, of: rounds }] : []) };
-          step.steps.forEach(function (child) { walk(child, inner); });
+          step.steps.forEach(function (child, i) {
+            walk(child, inner, i === 0 ? (r === 1 ? first : []).concat([step]) : []);
+          });
         }
       } else {
         for (var k = 1; k <= rounds; k++) {
           stops.push({
-            step: step, group: ctx.group, parents: ctx.parents,
+            step: step, group: ctx.group, parents: ctx.parents, heads: k === 1 ? first : [],
             rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: k, of: rounds }] : []),
             index: stops.length
           });
@@ -31,7 +35,7 @@
       }
     }
     (doc.steps || []).forEach(function (step, g) {
-      walk(step, { group: g, parents: [], rounds: [] });
+      walk(step, { group: g, parents: [], rounds: [] }, []);
     });
     return stops;
   }
@@ -80,11 +84,23 @@
 
   /* Deep link into a source at a time, or null. */
   function deepLink(source, startSeconds) {
-    if (!source || !/^https?:/.test(source.uri)) return null;
-    if (/youtu/.test(source.uri)) {
-      return source.uri + (source.uri.indexOf("?") >= 0 ? "&" : "?") + "t=" + Math.floor(startSeconds);
+    if (!source) return null;
+    var url;
+    try { url = new URL(source.uri); } catch (e) { return null; }
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    var host = url.hostname.replace(/^www\./, "");
+    if (host === "youtu.be" || host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
+      url.searchParams.set("t", String(Math.floor(startSeconds)));
+    } else if (/\.(mp4|webm|mov|m4v|mp3|wav|ogg)$/i.test(url.pathname)) {
+      url.hash = "t=" + Math.floor(startSeconds);   /* media fragment */
     }
-    return source.uri;
+    return url.toString();
+  }
+
+  /* Beats in a stop under the grid (value x subdivisions), or 0 without one. */
+  function beatsIn(doc, stop) {
+    var m = stop.step.duration;
+    return gridApplies(doc, m) ? num(m.value) * (doc.metric.subdivisions || 1) : 0;
   }
 
   /* Cues that belong on a stop: anchored to the step or to an ancestor. */
@@ -119,7 +135,7 @@
 
   var api = { buildStops: buildStops, stopSeconds: stopSeconds, gridApplies: gridApplies,
     formatMeasure: formatMeasure, formatRound: formatRound, deepLink: deepLink,
-    cuesFor: cuesFor, pickMedia: pickMedia, groupColour: groupColour };
+    cuesFor: cuesFor, beatsIn: beatsIn, pickMedia: pickMedia, groupColour: groupColour };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PacesFlowCore = api;
 })(typeof self !== "undefined" ? self : this);

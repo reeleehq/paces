@@ -16,6 +16,7 @@ generated.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from collections.abc import Iterator, Mapping
 from importlib import resources
@@ -34,8 +35,11 @@ def _steps(steps: list[Step]) -> Iterator[Step]:
         yield from _steps(step.steps)
 
 
-def _is_local(uri: str) -> bool:
-    return not uri.startswith(("http://", "https://", "/", "data:"))
+def _is_relative_path(uri: str) -> bool:
+    """A document-relative file path: no scheme, no leading slash or drive."""
+    if uri.startswith(("/", "\\")) or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", uri):
+        return False
+    return True
 
 
 def default_strings() -> dict:
@@ -64,25 +68,32 @@ def _merged_strings(overrides: Mapping | None) -> dict:
 def _copy_media(doc: StepDocument, media_from: Path | None, out: Path) -> list[str]:
     """Copy each relative artifact into the output folder at the same relative
     path (the document's uris are document-relative). Returns the uris that
-    could not be found, so the caller can say so instead of shipping dead clips."""
-    missing: list[str] = []
+    were not shipped (file not found, or not a relative path), so the caller
+    can say so instead of leaving dead clips behind."""
+    unshipped: list[str] = []
+    out_root = out.resolve()
+    source_root = media_from.resolve() if media_from else None
     for step in _steps(doc.steps):
         for artifact in step.artifacts:
-            if not _is_local(artifact.uri):
+            uri = artifact.uri
+            if uri.startswith(("http://", "https://")):
+                continue  # the player loads it from where it is
+            if not _is_relative_path(uri):
+                unshipped.append(uri)
                 continue
-            target = (out / artifact.uri).resolve()
-            if out.resolve() not in target.parents:
-                raise ValueError(
-                    f"artifact uri escapes the output folder: {artifact.uri!r}"
-                )
-            source = (media_from / artifact.uri) if media_from else None
+            target = (out_root / uri).resolve()
+            if out_root not in target.parents:
+                raise ValueError(f"artifact uri escapes the output folder: {uri!r}")
+            source = (source_root / uri).resolve() if source_root else None
+            if source is not None and source_root not in source.parents:
+                raise ValueError(f"artifact uri escapes the media folder: {uri!r}")
             if source is not None and source.is_file():
-                target.parent.mkdir(parents=True, exist_ok=True)
-                if source.resolve() != target:
+                if source != target:
+                    target.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(source, target)
             elif not target.is_file():
-                missing.append(artifact.uri)
-    return missing
+                unshipped.append(uri)
+    return unshipped
 
 
 def render_flow(
@@ -127,8 +138,8 @@ def render_flow(
         import warnings
 
         warnings.warn(
-            f"{len(missing)} media file(s) the document points at were not found "
-            f"and are missing from {out}: {', '.join(missing[:5])}"
+            f"{len(missing)} media file(s) the document points at were not shipped "
+            f"to {out} (not found, or not a relative path): {', '.join(missing[:5])}"
             + (" ..." if len(missing) > 5 else ""),
             stacklevel=2,
         )

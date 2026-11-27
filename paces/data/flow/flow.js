@@ -51,11 +51,18 @@
   }
 
   Promise.all([loadJson("document.json", "document"), loadJson("strings.json", "strings")])
-    .then(function (r) { start(r[0], r[1]); })
-    .catch(function () { app.textContent = "document.json / strings.json: could not load. Serve this folder over http."; });
+    .then(function (r) {
+      try { start(r[0], r[1]); }
+      catch (e) { app.textContent = "Could not show this document: " + e.message; if (window.console) console.error(e); }
+    }, function () {
+      /* strings.json is what would say this in the viewer's language, and it
+       * is the thing that failed to load: this one line is the fallback. */
+      app.textContent = "Could not load document.json and strings.json. Serve this folder (for example: python -m http.server) rather than opening the file directly.";
+    });
 
   function start(doc, S) {
     document.documentElement.lang = doc.lang || "en";
+    document.documentElement.dir = /^(ar|he|fa|ur)(-|$)/i.test(doc.lang || "") ? "rtl" : "ltr";
     document.title = doc.title;
     var stops = C.buildStops(doc);
     var sources = {};
@@ -63,7 +70,7 @@
     var groups = (doc.steps || []).length;
     var grid = doc.metric && doc.metric.tempoBpm ? doc.metric : null;
 
-    var state = { i: 0, mode: "manual", playing: false, elapsed: 0, lastBeat: -1, clickOn: true,
+    var state = { i: 0, mode: "manual", playing: false, progress: 0, finished: false, lastBeat: -1, clickOn: true,
       settings: { bpm: grid ? Number(grid.tempoBpm) : 0, secondsPerRep: 3, secondsPerStep: 30, pace: "rep" } };
     var hash = /s=(\d+)/.exec(location.hash);
     if (hash && Number(hash[1]) < stops.length) state.i = Number(hash[1]);
@@ -77,7 +84,8 @@
     var paceBtn = el("button", { class: "chip", type: "button", "aria-expanded": "false", text: S.settings, onclick: function () {
       var open = pace.hasAttribute("hidden"); if (open) pace.removeAttribute("hidden"); else pace.setAttribute("hidden", "");
       paceBtn.setAttribute("aria-expanded", String(open)); } });
-    var ribbon = el("div", { class: "ribbon", role: "tablist" });
+    var ribbon = el("div", { class: "ribbon" });
+    var status = el("p", { class: "sr", "aria-live": "polite" });
     var pace = el("div", { class: "pace", hidden: "" });
     var card = el("article", { class: "card" });
     var outline = el("nav", { class: "outline", "aria-label": S.allSteps });
@@ -87,7 +95,7 @@
     var beats = el("div", { class: "beats", "aria-hidden": "true" });
 
     app.textContent = "";
-    app.appendChild(el("div", { class: "shell" }, [
+    app.appendChild(el("div", { class: "shell" }, [status,
       el("header", { class: "top" }, [el("div", { class: "titles" }, [title, posEl]),
         el("div", { class: "modes" }, [modeBtn, paceBtn])]),
       pace, ribbon,
@@ -106,8 +114,8 @@
       var box = el("div", { class: "group", style: "--n:" + byGroup[g].length + ";--c:" + colour });
       var row = el("div", { class: "cells" });
       byGroup[g].forEach(function (s) {
-        var cell = el("button", { class: "cell", type: "button", role: "tab",
-          "aria-label": s.step.name, onclick: function () { go(s.index, true); } });
+        var cell = el("button", { class: "cell", type: "button",
+          "aria-label": (s.index + 1) + ". " + s.step.name, onclick: function () { go(s.index, true); } });
         cells[s.index] = cell; row.appendChild(cell);
       });
       box.appendChild(row);
@@ -115,14 +123,22 @@
       ribbon.appendChild(box);
     });
 
-    /* outline: the structure, nested */
-    var outlineItems = [];
+    /* outline: the structure, nested: a heading each time the chain of
+     * enclosing steps (and their rounds) changes, then indented rows */
+    var outlineItems = [], lastChain = "";
     stops.forEach(function (s) {
-      var rounds = s.rounds.map(function (r) { return C.formatRound(r, S); }).join(" · ");
-      var label = (s.parents.length ? s.parents.map(function (p) { return p.name; }).join(" › ") + " › " : "") + s.step.name;
-      var b = el("button", { class: "ol", type: "button", onclick: function () { go(s.index, true); } }, [
-        el("span", { class: "olname", text: label }),
-        el("span", { class: "olcount", text: (rounds ? rounds + " · " : "") + C.formatMeasure(s.step.duration, S) })]);
+      var chain = s.parents.map(function (p) { return p.id; }).join("/") + "|" + s.rounds.map(function (r) { return r.step.id + r.round; }).join("/");
+      if (s.parents.length && chain !== lastChain) {
+        var heading = s.parents.map(function (p) { return p.name; }).join(" › ");
+        var rounds = s.rounds.filter(function (r) { return s.parents.indexOf(r.step) >= 0; })
+          .map(function (r) { return C.formatRound(r, S); }).join(" · ");
+        outline.appendChild(el("p", { class: "olhead", text: heading + (rounds ? " · " + rounds : "") }));
+      }
+      lastChain = chain;
+      var rowRounds = s.rounds.filter(function (r) { return r.step === s.step; }).map(function (r) { return C.formatRound(r, S); }).join(" · ");
+      var b = el("button", { class: "ol" + (s.parents.length ? " nested" : ""), type: "button", onclick: function () { go(s.index, true); } }, [
+        el("span", { class: "olname", text: s.step.name }),
+        el("span", { class: "olcount", text: (rowRounds ? rowRounds + " · " : "") + C.formatMeasure(s.step.duration, S) })]);
       outlineItems[s.index] = b; outline.appendChild(b);
     });
 
@@ -143,26 +159,35 @@
       pace.appendChild(el("label", { class: "field" }, [el("span", { text: S.sound }), click]));
     }
     var paceBy = el("select", {}, [el("option", { value: "rep", text: S.paceByRep }), el("option", { value: "step", text: S.paceByStep })]);
-    paceBy.addEventListener("change", function () { state.settings.pace = paceBy.value; });
+    var repField, stepField;
+    function syncPace() { var byStep = state.settings.pace === "step"; repField.querySelector("input").disabled = byStep; stepField.querySelector("input").disabled = !byStep; }
+    paceBy.addEventListener("change", function () { state.settings.pace = paceBy.value; syncPace(); });
     pace.appendChild(field(S.paceBy, paceBy));
-    pace.appendChild(field(S.secondsPerRep, number(3, 0.5, 60, 0.5, function (v) { state.settings.secondsPerRep = v; })));
-    pace.appendChild(field(S.secondsPerStep, number(30, 1, 600, 1, function (v) { state.settings.secondsPerStep = v; })));
+    repField = field(S.secondsPerRep, number(3, 0.5, 60, 0.5, function (v) { state.settings.secondsPerRep = v; }));
+    stepField = field(S.secondsPerStep, number(30, 1, 600, 1, function (v) { state.settings.secondsPerStep = v; }));
+    pace.appendChild(repField); pace.appendChild(stepField); syncPace();
 
     /* ── rendering one stop ───────────────────────────────────── */
     function render() {
       var s = stops[state.i], step = s.step;
       posEl.textContent = S.position.replace("{n}", state.i + 1).replace("{total}", stops.length);
-      cells.forEach(function (c, i) { c.className = "cell" + (i === state.i ? " on" : i < state.i ? " done" : ""); c.setAttribute("aria-selected", String(i === state.i)); });
+      cells.forEach(function (c, i) { c.className = "cell" + (i === state.i ? " on" : i < state.i ? " done" : ""); if (i === state.i) c.setAttribute("aria-current", "step"); else c.removeAttribute("aria-current"); });
+      status.textContent = posEl.textContent + " " + step.name;
+      cells.forEach(function (c) { c.style.removeProperty("--p"); });
+      card.style.setProperty("--p", "0");
       outlineItems.forEach(function (o, i) { o.className = "ol" + (i === state.i ? " on" : ""); });
       if (outlineItems[state.i] && outlineItems[state.i].scrollIntoView) outlineItems[state.i].scrollIntoView({ block: "nearest" });
       card.style.setProperty("--c", C.groupColour(s.group, groups, RAMP_FROM, RAMP_TO));
       card.textContent = "";
 
       var ctx = s.parents.map(function (p) { return p.name; }).concat(s.rounds.map(function (r) { return C.formatRound(r, S); }));
-      if (ctx.length) card.appendChild(el("p", { class: "context", text: ctx.join(" · ") }));
+      card.appendChild(el("p", { class: "context", text: ctx.join(" · ") || "\u00a0" }));
 
       var m = pickMedia(step);
-      card.appendChild(m ? mediaNode(m) : el("div", { class: "media blank", "aria-hidden": "true" }, [el("span", { class: "bignum", text: String(state.i + 1) })]));
+      (s.heads || []).forEach(function (p) { if (!m) m = pickMedia(p); });
+      card.appendChild(m ? mediaNode(m) : el("div", { class: "media blank" }, [
+        el("span", { class: "tilenum", "aria-hidden": "true", text: String(state.i + 1) }),
+        el("span", { class: "bignum", text: C.formatMeasure(step.duration, S) })]));
 
       var head = el("div", { class: "head" }, [el("h2", { text: step.name }),
         el("span", { class: "count", text: C.formatMeasure(step.duration, S) })]);
@@ -171,6 +196,7 @@
       if (step.optional) badges.push(S.optional);
       if (step.variantOf) badges.push(S.variantOf.replace("{step}", step.variantOf));
       if (badges.length) card.appendChild(el("p", { class: "badges", text: badges.join(" · ") }));
+      (s.heads || []).forEach(function (p) { if (p.description) card.insertBefore(el("p", { class: "lead", text: p.description }), head); });
       if (step.description) card.appendChild(el("p", { class: "desc", text: step.description }));
 
       C.cuesFor(doc, s).forEach(function (cue) {
@@ -187,14 +213,14 @@
       });
       if (links.length) card.appendChild(el("p", { class: "links" }, links));
 
-      prev.disabled = state.i === 0; next.disabled = state.i === stops.length - 1;
+      prev.setAttribute("aria-disabled", String(state.i === 0)); next.setAttribute("aria-disabled", String(state.i === stops.length - 1));
       modeBtn.textContent = state.mode === "timed" ? S.timed : S.manual;
       modeBtn.setAttribute("aria-pressed", String(state.mode === "timed"));
       modeBtn.setAttribute("aria-label", S.mode + ": " + modeBtn.textContent);
       play.hidden = state.mode !== "timed";
       play.textContent = state.playing ? S.pause : S.play;
       play.classList.toggle("running", state.playing);
-      beats.hidden = !(state.mode === "timed" && grid && C.gridApplies(doc, step.duration));
+      beats.hidden = !(state.mode === "timed" && C.beatsIn(doc, s));
       drawBeats(-1);
       try { history.replaceState(null, "", "#s=" + state.i); } catch (e) { /* sandboxed frame */ }
     }
@@ -219,54 +245,65 @@
 
     /* ── the one way the position moves ───────────────────────── */
     function go(i, fromUser) {
-      if (i < 0 || i >= stops.length) { if (state.playing) stopPlaying(); return false; }
-      state.i = i; state.elapsed = 0; state.lastBeat = -1;
-      if (fromUser && state.playing) startedAt = performance.now();
+      if (i < 0 || i >= stops.length) return false;
+      state.i = i; state.progress = 0; state.lastBeat = -1; state.finished = false;
       render(); return true;
     }
     function advance(by, fromUser) { return go(state.i + (by === undefined ? 1 : by), !!fromUser); }
 
     /* ── timed mode ───────────────────────────────────────────── */
-    var raf = 0, startedAt = 0, audio = null;
-    function clickSound(accent) {
-      if (!state.clickOn) return;
+    /* Progress through a stop is a fraction (0..1), advanced by elapsed time
+     * over the stop's CURRENT length: so a tempo change mid-step keeps the
+     * position, and the overrun at a boundary is carried into the next stop
+     * (the count does not drift from the music). */
+    var raf = 0, last = 0, audio = null;
+    function ensureAudio() {
       try {
         audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-        var o = audio.createOscillator(), g = audio.createGain();
-        o.frequency.value = accent ? 1200 : 800;
-        g.gain.setValueAtTime(0.12, audio.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.06);
-        o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + 0.07);
-      } catch (e) { /* no audio */ }
+        if (audio.state === "suspended") audio.resume();
+      } catch (e) { audio = null; }
+    }
+    function clickSound(accent) {
+      if (!state.clickOn || !audio) return;
+      var o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = accent ? 1200 : 800;
+      g.gain.setValueAtTime(0.12, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.06);
+      o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + 0.07);
     }
     function tick(now) {
       if (!state.playing) return;
       var stop = stops[state.i];
       var total = C.stopSeconds(doc, stop, state.settings);
-      var elapsed = state.elapsed + (now - startedAt) / 1000;
-      if (grid && C.gridApplies(doc, stop.step.duration)) {
-        var beatLen = 60 / state.settings.bpm;
-        var beat = Math.floor(elapsed / beatLen);
-        if (beat !== state.lastBeat && elapsed < total) {
+      state.progress += (now - last) / 1000 / total;
+      last = now;
+      var overrun = 0;
+      if (state.progress >= 1) { overrun = (state.progress - 1) * total; state.progress = 1; }
+      var nBeats = C.beatsIn(doc, stop);
+      if (nBeats) {
+        var beat = Math.min(nBeats - 1, Math.floor(state.progress * nBeats));
+        if (beat !== state.lastBeat) {
           state.lastBeat = beat; clickSound(beat % (grid.subdivisions || 1) === 0);
           drawBeats(beat % (grid.subdivisions || 1));
         }
       }
-      var frac = Math.min(1, elapsed / total);
-      var cell = cells[state.i]; if (cell) cell.style.setProperty("--p", String(frac));
-      if (elapsed >= total) {
-        if (!advance(1)) return;
-        startedAt = now; return void (raf = requestAnimationFrame(tick));
+      var cell = cells[state.i]; if (cell) cell.style.setProperty("--p", String(state.progress));
+      card.style.setProperty("--p", String(state.progress));
+      if (state.progress >= 1) {
+        if (!go(state.i + 1)) { state.finished = true; stopPlaying(); return; }
+        state.progress = Math.min(0.999, overrun / C.stopSeconds(doc, stops[state.i], state.settings));
       }
       raf = requestAnimationFrame(tick);
     }
     function startPlaying() {
-      if (audio && audio.resume) audio.resume();
-      state.playing = true; startedAt = performance.now(); render(); raf = requestAnimationFrame(tick);
+      ensureAudio();                       /* inside the press: iOS needs a gesture */
+      if (state.finished) { state.finished = false; go(0); }
+      state.playing = true; last = performance.now(); render(); raf = requestAnimationFrame(tick);
     }
     function stopPlaying() {
-      state.elapsed += (performance.now() - startedAt) / 1000;
-      state.playing = false; cancelAnimationFrame(raf); render();
+      state.playing = false; cancelAnimationFrame(raf);
+      if (state.finished) state.progress = 0;
+      render();
     }
     function togglePlay() { state.playing ? stopPlaying() : startPlaying(); }
     function toggleMode() {
@@ -279,7 +316,7 @@
       if (/^(INPUT|SELECT|TEXTAREA)$/.test((e.target || {}).tagName)) return;
       if (e.key === "ArrowRight" || e.key === "ArrowDown") { advance(1, true); e.preventDefault(); }
       else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { advance(-1, true); e.preventDefault(); }
-      else if (e.key === " " && state.mode === "timed") { togglePlay(); e.preventDefault(); }
+      else if (e.key === " " && state.mode === "timed" && !/^(BUTTON|A)$/.test((e.target || {}).tagName)) { togglePlay(); e.preventDefault(); }
       else if (e.key === "t") toggleMode();
     });
     var x0 = null, y0 = null;

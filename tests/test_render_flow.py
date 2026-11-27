@@ -243,3 +243,112 @@ def test_counts_use_the_documents_unit_and_the_strings_table():
     assert f("7", "rep") == "7 reps"
     assert f("4", "eight") == "4 eights"
     assert f("3", "lap") == "3 lap"  # an unknown unit is shown as the document wrote it
+
+
+@needs_node
+def test_repeat_below_one_still_shows_the_step():
+    doc = {
+        "steps": [{"id": "a", "duration": {"value": "1", "unit": "rep"}, "repeat": -1}]
+    }
+    assert _js("C.buildStops(doc).length", doc) == 1
+
+
+@needs_node
+def test_nested_repeats_and_group_heads():
+    leaf = lambda i: {"id": i, "duration": {"value": "1", "unit": "rep"}}
+    doc = {
+        "steps": [
+            {
+                "id": "outer",
+                "repeat": 2,
+                "duration": {"value": "1", "unit": "rep"},
+                "steps": [
+                    {
+                        "id": "inner",
+                        "repeat": 2,
+                        "duration": {"value": "1", "unit": "rep"},
+                        "steps": [leaf("x")],
+                    },
+                    leaf("y"),
+                ],
+            }
+        ]
+    }
+    got = _js(
+        "C.buildStops(doc).map(s => [s.step.id, s.rounds.map(r => r.step.id + r.round).join(), s.heads.map(h => h.id).join()])",
+        doc,
+    )
+    assert [g[0] for g in got] == ["x", "x", "y", "x", "x", "y"]
+    # the outer group's lead shows on the first stop of each outer round, the inner on each inner round
+    assert got[0][2] == "outer,inner" and got[1][2] == "inner" and got[2][2] == ""
+    # a new outer round leads with the outer group again
+    assert got[3][2] == "outer,inner"
+
+
+@needs_node
+def test_deep_links_are_http_only_and_host_aware():
+    f = lambda uri, t: _js(f"C.deepLink({{uri: {json.dumps(uri)}}}, {t})", {})
+    assert f("https://youtu.be/abc", 65.9) == "https://youtu.be/abc?t=65"
+    assert (
+        f("https://www.youtube.com/watch?v=a", 5)
+        == "https://www.youtube.com/watch?v=a&t=5"
+    )
+    assert (
+        f("https://example.com/youtube-clone?x=1", 5)
+        == "https://example.com/youtube-clone?x=1"
+    )
+    assert f("https://example.com/a.mp4", 5) == "https://example.com/a.mp4#t=5"
+    assert f("javascript:alert(1)", 5) is None
+    assert f("media/a.mp4", 5) is None
+
+
+@needs_node
+def test_media_picks_clip_with_its_poster_else_gif_else_poster():
+    pick = lambda arts: _js("C.pickMedia(doc)", {"artifacts": arts})
+    clip = {"role": "clip", "uri": "m/a.mp4"}
+    assert pick([clip, {"role": "poster", "uri": "m/a.jpg"}]) == {
+        "kind": "video",
+        "src": "m/a.mp4",
+        "mime": "video/mp4",
+        "poster": "m/a.jpg",
+    }
+    assert (
+        pick([{"role": "gif", "uri": "m/a.gif"}, {"role": "poster", "uri": "m/a.jpg"}])[
+            "src"
+        ]
+        == "m/a.gif"
+    )
+    assert pick([{"role": "poster", "uri": "m/a.jpg"}])["src"] == "m/a.jpg"
+    assert pick([]) is None
+
+
+def test_data_js_carries_the_same_document_and_strings(tmp_path):
+    out = render_flow(_circuit(), tmp_path)
+    text = (out / "data.js").read_text(encoding="utf-8")
+    payload = json.loads(text[len("window.PACES_FLOW = ") : text.rindex(";")])
+    assert payload["document"] == json.loads(
+        (out / "document.json").read_text(encoding="utf-8")
+    )
+    assert payload["strings"] == json.loads(
+        (out / "strings.json").read_text(encoding="utf-8")
+    )
+
+
+@pytest.mark.parametrize(
+    "uri", ["/abs/a.mp4", "file:///a.mp4", "C:\\a.mp4", "\\\\host\\a.mp4"]
+)
+def test_non_relative_media_uris_are_not_shipped_and_are_named(tmp_path, uri):
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri=uri)]
+    with pytest.warns(UserWarning, match="not shipped"):
+        render_flow(doc, tmp_path / "out", media_from=tmp_path)
+
+
+def test_media_source_cannot_climb_out_of_the_media_folder(tmp_path):
+    (tmp_path / "secret.txt").write_text("s")
+    src = tmp_path / "doc"
+    src.mkdir()
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../secret.txt")]
+    with pytest.raises(ValueError, match="escapes"):
+        render_flow(doc, tmp_path / "out", media_from=src)

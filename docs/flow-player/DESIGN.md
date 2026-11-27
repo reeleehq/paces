@@ -12,7 +12,7 @@ The static step-through player that `render(document, renderer="flow", output=..
 
 The chosen direction is the one of the hand-built page this generalises: a warm ground, a heat ramp from amber to rose across the groups of the routine, a condensed display face for names, a humanist sans for reading, a mono for counts and labels. Dark is the native mode; a light mode ships under `prefers-color-scheme`. Deliberate delta from the template: the ribbon is the signature, one cell per step, coloured by top-level group, with a progress fill on the running cell.
 
-Fonts (Anton, Karla, DM Mono) load from Google Fonts as an enhancement; the stacks fall back to system faces, so an offline folder still reads well. Nothing else is fetched.
+Typefaces: the stacks name Anton, Karla and DM Mono first and fall back to system faces. The folder fetches nothing from the network (a viewer's request to a font host is a privacy cost a static player should not impose); a deployer who wants the three faces puts the font files beside the player and a `@font-face` in their own stylesheet.
 
 ## Layout (archetype: stage with outline)
 
