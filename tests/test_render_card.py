@@ -329,3 +329,10 @@ def test_posters_follow_their_position_and_carry_their_label(tmp_path):
     first = b64.b64encode(b"\xff\xd8\xffb.jpg").decode()
     assert page.index(first) < page.index(b64.b64encode(b"\xff\xd8\xffa.jpg").decode())
     assert "<span>Top</span>" in page and "<span>Start</span>" in page
+
+
+def test_the_card_reports_steps_whose_artifacts_it_cannot_show():
+    doc = _doc()
+    doc.steps[0].artifacts = [ArtifactRef(role="loop-video", uri="m/a.mp4")]
+    with pytest.warns(UserWarning, match=r"warm \(loop-video\)"):
+        card.render_card(doc)

@@ -50,6 +50,10 @@ Every verb is a plain function in `paces.tools` and a subcommand of `paces`; `pa
 | `flow` | a **folder**: a static step-through player, `document.json`, `strings.json`, the media | stepping through a routine on a phone: manual (buttons, keys, swipe) or timed (by the grid, or by a seconds-per-rep or per-step the viewer sets). A second routine is only a different `document.json`. Serve the folder over http (opened straight from disk it falls back to `data.js`). |
 | `card` | print HTML (`--output x.html`) or a **PDF** (`--output x.pdf`, needs `paces[pdf]`), `--paper a4\|letter` | a one- or two-sheet printable card: structure with counts, a row per step with poster, cues and cautions |
 
+**Artifact roles shown:** `clip` (a looping video, paired with the `poster` of the same file name), `gif` and `poster`; the card shows posters only. An artifact with any other role is not shown, and `render` warns naming the step and its roles when a step has artifacts and none can be shown. Among alternatives the main artifact is the one with `attrs.main` true, else the first; `attrs.label` captions it and `attrs.position` (`start`, `mid`, `end`) orders a card's posters.
+
+Tags the renderers understand on a step: `learner-led` (no fixed length: shown as "as needed", timed mode waits for the viewer) and `between-passes` (a rest dropped from the last pass of a repeat).
+
 When media lives outside the output folder, say where: `--media-from DIR` (what the document's relative uris are relative to; default the document's folder) and `--media-root DIR` (the boundary files may be read from; default `--media-from`; widen it for `../media/...`). The card shows each step's posters, as a start and end pair when there are two.
 
 "What you need" on the card is the document's `resources` (and `notes` are printed too; a cue's `label` is shown beside it). Words the player and the card say that the document does not are in one strings table each, overridable (a translation is a table, not a fork). If a PDF is requested without the extra, the error says what to install.

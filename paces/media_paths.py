@@ -46,3 +46,40 @@ def resolve_media(
             "pass the folder that holds the media as media_root / --media-root"
         )
     return path if path.is_file() else None
+
+
+#: The artifact roles the renderers can show (flow: clip, gif, poster; card:
+#: poster). Kept equal to ``SHOWN_ROLES`` in ``flow-core.js`` by a test.
+SHOWN_ROLES = ("clip", "gif", "poster")
+
+
+def unshowable_steps(doc) -> list[tuple[str, list[str]]]:
+    """Steps that have artifacts, none of which has a role a renderer knows, as
+    ``(step id, roles)``: such a step would render an empty box."""
+
+    def walk(steps):
+        for step in steps:
+            yield step
+            yield from walk(step.steps)
+
+    found = []
+    for step in walk(doc.steps):
+        roles = sorted({a.role for a in step.artifacts})
+        if roles and not any(role in SHOWN_ROLES for role in roles):
+            found.append((step.id, roles))
+    return found
+
+
+def warn_unshowable(doc, renderer: str, *, stacklevel: int = 2) -> None:
+    """Warn, naming steps and roles, about artifacts ``renderer`` cannot show."""
+    import warnings
+
+    found = unshowable_steps(doc)
+    if found:
+        listed = "; ".join(f"{i} ({', '.join(r)})" for i, r in found[:5])
+        warnings.warn(
+            f"{len(found)} step(s) have artifacts {renderer} cannot show "
+            f"(it shows roles {', '.join(SHOWN_ROLES)}): {listed}"
+            + (" ..." if len(found) > 5 else ""),
+            stacklevel=stacklevel,
+        )

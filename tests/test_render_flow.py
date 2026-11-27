@@ -306,20 +306,78 @@ def test_deep_links_are_http_only_and_host_aware():
 def test_media_picks_clip_with_its_poster_else_gif_else_poster():
     pick = lambda arts: _js("C.pickMedia(doc)", {"artifacts": arts})
     clip = {"role": "clip", "uri": "m/a.mp4"}
-    assert pick([clip, {"role": "poster", "uri": "m/a.jpg"}]) == {
-        "kind": "video",
-        "src": "m/a.mp4",
-        "mime": "video/mp4",
-        "poster": "m/a.jpg",
-    }
-    assert (
-        pick([{"role": "gif", "uri": "m/a.gif"}, {"role": "poster", "uri": "m/a.jpg"}])[
-            "src"
-        ]
-        == "m/a.gif"
-    )
+    got = pick([clip, {"role": "poster", "uri": "m/a.jpg"}])
+    assert (got["kind"], got["src"], got["mime"], got["poster"]) == (
+        "video", "m/a.mp4", "video/mp4", "m/a.jpg")
+    assert pick([{"role": "gif", "uri": "m/a.gif"}, {"role": "poster", "uri": "m/a.jpg"}])["src"] == "m/a.gif"
     assert pick([{"role": "poster", "uri": "m/a.jpg"}])["src"] == "m/a.jpg"
     assert pick([]) is None
+    assert pick([{"role": "loop-video", "uri": "m/a.mp4"}]) is None  # an unknown role shows nothing
+
+
+@needs_node
+def test_the_main_artifact_leads_and_the_rest_are_labelled_alternatives():
+    arts = [
+        {"role": "clip", "uri": "m/v1.mp4", "attrs": {"label": "Pose only"}, "derivedFrom": "closeup"},
+        {"role": "clip", "uri": "m/v2.mp4", "attrs": {"main": True, "label": "Full speed"}},
+        {"role": "poster", "uri": "m/v2.jpg"},
+        {"role": "gif", "uri": "m/g.gif", "derivedFrom": "performance"},
+    ]
+    listed = _js("C.listMedia(doc)", {"artifacts": arts})
+    assert [o["src"] for o in listed] == ["m/v2.mp4", "m/v1.mp4", "m/g.gif"]
+    assert listed[0]["main"] is True and listed[0]["poster"] == "m/v2.jpg"
+    assert [o["label"] for o in listed] == ["Full speed", "Pose only", "performance"]
+
+
+@needs_node
+def test_a_between_passes_child_is_dropped_from_the_last_pass_only():
+    leaf = lambda i, tags=(): {"id": i, "duration": {"value": "1", "unit": "rep"}, "tags": list(tags)}
+    doc = {"steps": [{"id": "g", "repeat": 3, "duration": {"value": "6", "unit": "rep"},
+                      "steps": [leaf("work"), leaf("rest", ["between-passes"])]}]}
+    ids = _js("C.buildStops(doc).map(s => s.step.id)", doc)
+    assert ids == ["work", "rest", "work", "rest", "work"]  # the routine does not end on a rest
+
+
+@needs_node
+def test_a_learner_led_step_has_no_clock_and_reads_as_needed():
+    doc = {"steps": [{"id": "r", "tags": ["learner-led"], "duration": {"value": "0", "unit": "second"}}]}
+    assert _js("C.stopSeconds(doc, C.buildStops(doc)[0], {secondsPerRep: 3})", doc) is None
+    strings = default_strings()
+    assert _js(f"C.formatCount(doc.steps[0], {json.dumps(strings)})", doc) == "as needed"
+
+
+@needs_node
+def test_cues_group_by_kind_and_the_head_keeps_every_caution():
+    strings = default_strings()
+    cues = [{"kind": k, "text": f"{k}{i}"} for i, k in enumerate(
+        ["technique", "fault", "setup", "mystery", "technique", "safety", "breath"])]
+    groups = _js(f"C.groupCues(doc, {json.dumps(strings)})", cues)
+    assert [g["kind"] for g in groups] == ["setup", "fault", "safety", "technique", "mystery", "breath"]
+    assert [g["label"] for g in groups][:3] == ["Set-up", "Avoid", "Safety"]
+    assert groups[4]["label"] == "mystery"  # unknown kind: its own name
+    head = _js(f"C.headCues(C.groupCues(doc, {json.dumps(strings)}), 3)", cues)
+    assert head["hidden"] == 4 and len(head["shown"]) == 3
+    assert {c["kind"] for c in head["shown"]} == {"setup", "fault", "safety"}
+    many = [{"kind": "fault", "text": str(i)} for i in range(5)]
+    assert _js(f"C.headCues(C.groupCues(doc, {json.dumps(strings)}), 3)", many)["hidden"] == 0
+
+
+def test_the_shown_roles_are_the_same_in_python_and_javascript():
+    from paces.media_paths import SHOWN_ROLES
+
+    text = CORE_JS.read_text(encoding="utf-8")
+    listed = re.search(r"var SHOWN_ROLES = \[(.*?)\]", text).group(1)
+    assert tuple(re.findall(r'"([a-z]+)"', listed)) == SHOWN_ROLES
+
+
+def test_steps_with_artifacts_none_of_which_can_be_shown_are_reported(tmp_path):
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="loop-video", uri="m/a.mp4")]
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="m/ok.mp4")]
+    with pytest.warns(UserWarning, match=r"warm \(loop-video\)") as caught:
+        render_flow(doc, tmp_path, media_from=tmp_path)
+    assert any("cannot show" in str(w.message) for w in caught)
+    assert not any("squat" in str(w.message) and "cannot show" in str(w.message) for w in caught)
 
 
 def test_data_js_carries_the_same_document_and_strings(tmp_path):
