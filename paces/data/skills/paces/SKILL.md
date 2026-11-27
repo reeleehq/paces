@@ -50,6 +50,8 @@ Every verb is a plain function in `paces.tools` and a subcommand of `paces`; `pa
 | `flow` | a **folder**: a static step-through player, `document.json`, `strings.json`, the media | stepping through a routine on a phone: manual (buttons, keys, swipe) or timed (by the grid, or by a seconds-per-rep or per-step the viewer sets). A second routine is only a different `document.json`. Serve the folder over http (opened straight from disk it falls back to `data.js`). |
 | `card` | print HTML (`--output x.html`) or a **PDF** (`--output x.pdf`, needs `paces[pdf]`), `--paper a4\|letter` | a one- or two-sheet printable card: structure with counts, a row per step with poster, cues and cautions |
 
+When media lives outside the output folder, say where: `--media-from DIR` (what the document's relative uris are relative to; default the document's folder) and `--media-root DIR` (the boundary files may be read from; default `--media-from`; widen it for `../media/...`). The card shows each step's posters, as a start and end pair when there are two.
+
 "What you need" on the card reads `attrs["render.card"]["needs"]` (a list of strings) of the document. Words the player and the card say that the document does not are in one strings table each, overridable (a translation is a table, not a fork). If a PDF is requested without the extra, the error says what to install.
 
 ## Honesty rules (do not bend them)

@@ -115,7 +115,7 @@ def test_missing_media_is_named_in_a_warning(tmp_path):
 def test_media_cannot_escape_the_output_folder(tmp_path):
     doc = _circuit()
     doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../../evil.mp4")]
-    with pytest.raises(ValueError, match="escapes"):
+    with pytest.raises(ValueError, match="media root"):
         render_flow(doc, tmp_path / "out", media_from=tmp_path)
 
 
@@ -350,5 +350,115 @@ def test_media_source_cannot_climb_out_of_the_media_folder(tmp_path):
     src.mkdir()
     doc = _circuit()
     doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../secret.txt")]
-    with pytest.raises(ValueError, match="escapes"):
+    with pytest.raises(ValueError, match="media root"):
         render_flow(doc, tmp_path / "out", media_from=src)
+
+
+def test_media_beside_the_document_is_shipped_when_the_root_is_widened(tmp_path):
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "squat.mp4").write_bytes(b"v")
+    (tmp_path / "doc").mkdir()
+    doc = _circuit()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="../media/squat.mp4")]
+    out = render_flow(doc, tmp_path / "out", media_from=tmp_path / "doc", media_root=tmp_path)
+    assert (out / "media" / "squat.mp4").read_bytes() == b"v"
+    shipped = json.loads((out / "document.json").read_text(encoding="utf-8"))
+    uris = [a["uri"] for s in shipped["steps"] for c in s.get("steps", []) for a in c.get("artifacts", [])]
+    assert uris == ["media/squat.mp4"]  # the shipped document points inside the folder
+    # and the caller's own document is untouched
+    assert doc.steps[1].steps[0].artifacts[0].uri == "../media/squat.mp4"
+
+
+def test_cli_media_flags_reach_the_renderers(tmp_path):
+    import sys
+
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "squat.mp4").write_bytes(b"v")
+    (tmp_path / "doc").mkdir()
+    doc = _circuit()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="../media/squat.mp4")]
+    path = tmp_path / "doc" / "d.json"
+    path.write_text(__import__("paces.model", fromlist=["x"]).dumps_document(doc), encoding="utf-8")
+    run = lambda *extra: subprocess.run(
+        [sys.executable, "-m", "paces", "render", str(path), "--renderer", "flow",
+         "--output", str(tmp_path / "site"), *extra], capture_output=True, text=True)
+    refused = run()
+    assert refused.returncode != 0 and "media root" in refused.stderr
+    ok = run("--media-root", str(tmp_path))
+    assert ok.returncode == 0, ok.stderr
+    assert (tmp_path / "site" / "media" / "squat.mp4").is_file()
+
+
+def test_without_a_base_an_escaping_uri_is_still_refused(tmp_path):
+    (tmp_path / "secret.mp4").write_bytes(b"s")
+    out = tmp_path / "out"
+    out.mkdir()
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../secret.mp4")]
+    with pytest.raises(ValueError, match="escapes the output folder"):
+        render_flow(doc, out)
+
+
+def test_a_media_root_that_does_not_contain_the_base_is_refused(tmp_path):
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    doc = _circuit()
+    with pytest.raises(ValueError, match="must contain"):
+        render_flow(doc, tmp_path / "out", media_from=tmp_path / "a", media_root=tmp_path / "b")
+
+
+def test_media_root_without_a_base_is_an_error_for_a_non_file_document(tmp_path):
+    with pytest.raises(ValueError, match="media_from"):
+        render(_circuit(), renderer="flow", output=str(tmp_path / "o"), media_root=str(tmp_path))
+
+
+def test_a_symlink_inside_the_root_keeps_its_own_name(tmp_path):
+    (tmp_path / "store").mkdir()
+    (tmp_path / "store" / "x.mp4").write_bytes(b"v")
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "squat.mp4").symlink_to(tmp_path / "store" / "x.mp4")
+    doc = _circuit()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="media/squat.mp4")]
+    out = render_flow(doc, tmp_path / "out", media_from=tmp_path)
+    assert (out / "media" / "squat.mp4").read_bytes() == b"v"
+    assert "store/x.mp4" not in (out / "document.json").read_text(encoding="utf-8")
+
+
+def test_media_cannot_overwrite_the_players_own_files(tmp_path):
+    (tmp_path / "index.html").write_text("not the player")
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="index.html")]
+    with pytest.raises(ValueError, match="player's own file"):
+        render_flow(doc, tmp_path / "out", media_from=tmp_path)
+
+
+def test_two_files_cannot_ship_to_one_path(tmp_path):
+    (tmp_path / "doc" / "media").mkdir(parents=True)
+    (tmp_path / "media").mkdir()
+    (tmp_path / "doc" / "media" / "a.mp4").write_bytes(b"1")
+    (tmp_path / "media" / "a.mp4").write_bytes(b"2")
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="media/a.mp4")]
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="../media/a.mp4")]
+    with pytest.raises(ValueError, match="both be shipped"):
+        render_flow(doc, tmp_path / "out", media_from=tmp_path / "doc", media_root=tmp_path)
+
+
+def test_widening_the_root_leaves_in_base_uris_alone(tmp_path):
+    (tmp_path / "doc" / "media").mkdir(parents=True)
+    (tmp_path / "doc" / "media" / "a.mp4").write_bytes(b"1")
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="media/a.mp4")]
+    out = render_flow(doc, tmp_path / "out", media_from=tmp_path / "doc", media_root=tmp_path)
+    assert (out / "media" / "a.mp4").is_file() and not (out / "doc").exists()
+
+
+def test_rewritten_uris_are_url_quoted(tmp_path):
+    (tmp_path / "media").mkdir()
+    (tmp_path / "doc").mkdir()
+    (tmp_path / "media" / "a b#1.mp4").write_bytes(b"1")
+    doc = _circuit()
+    doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../media/a b#1.mp4")]
+    out = render_flow(doc, tmp_path / "out", media_from=tmp_path / "doc", media_root=tmp_path)
+    assert "media/a%20b%231.mp4" in (out / "document.json").read_text(encoding="utf-8")
+    assert (out / "media" / "a b#1.mp4").is_file()

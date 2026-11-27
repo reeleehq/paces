@@ -33,11 +33,15 @@ PAPERS = {"a4": "A4", "letter": "Letter"}
 DFLT_PAPER = "a4"
 #: Posters bigger than this are not embedded (a card is a printout).
 MAX_EMBED_BYTES = 400_000
+#: Width of one picture on the card, in mm.
+PIC_MM = 28
 
 DEFAULT_STRINGS = {
     "needs": "What you need",
     "structure": "Structure",
     "steps": "Steps",
+    "start": "Start",
+    "end": "End",
     "optional": "optional",
     "variant_of": "variant of {step}",
     "round_count": "{n} ×",
@@ -68,8 +72,9 @@ ul.needs { margin: 0; padding-left: 5mm; }
 table { width: 100%%; border-collapse: collapse; }
 td { vertical-align: top; padding: 2mm 2mm 2mm 0; }
 tr.step { page-break-inside: avoid; border-bottom: .2mm solid #e3dcee; }
-td.pic { width: 30mm; }
+td.pic .fig { display: inline-block; vertical-align: top; width: 28mm; margin-right: 2mm; }
 td.pic img { width: 28mm; height: auto; display: block; border: .2mm solid #cfc6de; }
+td.pic .fig span { display: block; font-size: 7pt; text-align: center; color: #5b4a73; }
 td.num { width: 8mm; font-weight: bold; color: #5b4a73; }
 td.count { width: 24mm; text-align: right; white-space: nowrap; font-weight: bold; }
 tr.group td { padding-top: 3mm; font-weight: bold; }
@@ -111,22 +116,25 @@ def _rounds(step: Step, strings: dict) -> str:
     return f"{strings['round_count'].format(n=step.repeat)} " if step.repeat > 1 else ""
 
 
-def _poster_src(step: Step, media_from: Path | None) -> str | None:
-    """The step's poster as a data URI (embedded, so the card is one file), or
-    None. A remote poster is left out: printing must not fetch from the network."""
-    poster = next((a for a in step.artifacts if a.role == "poster"), None)
-    if poster is None:
-        return None
-    if media_from is None or poster.uri.startswith(("/", "\\")) or ":" in poster.uri:
-        return None
-    root = media_from.resolve()
-    path = (root / poster.uri).resolve()
-    if root not in path.parents or not path.is_file():
-        return None
-    if path.stat().st_size > MAX_EMBED_BYTES:
-        return None
-    mime = poster.mime or mimetypes.guess_type(path.name)[0] or "image/jpeg"
-    return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
+def _poster_srcs(
+    step: Step, media_from: Path | None, media_root: Path | None
+) -> list[str]:
+    """The step's posters, in order, as data URIs (embedded, so the card is one
+    file). Posters whose file is missing, too big, or not a relative path are
+    left out; a remote poster is left out too: printing must not fetch from the
+    network. Raises ``ValueError`` for a uri that leaves the media root."""
+    from paces.media_paths import resolve_media
+
+    out = []
+    for artifact in step.artifacts:
+        if artifact.role != "poster":
+            continue
+        path = resolve_media(artifact.uri, media_from, media_root)
+        if path is None or path.stat().st_size > MAX_EMBED_BYTES:
+            continue
+        mime = artifact.mime or mimetypes.guess_type(path.name)[0] or "image/jpeg"
+        out.append(f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}")
+    return out
 
 
 def _cue_html(cue, strings: dict) -> str:
@@ -138,8 +146,20 @@ def _cue_html(cue, strings: dict) -> str:
     )
 
 
-def _step_row(step: Step, *, number, nested, cues, strings, img, with_pics) -> str:
-    pic = f'<img src="{html.escape(img)}" alt="">' if img else ""
+def _pictures(imgs: list[str], strings: dict) -> str:
+    """One picture, or a start and end pair, or all of them in order."""
+    labels = [strings["start"], strings["end"]] if len(imgs) == 2 else [""] * len(imgs)
+    figures = []
+    for src, label in zip(imgs, labels):
+        caption = f"<span>{html.escape(label)}</span>" if label else ""
+        figures.append(
+            f'<div class="fig"><img src="{html.escape(src)}" alt="">{caption}</div>'
+        )
+    return "".join(figures)
+
+
+def _step_row(step: Step, *, number, nested, cues, strings, imgs, pic_width) -> str:
+    pic = _pictures(imgs, strings)
     badges = []
     if step.optional:
         badges.append(strings["optional"])
@@ -155,7 +175,9 @@ def _step_row(step: Step, *, number, nested, cues, strings, img, with_pics) -> s
     )
     count = _rounds(step, strings) + _count(step.duration, strings)
     row_class = "step nested" if nested else "step"
-    pic_cell = f'<td class="pic">{pic}</td>' if with_pics else ""
+    pic_cell = (
+        f'<td class="pic" style="width:{pic_width}mm">{pic}</td>' if pic_width else ""
+    )
     cue_html = "".join(_cue_html(c, strings) for c in cues)
     return (
         f'<tr class="{row_class}">'
@@ -196,6 +218,7 @@ def render_card(
     *,
     paper: str = DFLT_PAPER,
     media_from: str | Path | None = None,
+    media_root: str | Path | None = None,
     strings: Mapping | None = None,
 ) -> str:
     """The print-styled card page for ``doc`` (self-contained HTML).
@@ -235,8 +258,11 @@ def render_card(
             yield from _all(step.steps)
 
     # the picture column exists only when some step has a picture to show
-    posters = {st.id: _poster_src(st, root) for st in _all(doc.steps)}
-    with_pics = any(posters.values())
+    base_root = Path(media_root) if media_root else None
+    posters = {st.id: _poster_srcs(st, root, base_root) for st in _all(doc.steps)}
+    widest = max((len(v) for v in posters.values()), default=0)
+    pic_width = widest * (PIC_MM + 2) + 1 if widest else 0
+    with_pics = bool(widest)
 
     def emit(step: Step, nested: bool) -> None:
         nonlocal number
@@ -255,8 +281,8 @@ def render_card(
                 nested=nested,
                 cues=cues.get(step.id, []),
                 strings=table,
-                img=posters[step.id],
-                with_pics=with_pics,
+                imgs=posters[step.id],
+                pic_width=pic_width,
             )
         )
 

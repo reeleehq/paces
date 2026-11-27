@@ -238,13 +238,23 @@ def _render_html_page(doc, output, media_from, options):
 
 def _render_flow_folder(doc, output, media_from, options):
     """The ``flow`` renderer: writes a player folder at ``output``."""
-    render_flow_module.render_flow(doc, output, media_from=media_from)
+    render_flow_module.render_flow(
+        doc,
+        output,
+        media_from=options.get("media_from") or media_from,
+        media_root=options.get("media_root"),
+    )
 
 
 def _render_card(doc, output, media_from, options):
     """The ``card`` renderer: print HTML, or a PDF when ``output`` ends in .pdf."""
     paper = options.get("paper") or render_card_module.DFLT_PAPER
-    page = render_card_module.render_card(doc, paper=paper, media_from=media_from)
+    page = render_card_module.render_card(
+        doc,
+        paper=paper,
+        media_from=options.get("media_from") or media_from,
+        media_root=options.get("media_root"),
+    )
     if output and str(output).lower().endswith(".pdf"):
         render_card_module.write_card_pdf(page, output, paper=paper)
     elif output:
@@ -252,14 +262,16 @@ def _render_card(doc, output, media_from, options):
     return page
 
 
+_MEDIA_OPTIONS = frozenset({"media_from", "media_root"})
+
 #: name -> (run(doc, output, media_from, options), needs_output, accepted options). Every renderer takes the
 #: same arguments, so a new one (a card, a deck) is one more row here and no
 #: change to ``render`` or its callers. A renderer that writes returns None
 #: (or, for text, its text); ``render`` answers with ``output`` when given.
 _RENDERERS = {
     "html": (_render_html_page, False, frozenset()),
-    "flow": (_render_flow_folder, True, frozenset()),
-    "card": (_render_card, False, frozenset({"paper"})),
+    "flow": (_render_flow_folder, True, _MEDIA_OPTIONS),
+    "card": (_render_card, False, _MEDIA_OPTIONS | {"paper"}),
 }
 
 
@@ -269,6 +281,8 @@ def render(
     output: str | None = None,
     renderer: str = "html",
     paper: str | None = None,
+    media_from: str | None = None,
+    media_root: str | None = None,
 ) -> str:
     """Render a step document into learning material.
 
@@ -280,20 +294,37 @@ def render(
     the ``paces[pdf]`` extra is installed; ``paper`` is ``'a4'`` (default) or
     ``'letter'``. Returns the output path when ``output=`` is given, otherwise
     the rendered text itself.
+
+    ``media_from`` is the folder the document's relative artifact uris are
+    relative to (default: the document's own folder), and ``media_root`` the
+    boundary media may be read from (default: ``media_from``): widen it when the
+    media lives beside the document (``../media/a.mp4``). Both apply to ``flow``
+    and ``card``.
     """
     if renderer not in _RENDERERS:
         raise ValueError(
             f"unknown renderer {renderer!r}; available: {sorted(_RENDERERS)}"
         )
     run, needs_output, accepted = _RENDERERS[renderer]
-    if paper is not None and "paper" not in accepted:
-        raise ValueError(f"the {renderer!r} renderer does not take paper=")
+    if (
+        media_root is not None
+        and media_from is None
+        and not (isinstance(document, str) and Path(document).is_file())
+    ):
+        raise ValueError(
+            "media_root needs media_from when the document is not a file "
+            "(there is no folder its relative uris are relative to)"
+        )
+    given = {"paper": paper, "media_from": media_from, "media_root": media_root}
+    for name, value in given.items():
+        if value is not None and name not in accepted:
+            raise ValueError(f"the {renderer!r} renderer does not take {name}=")
     if needs_output and not output:
         raise ValueError(f"the {renderer!r} renderer writes files: pass output=<path>")
     doc = _as_document(document)
     from_a_file = isinstance(document, str) and Path(document).is_file()
     media_from = Path(document).resolve().parent if from_a_file else None
-    text = run(doc, output, media_from, {"paper": paper, "document": document})
+    text = run(doc, output, media_from, {**given, "document": document})
     return output if output else text
 
 
