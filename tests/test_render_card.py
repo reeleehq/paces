@@ -31,7 +31,7 @@ def _doc(**extra) -> StepDocument:
             Step(
                 id="round",
                 name="Round",
-                duration=Measure(value="10", unit="rep"),
+                duration=Measure(value="33", unit="rep"),
                 repeat=3,
                 steps=[
                     Step(
@@ -63,7 +63,7 @@ def test_card_is_print_html_with_the_structure_and_the_steps():
     assert "@page { size: A4;" in page
     assert "<script" not in page
     assert "Bodyweight &lt;circuit&gt;" in page  # escaped
-    assert "Round" in page and "3 ×" in page
+    assert "3 × Round" in page and "(3 × 33 reps in all)" in page
     assert "10 reps" in page and "1 rep<" in page and "30 seconds" in page
     assert page.index("Warm-up") < page.index("Squat") < page.index("Push-up")
     assert 'class="cue caution"' in page and "Knees out." in page
@@ -168,3 +168,29 @@ def test_cli_renders_a_pdf(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert (tmp_path / "c.pdf").read_bytes().startswith(b"%PDF")
+
+
+def test_the_fixture_is_a_valid_document():
+    from paces.model import validate_document
+
+    assert validate_document(_doc()) == []
+
+
+def test_remote_posters_are_not_fetched_at_print_time():
+    doc = _doc()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="poster", uri="https://example.com/p.jpg")]
+    page = card.render_card(doc)
+    assert "example.com" not in page and "<img" not in page
+
+
+def test_odd_needs_values_do_not_crash():
+    for needs in ("A mat", 5, None, {"x": 1}):
+        page = card.render_card(_doc(attrs={"render.card": {"needs": needs}}))
+        assert "<html" in page
+    assert "<li>A mat</li>" in card.render_card(_doc(attrs={"render.card": {"needs": "A mat"}}))
+    card.render_card(_doc(attrs={"render.card": "nope"}))
+
+
+def test_paper_is_refused_where_it_means_nothing():
+    with pytest.raises(ValueError, match="paper"):
+        render(_doc(), renderer="html", paper="a4")

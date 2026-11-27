@@ -41,6 +41,7 @@ DEFAULT_STRINGS = {
     "optional": "optional",
     "variant_of": "variant of {step}",
     "round_count": "{n} ×",
+    "in_all": "{count} in all",
     "caution": "Careful",
     "cue": "Cue",
     "units": {
@@ -79,7 +80,7 @@ tr.nested td.name { padding-left: 4mm; }
 .cue.caution { border-left-color: #c0143c; font-style: normal; }
 .cue span { font-size: 7pt; letter-spacing: .1em; text-transform: uppercase; font-style: normal; color: #5b4a73; }
 .badge { color: #5b4a73; font-size: 8pt; }
-.outline, .outline ul { margin: 0; padding-left: 5mm; }
+.outline, .outline ul { margin: 0; padding-left: 6mm; }
 .outline li { margin: .4mm 0; }
 footer { margin-top: 6mm; color: #5b4a73; font-size: 8pt; }
 """
@@ -111,13 +112,11 @@ def _rounds(step: Step, strings: dict) -> str:
 
 
 def _poster_src(step: Step, media_from: Path | None) -> str | None:
-    """The step's poster as a data URI (embedded, so the card is one file), its
-    own uri when that is a web address, or None."""
+    """The step's poster as a data URI (embedded, so the card is one file), or
+    None. A remote poster is left out: printing must not fetch from the network."""
     poster = next((a for a in step.artifacts if a.role == "poster"), None)
     if poster is None:
         return None
-    if poster.uri.startswith(("http://", "https://")):
-        return poster.uri
     if media_from is None or poster.uri.startswith(("/", "\\")) or ":" in poster.uri:
         return None
     root = media_from.resolve()
@@ -139,10 +138,7 @@ def _cue_html(cue, strings: dict) -> str:
     )
 
 
-def _step_row(
-    step: Step, *, number, nested, cues, strings, media_from, with_pics
-) -> str:
-    img = _poster_src(step, media_from)
+def _step_row(step: Step, *, number, nested, cues, strings, img, with_pics) -> str:
     pic = f'<img src="{html.escape(img)}" alt="">' if img else ""
     badges = []
     if step.optional:
@@ -177,15 +173,18 @@ def _group_row(step: Step, cues: list, strings: dict, span: int) -> str:
         else ""
     )
     own = "".join(_cue_html(c, strings) for c in cues)
-    title = html.escape(f"{step.name} {_rounds(step, strings)}".strip())
+    title = html.escape(f"{_rounds(step, strings)}{step.name}")
     return f'<tr class="group"><td colspan="{span}">{title}{desc}{own}</td></tr>'
 
 
 def _outline_item(step: Step, strings: dict) -> str:
-    counts = html.escape(_rounds(step, strings) + _count(step.duration, strings))
     if step.steps:
+        # a group's duration is the total, repeats included (validate_document)
+        total = strings["in_all"].format(count=_count(step.duration, strings))
+        note = f"{_rounds(step, strings)}{total}"
         inner = "".join(_outline_item(child, strings) for child in step.steps)
-        return f"<li>{html.escape(step.name)} <i>({counts})</i><ul>{inner}</ul></li>"
+        return f"<li>{html.escape(step.name)} <i>({html.escape(note)})</i><ul>{inner}</ul></li>"
+    counts = html.escape(_rounds(step, strings) + _count(step.duration, strings))
     return f"<li>{html.escape(step.name)} — {counts}</li>"
 
 
@@ -210,7 +209,12 @@ def render_card(
     for cue in doc.cues:
         cues.setdefault(cue.anchor.step, []).append(cue)
 
-    needs = (doc.attrs.get("render.card") or {}).get("needs") or []
+    settings = doc.attrs.get("render.card")
+    needs = settings.get("needs") if isinstance(settings, dict) else None
+    if isinstance(needs, str):
+        needs = [needs]
+    if not isinstance(needs, (list, tuple)):
+        needs = []
     needs_html = (
         f'<h2>{html.escape(table["needs"])}</h2><ul class="needs">'
         + "".join(f"<li>{html.escape(str(n))}</li>" for n in needs)
@@ -228,7 +232,8 @@ def render_card(
             yield from _all(step.steps)
 
     # the picture column exists only when some step has a picture to show
-    with_pics = any(_poster_src(st, root) for st in _all(doc.steps))
+    posters = {st.id: _poster_src(st, root) for st in _all(doc.steps)}
+    with_pics = any(posters.values())
 
     def emit(step: Step, nested: bool) -> None:
         nonlocal number
@@ -247,7 +252,7 @@ def render_card(
                 nested=nested,
                 cues=cues.get(step.id, []),
                 strings=table,
-                media_from=root,
+                img=posters[step.id],
                 with_pics=with_pics,
             )
         )
@@ -269,7 +274,7 @@ def render_card(
 <h1>{html.escape(doc.title)}</h1>
 {needs_html}
 <h2>{html.escape(table["structure"])}</h2>
-<ol class="outline">{outline}</ol>
+<ul class="outline">{outline}</ul>
 <h2>{html.escape(table["steps"])}</h2>
 <table>{"".join(rows)}</table>
 {credits}
@@ -313,14 +318,22 @@ def write_card_pdf(
         )
     size = PAPERS[paper.lower()]
     if engine == "chromium":
-        pdfdol.get_pdf(
-            page,
-            str(output),
-            src_kind="html",
-            engine="chromium",
-            page_format=size,
-            media="print",
-        )
+        try:
+            pdfdol.get_pdf(
+                page,
+                str(output),
+                src_kind="html",
+                engine="chromium",
+                page_format=size,
+                media="print",
+                margin="14mm 13mm",
+                keep_together="tr.step",
+            )
+        except ImportError as error:
+            raise RuntimeError(
+                "engine='chromium' needs the pdfdol[chromium] extra and "
+                "'playwright install chromium'."
+            ) from error
     else:
         pdfdol.get_pdf(
             page,
@@ -333,7 +346,7 @@ def write_card_pdf(
                 "margin-left": "13mm",
                 "margin-right": "13mm",
                 "encoding": "UTF-8",
-                "quiet": "",
+                "disable-smart-shrinking": "",
             },
         )
     return Path(output)

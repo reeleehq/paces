@@ -231,6 +231,7 @@ def _render_html_page(doc, output, media_from, options):
     """The ``html`` renderer: returns the page text; writes it to ``output``."""
     text = render_module.render_html(doc)
     if output:
+        _warn_if_page_leaves_media_behind(doc, options.get("document"), output)
         Path(output).write_text(text, encoding="utf-8")
     return text
 
@@ -251,14 +252,14 @@ def _render_card(doc, output, media_from, options):
     return page
 
 
-#: name -> (run(doc, output, media_from, options), needs_output). Every renderer takes the
+#: name -> (run(doc, output, media_from, options), needs_output, accepted options). Every renderer takes the
 #: same arguments, so a new one (a card, a deck) is one more row here and no
 #: change to ``render`` or its callers. A renderer that writes returns None
 #: (or, for text, its text); ``render`` answers with ``output`` when given.
 _RENDERERS = {
-    "html": (_render_html_page, False),
-    "flow": (_render_flow_folder, True),
-    "card": (_render_card, False),
+    "html": (_render_html_page, False, frozenset()),
+    "flow": (_render_flow_folder, True, frozenset()),
+    "card": (_render_card, False, frozenset({"paper"})),
 }
 
 
@@ -284,15 +285,15 @@ def render(
         raise ValueError(
             f"unknown renderer {renderer!r}; available: {sorted(_RENDERERS)}"
         )
-    run, needs_output = _RENDERERS[renderer]
+    run, needs_output, accepted = _RENDERERS[renderer]
+    if paper is not None and "paper" not in accepted:
+        raise ValueError(f"the {renderer!r} renderer does not take paper=")
     if needs_output and not output:
         raise ValueError(f"the {renderer!r} renderer writes files: pass output=<path>")
     doc = _as_document(document)
     from_a_file = isinstance(document, str) and Path(document).is_file()
     media_from = Path(document).resolve().parent if from_a_file else None
-    if output and renderer == "html":
-        _warn_if_page_leaves_media_behind(doc, document, output)
-    text = run(doc, output, media_from, {"paper": paper})
+    text = run(doc, output, media_from, {"paper": paper, "document": document})
     return output if output else text
 
 
