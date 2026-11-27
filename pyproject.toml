@@ -113,6 +113,13 @@ pose = [
 lacing = [
     "lacing>=0.0.54",
 ]
+# The printable card's PDF (issue #66): pdfdol is the fleet's HTML-to-PDF
+# converter (MIT). Its default engine shells out to the wkhtmltopdf program,
+# which is a system tool, not a wheel; `render_card.write_card_pdf` says so when
+# it is missing. Kept out of the core install on purpose (ADR-0004).
+pdf = [
+    "pdfdol>=0.1.38",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -132,6 +139,9 @@ dev = [
     # The schema-export tests run the shipped fixtures against the committed
     # JSON Schema with a real validator.
     "jsonschema>=4",
+    # The card's PDF tests run where wkhtmltopdf is installed and say so (skip)
+    # where it is not; mirrored with [pdf].
+    "pdfdol>=0.1.38",
     # tests/test_pose.py reads pyproject.toml to guard the licence perimeter;
     # stdlib tomllib is 3.11+, and a skipped guard guards nothing.
     "tomli>=2.0; python_version < '3.11'",
@@ -186,7 +196,7 @@ install.windows = "choco install ffmpeg -y --no-progress"
 # --------------------------------------------------------------------------
 [tool.wads.licence]
 enabled = false
-include-extras = ["cli", "audio", "media", "pose", "lacing", "cpd"]
+include-extras = ["cli", "audio", "media", "pose", "lacing", "cpd", "pdf"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["paces"]
