@@ -13,9 +13,8 @@ stay pydantic-only (ADR-0004), and importing this module imports nothing
 heavy. Without the extra, asking for a PDF says exactly what to install.
 
 The card reads the document and one strings table; it never depends on the
-analyser. "What you need" comes from ``attrs["render.card"]["needs"]`` (a list
-of strings), the same ``render.*`` presentation namespace the document already
-uses for the web page, since the document has no equipment field.
+analyser. "What you need" is the document's ``resources`` and "Notes" its
+``notes``; a cue's ``label`` is printed beside it.
 """
 
 from __future__ import annotations
@@ -38,6 +37,7 @@ PIC_MM = 28
 
 DEFAULT_STRINGS = {
     "needs": "What you need",
+    "notes": "Notes",
     "structure": "Structure",
     "steps": "Steps",
     "start": "Start",
@@ -69,6 +69,7 @@ h1 { font-size: 20pt; line-height: 1.1; margin: 0 0 2mm; }
 h2 { font-size: 9pt; letter-spacing: .12em; text-transform: uppercase; color: #5b4a73;
      margin: 6mm 0 2mm; border-bottom: .3mm solid #cfc6de; padding-bottom: 1mm; }
 ul.needs { margin: 0; padding-left: 5mm; }
+p.note { margin: 0 0 1.5mm; }
 table { width: 100%%; border-collapse: collapse; }
 td { vertical-align: top; padding: 2mm 2mm 2mm 0; }
 tr.step { page-break-inside: avoid; border-bottom: .2mm solid #e3dcee; }
@@ -137,12 +138,27 @@ def _poster_srcs(
     return out
 
 
+def _cue_label(cue) -> str:
+    return f" <b>{html.escape(cue.label)}</b>" if cue.label else ""
+
+
+def _resource_item(resource, strings: dict) -> str:
+    text = html.escape(resource.name)
+    if resource.quantity is not None:
+        text = f"{html.escape(_count(resource.quantity, strings))} · {text}"
+    if resource.optional:
+        text += f" <i>({html.escape(strings['optional'])})</i>"
+    if resource.note:
+        text += f" — {html.escape(resource.note)}"
+    return f"<li>{text}</li>"
+
+
 def _cue_html(cue, strings: dict) -> str:
     caution = cue.kind in strings["caution_kinds"]
     label = strings["caution"] if caution else strings["cue"]
     return (
         f'<p class="cue{" caution" if caution else ""}">'
-        f"<span>{html.escape(label)}</span> {html.escape(cue.text)}</p>"
+        f"<span>{html.escape(label)}</span>{_cue_label(cue)} {html.escape(cue.text)}</p>"
     )
 
 
@@ -235,17 +251,24 @@ def render_card(
     for cue in doc.cues:
         cues.setdefault(cue.anchor.step, []).append(cue)
 
-    settings = doc.attrs.get("render.card")
-    needs = settings.get("needs") if isinstance(settings, dict) else None
-    if isinstance(needs, str):
-        needs = [needs]
-    if not isinstance(needs, (list, tuple)):
-        needs = []
+    items = [_resource_item(r, table) for r in doc.resources]
+    if not items:
+        # 0.0.3x documents kept the list in attrs["render.card"]["needs"]
+        legacy = doc.attrs.get("render.card")
+        old = legacy.get("needs") if isinstance(legacy, dict) else None
+        old = [old] if isinstance(old, str) else old if isinstance(old, list) else []
+        items = [f"<li>{html.escape(str(n))}</li>" for n in old]
     needs_html = (
         f'<h2>{html.escape(table["needs"])}</h2><ul class="needs">'
-        + "".join(f"<li>{html.escape(str(n))}</li>" for n in needs)
+        + "".join(items)
         + "</ul>"
-        if needs
+        if items
+        else ""
+    )
+    notes_html = (
+        f"<h2>{html.escape(table['notes'])}</h2>"
+        + "".join(f'<p class="note">{html.escape(n)}</p>' for n in doc.notes)
+        if doc.notes
         else ""
     )
 
@@ -302,6 +325,7 @@ def render_card(
 <body>
 <h1>{html.escape(doc.title)}</h1>
 {needs_html}
+{notes_html}
 <h2>{html.escape(table["structure"])}</h2>
 <ul class="outline">{outline}</ul>
 <h2>{html.escape(table["steps"])}</h2>

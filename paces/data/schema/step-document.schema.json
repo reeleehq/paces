@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://thorwhalen.github.io/paces/schema/0.1.0/step-document.json",
+  "$id": "https://thorwhalen.github.io/paces/schema/0.2.0/step-document.json",
   "$defs": {
     "Anchor": {
       "additionalProperties": false,
@@ -176,6 +176,17 @@
             }
           ],
           "title": "Ats"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
         },
         "attrs": {
           "additionalProperties": true,
@@ -416,6 +427,59 @@
         }
       },
       "title": "Origin",
+      "type": "object"
+    },
+    "Resource": {
+      "additionalProperties": false,
+      "description": "One thing the routine needs (an item, a tool, a space, an ingredient).\n\nThe document-level half of the resource track docs/09 names: the printed\n\"what you need\" list. A step does not reference it yet (additive later).\n``quantity`` is a :class:`Measure` in the domain's own unit, so there is no\nsecond number format.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "default": "item",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Measure"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "optional": {
+          "default": false,
+          "title": "Optional",
+          "type": "boolean"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Resource",
       "type": "object"
     },
     "Source": {
@@ -734,7 +798,7 @@
       "type": "string"
     },
     "schemaVersion": {
-      "default": "0.1.0",
+      "default": "0.2.0",
       "title": "Schemaversion",
       "type": "string"
     },
@@ -787,6 +851,20 @@
         "$ref": "#/$defs/Cue"
       },
       "title": "Cues",
+      "type": "array"
+    },
+    "resources": {
+      "items": {
+        "$ref": "#/$defs/Resource"
+      },
+      "title": "Resources",
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
       "type": "array"
     },
     "questions": {

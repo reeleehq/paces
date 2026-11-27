@@ -121,6 +121,23 @@ def test_invalid_value_fails_schema_validation():
 # ── merge_regenerated ───────────────────────────────────────────────────────
 
 
+def test_merge_keeps_committed_notes_and_resources_a_regeneration_lacks():
+    from paces.model import Resource
+
+    committed = _doc(
+        notes=["Start easy."],
+        resources=[Resource(id="mat", name="A mat"), Resource(id="w", name="Weight")],
+    )
+    committed = apply_edits(
+        committed,
+        [{"op": "set", "path": "/resources/mat/name", "value": "A thick mat"}],
+        by="user:thor",
+    )
+    merged = merge_regenerated(committed, _doc())  # analysis never writes either
+    assert merged.notes == ["Start easy."]
+    assert {r.id: r.name for r in merged.resources} == {"mat": "A thick mat", "w": "Weight"}
+
+
 def test_merge_keeps_locked_values_and_takes_fresh_elsewhere():
     committed = apply_edits(
         _doc(),

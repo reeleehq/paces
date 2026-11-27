@@ -1,0 +1,28 @@
+{
+  "kind": "StepDocument",
+  "schemaVersion": "0.2.0",
+  "id": "notes-and-resources",
+  "title": "Circuit with what you need",
+  "domain": "workout",
+  "resources": [
+    { "id": "mat", "name": "Exercise mat", "kind": "item", "optional": true },
+    { "id": "weight", "name": "Dumbbell", "quantity": { "value": "8", "unit": "kg" }, "note": "One per hand" },
+    { "id": "space", "name": "Room to swing both arms", "kind": "space" }
+  ],
+  "notes": [
+    "Do one round first, then build up to three.",
+    "Stop if anything hurts."
+  ],
+  "steps": [
+    { "id": "swing", "name": "Swing", "duration": { "value": "10", "unit": "rep" } }
+  ],
+  "cues": [
+    {
+      "id": "hips",
+      "kind": "technique",
+      "label": "Lowering",
+      "text": "Hips back.",
+      "anchor": { "step": "swing" }
+    }
+  ]
+}

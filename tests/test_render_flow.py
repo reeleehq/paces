@@ -462,3 +462,16 @@ def test_rewritten_uris_are_url_quoted(tmp_path):
     out = render_flow(doc, tmp_path / "out", media_from=tmp_path / "doc", media_root=tmp_path)
     assert "media/a%20b%231.mp4" in (out / "document.json").read_text(encoding="utf-8")
     assert (out / "media" / "a b#1.mp4").is_file()
+
+
+def test_flow_ships_the_resources_notes_and_cue_labels_with_the_document(tmp_path):
+    from paces.model import Resource
+
+    doc = _circuit(
+        resources=[Resource(id="mat", name="A mat")], notes=["Start easy."]
+    )
+    out = render_flow(doc, tmp_path)
+    shipped = json.loads((out / "document.json").read_text(encoding="utf-8"))
+    assert shipped["resources"][0]["name"] == "A mat" and shipped["notes"] == ["Start easy."]
+    strings = json.loads((out / "strings.json").read_text(encoding="utf-8"))
+    assert {"before", "needs", "notes"} <= set(strings)

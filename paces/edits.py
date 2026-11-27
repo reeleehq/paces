@@ -729,12 +729,17 @@ def merge_regenerated(committed: StepDocument, fresh: StepDocument) -> StepDocum
        wins per key.
     3. Committed-only steps survive when protected (locks in their subtree or
        a ``user:`` origin); unprotected ones are superseded analysis output.
-    4. Cues, questions and sources are unioned by id (fresh wins on shared
+    4. Cues, questions, sources and resources are unioned by id (and committed
+       ``notes`` survive a regeneration that has none) (fresh wins on shared
        ids) — analysis rarely regenerates them, and dropping committed
        content silently is the failure this module exists to prevent.
     5. Repeated steps are matched by name and time, not by their generated
        ``-N`` suffix (:func:`_repeat_ids`): a repeat inserted earlier
        does not move a lock onto the wrong occurrence (paces#50).
+
+    Notes are plain strings with no id, so an edit to ``/notes/0`` is matched by
+    position: lock the whole ``/notes`` list to protect them across a
+    regeneration that reorders them.
 
     Edits made through :func:`apply_edits` are always locked, so "hand edit"
     and "protected" coincide by construction; edits made by hand-editing the
@@ -749,8 +754,12 @@ def merge_regenerated(committed: StepDocument, fresh: StepDocument) -> StepDocum
         out, _repeat_ids(committed_dump["steps"], out["steps"]), renamed=renamed
     )
     out["steps"] = _merge_steps(committed_dump["steps"], out["steps"])
-    for key in ("cues", "questions", "sources"):
+    for key in ("cues", "questions", "sources", "resources"):
         out[key] = _union_by_id(committed_dump[key], out[key])
+    # notes are plain strings with no id: analysis never writes them, so a
+    # regeneration that has none keeps the committed ones
+    if not out["notes"]:
+        out["notes"] = copy.deepcopy(committed_dump["notes"])
     out["attrs"] = _merged_attrs(committed_dump.get("attrs", {}), out.get("attrs", {}))
     out["locks"] = copy.deepcopy(committed_dump.get("locks", []))
     for lock in out["locks"]:

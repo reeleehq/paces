@@ -21,8 +21,8 @@ What crosses into the store, and what deliberately does not:
 crosses                       stays on the document
 ============================  ==========================================
 sources, passes, the grid,    ``locks``, ``questions``, ``artifacts``,
-beats, transcript words,      span ``excerpt`` windows
-steps + their spans, cues,
+beats, transcript words,      span ``excerpt`` windows, ``notes``,
+steps + their spans, cues,    ``resources``
 derivation recipes
 ============================  ==========================================
 
@@ -1033,6 +1033,7 @@ def _write_cues(put, cues: Sequence[Cue], *, doc_id: str, step_rows, rate: int) 
                 cue_id=cue.id,
                 kind=cue.kind,
                 text=cue.text,
+                label=cue.label,
                 step_id=cue.anchor.step,
                 offset_value=None
                 if cue.anchor.offset is None
@@ -1112,7 +1113,8 @@ def from_store(store, *, asset_id: str, doc_id: str | None = None) -> StepDocume
     The inverse of :func:`to_store`: given the same store, it reproduces
     ``StoreWrite.document`` byte for byte under
     :func:`paces.model.dumps_document`. Document-layer records (``locks``,
-    ``questions``, ``artifacts``, span ``excerpt`` windows) come back empty,
+    ``questions``, ``artifacts``, ``notes``, ``resources``, span ``excerpt``
+    windows) come back empty,
     because they never went in — see the module docstring.
 
     Args:
@@ -1220,6 +1222,7 @@ def _cue(row: Annotation) -> Cue:
         id=body["cue_id"],
         kind=body["kind"],
         text=body["text"],
+        label=body.get("label"),
         anchor=Anchor(step=body["step_id"], offset=offset),
         duration=duration,
         source=body["source"],

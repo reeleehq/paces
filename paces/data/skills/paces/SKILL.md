@@ -52,7 +52,7 @@ Every verb is a plain function in `paces.tools` and a subcommand of `paces`; `pa
 
 When media lives outside the output folder, say where: `--media-from DIR` (what the document's relative uris are relative to; default the document's folder) and `--media-root DIR` (the boundary files may be read from; default `--media-from`; widen it for `../media/...`). The card shows each step's posters, as a start and end pair when there are two.
 
-"What you need" on the card reads `attrs["render.card"]["needs"]` (a list of strings) of the document. Words the player and the card say that the document does not are in one strings table each, overridable (a translation is a table, not a fork). If a PDF is requested without the extra, the error says what to install.
+"What you need" on the card is the document's `resources` (and `notes` are printed too; a cue's `label` is shown beside it). Words the player and the card say that the document does not are in one strings table each, overridable (a translation is a table, not a fork). If a PDF is requested without the extra, the error says what to install.
 
 ## Honesty rules (do not bend them)
 

@@ -521,7 +521,7 @@ class OpenQuestion(_Base):
 # ── the document ────────────────────────────────────────────────────────────────
 class StepDocument(_Base):
     kind: Literal["StepDocument"] = "StepDocument"
-    schema_version: str = "0.1.0"
+    schema_version: str = "0.2.0"  # 0.2.0 (paces#75): + notes, resources, Cue.label
     id: Slug
     title: str
     lang: str = "en"  # BCP-47
@@ -530,6 +530,8 @@ class StepDocument(_Base):
     sources: list[Source] = []
     steps: list[Step] = []  # ORDER IS SEMANTIC
     cues: list[Cue] = []  # separate track, anchored by step id (walkthru D8)
+    resources: list[Resource] = []  # what you need (0.2.0); document-layer
+    notes: list[str] = []  # prose about the whole routine (0.2.0); document-layer
     questions: list[OpenQuestion] = []
     credits: str | None = None
     attrs: dict[str, Any] = {}
