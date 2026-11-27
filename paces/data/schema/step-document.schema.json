@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thorwhalen.github.io/paces/schema/0.1.0/step-document.json",
   "$defs": {
     "Anchor": {
       "additionalProperties": false,
