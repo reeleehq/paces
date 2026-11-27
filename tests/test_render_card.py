@@ -63,10 +63,11 @@ def test_card_is_print_html_with_the_structure_and_the_steps():
     assert "@page { size: A4;" in page
     assert "<script" not in page
     assert "Bodyweight &lt;circuit&gt;" in page  # escaped
-    assert "3 × Round" in page and "(3 × 33 reps in all)" in page
+    assert "3 × Round" in page and "(3 rounds · 33 reps in all)" in page
     assert "10 reps" in page and "1 rep<" in page and "30 seconds" in page
     assert page.index("Warm-up") < page.index("Squat") < page.index("Push-up")
     assert 'class="cue caution"' in page and "Knees out." in page
+    assert "<span>Careful</span>" in page
     assert "Breathe." in page  # the group's own cue
     assert "optional" in page
 
@@ -261,3 +262,70 @@ def test_the_older_attrs_needs_list_is_still_read_when_there_are_no_resources():
     assert "What you need" in old and "<li>A mat</li>" in old
     assert "<li>A mat</li>" in card.render_card(_doc(attrs={"render.card": {"needs": "A mat"}}))
     card.render_card(_doc(attrs={"render.card": "nope"}))  # odd values never crash
+
+
+def _cues_doc(kinds):
+    doc = _doc()
+    doc.cues = [
+        Cue(id=f"c{i}", kind=k, text=f"{k} text", anchor=Anchor(step="squat"))
+        for i, k in enumerate(kinds)
+    ]
+    return doc
+
+
+def test_cues_are_grouped_by_kind_setup_first_then_cautions_then_the_rest():
+    page = card.render_card(_cues_doc(["technique", "fault", "setup", "breath", "technique"]))
+    order = [page.index(f"<span>{label}</span>") for label in ("Set-up", "Avoid", "Technique", "Breathing")]
+    assert order == sorted(order)
+    assert page.count("<span>Technique</span>") == 1  # one heading for both technique cues
+    assert page.index("technique text") < page.index("<span>Breathing</span>")
+
+
+def test_an_unknown_cue_kind_is_labelled_with_its_own_name():
+    page = card.render_card(_cues_doc(["pace-note"]))
+    assert "<span>pace-note</span>" in page
+
+
+def test_cue_headings_come_from_the_strings_table():
+    page = card.render_card(_cues_doc(["setup"]), strings={"cue_kinds": {"setup": "Mise en place"}})
+    assert "<span>Mise en place</span>" in page and "Set-up" not in page
+
+
+def test_a_group_total_is_not_multiplied_again():
+    page = card.render_card(_doc())
+    assert "3 rounds · 33 reps in all" in page
+    assert "3 × 33" not in page  # 33 is already the total
+
+
+def test_a_learner_led_step_reads_as_needed_not_as_a_count():
+    doc = _doc()
+    doc.steps[0].tags = ["learner-led"]
+    page = card.render_card(doc)
+    assert page.count("as needed") == 2  # outline and row
+    assert "30 seconds" not in page
+
+
+def test_a_between_passes_child_is_listed_once_and_marked():
+    doc = _doc()
+    doc.steps[1].steps.append(
+        Step(id="rest", name="Rest", duration=Measure(value="1", unit="rep"), tags=["between-passes"])
+    )
+    page = card.render_card(doc)
+    assert page.count("(between passes)") == 1 and page.count("between passes</div>") == 1
+
+
+def test_posters_follow_their_position_and_carry_their_label(tmp_path):
+    (tmp_path / "media").mkdir()
+    for n in ("a.jpg", "b.jpg"):
+        (tmp_path / "media" / n).write_bytes(b"\xff\xd8\xff" + n.encode())
+    doc = _doc()
+    doc.steps[1].steps[0].artifacts = [
+        ArtifactRef(role="poster", uri="media/a.jpg", attrs={"position": "end", "label": "Top"}),
+        ArtifactRef(role="poster", uri="media/b.jpg", attrs={"position": "start"}),
+    ]
+    page = card.render_card(doc, media_from=tmp_path)
+    import base64 as b64
+
+    first = b64.b64encode(b"\xff\xd8\xffb.jpg").decode()
+    assert page.index(first) < page.index(b64.b64encode(b"\xff\xd8\xffa.jpg").decode())
+    assert "<span>Top</span>" in page and "<span>Start</span>" in page
