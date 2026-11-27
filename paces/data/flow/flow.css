@@ -1,5 +1,13 @@
 /* paces flow player. Tokens first; every colour, radius and font below is a
  * token (see DESIGN.md). Phone first; a second pane from 900px. */
+/* The typefaces ship in fonts/ (SIL Open Font License, texts beside them): the
+ * page fetches nothing from outside its own folder. */
+@font-face { font-family: "Anton"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/anton-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Karla"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/karla-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Karla"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/karla-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Karla"; font-weight: 800; font-style: normal; font-display: swap; src: url("fonts/karla-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Mono"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/dm-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/dm-mono-latin-500-normal.woff2") format("woff2"); }
 :root {
   --ground: #170d20;
   --raised: #241432;
@@ -57,7 +65,7 @@ h1 { font: 400 1.25rem/1.1 var(--display); text-transform: uppercase; letter-spa
 .field { display: flex; align-items: center; gap: .7rem; justify-content: space-between; font-size: .9rem; }
 .field span { color: var(--muted); }
 .field input[type=range] { flex: 1; accent-color: var(--accent); }
-.field input[type=number], .field select { min-height: 40px; width: 6rem; background: var(--ground); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 0 .5rem; font: inherit; }
+.field input[type=number], .field select { min-height: 44px; width: 6rem; background: var(--ground); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 0 .5rem; font: inherit; }
 .field select { width: 9rem; }
 .field input:disabled { opacity: .4; }
 .pace input, .pace select { accent-color: var(--accent); }
@@ -197,3 +205,9 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 body[data-view="overview"] .titles h1 { display: none; }
 
 body[data-view="overview"] .modechip { display: none; }
+
+body[data-view="done"] .modechip { display: none; }
+.more summary { gap: .5rem; }
+.more summary::before { content: ""; width: .5rem; height: .5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .12s; }
+.more[open] summary::before { transform: rotate(45deg); }
+.fillbar.none { display: none; }

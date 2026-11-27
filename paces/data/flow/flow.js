@@ -317,7 +317,7 @@
     function renderDone() {
       stage.appendChild(el("article", { class: "card overview done" }, [
         el("h2", { class: "ovtitle", text: S.done }),
-        el("p", { class: "ovcounts", text: fmt(S.doneCounts, { n: stops.length, t: mmss(state.totalSeconds) }) }),
+        el("p", { class: "ovcounts", text: state.totalSeconds >= 1 ? fmt(S.doneCounts, { n: stops.length, t: mmss(state.totalSeconds) }) : fmt(S.stepsCount, { n: stops.length }) }),
         el("button", { class: "bigbtn primary", type: "button", onclick: function () { state.finished = false; state.totalSeconds = 0; state.mode = "timed"; go(0); state.view = "step"; render(); } }, [icon(ICONS.play), document.createTextNode(S.restart)]),
         el("button", { class: "bigbtn ghost", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)])]));
     }
@@ -339,7 +339,7 @@
         el("div", { class: "bigcount" + (big.text.length > 2 && !big.small ? " long" : "") + (counting ? " getready" : "") + (big.small && !counting ? " small" : ""), "data-big": "1", "aria-hidden": counting || state.playing ? "true" : "false" }, [
           el("span", { class: "bignum", text: counting ? String(Math.ceil(state.countIn)) : big.text }),
           el("span", { class: "bigsub", text: counting ? S.getReady : big.sub })])]));
-      card.appendChild(el("div", { class: "fillbar", "aria-hidden": "true" }, [el("i", {})]));
+      card.appendChild(el("div", { class: "fillbar" + (C.isLearnerLed(step) ? " none" : ""), "aria-hidden": "true" }, [el("i", {})]));
 
       var options = C.choices(C.listMedia(step));
       var shown = state.mediaIndex[step.id] || 0;
@@ -386,7 +386,7 @@
         return url ? el("a", { href: url, target: "_blank", rel: "noopener", text: fmt(S.watch, { t: mmss(Number(span.start)), role: S.roles[span.role] || span.role }) }) : null;
       }).filter(Boolean);
       if (head.hidden || extraCaptions.length || links.length) {
-        var more = el("details", { class: "more" }, [el("summary", { text: head.hidden ? fmt(S.allCues, { n: head.hidden + head.shown.length }) : S.moreInfo })]);
+        var more = el("details", { class: "more" }, [el("summary", { text: head.hidden ? fmt(S.moreCues, { n: head.hidden }) : S.moreInfo })]);
         if (state.moreOpen) more.setAttribute("open", "");
         more.addEventListener("toggle", function () { state.moreOpen = more.open; });
         cueGroups.forEach(function (g) {
