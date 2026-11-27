@@ -111,3 +111,61 @@ def test_fail_fixtures_violate_the_committed_json_schema(path):
 def test_bad_fixture_kind_is_an_error():
     with pytest.raises(ValueError):
         schema_module.fixture_paths("maybe")
+
+
+def _defaults_applier(schema_node, value):
+    """What a defaults-applying validator (Zod 4's fromJSONSchema) does: fill
+    every schema ``default`` for an omitted property, recursively through
+    objects and arrays. Enough of it to detect nulls being invented."""
+    if isinstance(value, dict) and isinstance(schema_node, dict):
+        out = dict(value)
+        for name, sub in (schema_node.get("properties") or {}).items():
+            if name not in out and "default" in sub:
+                out[name] = sub["default"]
+            if name in out:
+                out[name] = _defaults_applier(sub, out[name])
+        return out
+    if isinstance(value, list) and isinstance(schema_node, dict):
+        return [_defaults_applier(schema_node.get("items", {}), v) for v in value]
+    return value
+
+
+def _resolve(schema, node):
+    while isinstance(node, dict) and "$ref" in node:
+        node = schema["$defs"][node["$ref"].rsplit("/", 1)[-1]]
+    return node
+
+
+def test_the_schema_has_no_null_defaults():
+    text = schema_module.packaged_schema_text()
+    assert '"default": null' not in text
+
+
+@pytest.mark.parametrize("path", schema_module.fixture_paths("pass"), ids=lambda p: p.stem)
+def test_applying_schema_defaults_never_adds_a_null(path):
+    schema = json.loads(schema_module.packaged_schema_text())
+
+    def walk(node, value):
+        node = _resolve(schema, node)
+        if isinstance(value, dict):
+            filled = _defaults_applier(node, value)
+            for key in list(filled):
+                sub = (node.get("properties") or {}).get(key, {})
+                filled[key] = walk(sub, filled[key])
+            return filled
+        if isinstance(value, list):
+            items = node.get("items", {}) if isinstance(node, dict) else {}
+            return [walk(items, v) for v in value]
+        return value
+
+    def nulls(v):
+        if v is None:
+            return 1
+        if isinstance(v, dict):
+            return sum(nulls(x) for x in v.values())
+        if isinstance(v, list):
+            return sum(nulls(x) for x in v)
+        return 0
+
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    assert nulls(walk(schema, doc)) == nulls(doc) == 0

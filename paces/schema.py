@@ -28,9 +28,26 @@ SCHEMA_ID = (
 )
 
 
+def _strip_null_defaults(node):
+    """Drop ``"default": null`` everywhere. Pydantic emits it for every optional
+    field, but on the wire an absent field is *absent* (the canonical form omits
+    ``None``): a consumer that applies schema defaults (Zod 4's
+    ``z.fromJSONSchema``) would otherwise fill ``null`` into every one."""
+    if isinstance(node, dict):
+        return {
+            key: _strip_null_defaults(value)
+            for key, value in node.items()
+            if not (key == "default" and value is None)
+        }
+    if isinstance(node, list):
+        return [_strip_null_defaults(item) for item in node]
+    return node
+
+
 def step_document_schema() -> dict:
-    """The JSON Schema of the document's wire form (camelCase keys)."""
-    body = StepDocument.model_json_schema(by_alias=True)
+    """The JSON Schema of the document's wire form (camelCase keys; optional
+    fields carry no ``default: null``, they are simply optional)."""
+    body = _strip_null_defaults(StepDocument.model_json_schema(by_alias=True))
     return {"$schema": JSON_SCHEMA_DRAFT, "$id": SCHEMA_ID, **body}
 
 
