@@ -276,7 +276,8 @@ Seconds one domain unit lasts under *grid*, or None without a tempo.
 Semantic checks beyond the schema. Returns human-readable issues
 (empty list = clean); never raises.
 
-Checks: children durations account for the parent’s (`repeat` included),
+Checks: children durations account for the parent’s (`repeat` included;
+only when the children count in the parent’s own unit),
 span sources exist, cue anchors point at real steps, step ids are unique
 (id-addressed edits and the regeneration merge both key on them — a
 duplicate makes those silently ambiguous), and no raw `float` has
