@@ -141,14 +141,14 @@ def test_two_posters_are_a_start_and_end_pair(tmp_path):
     page = card.render_card(_two_posters(tmp_path), media_from=tmp_path)
     assert page.count("<img") == 2
     assert page.index("Start") < page.index("End")
-    assert "width:61mm" in page  # the picture column fits the pair
+    assert "width:50mm" in page  # a fixed block, the same for every step
 
 
-def test_one_poster_has_no_pair_labels_and_three_are_all_shown(tmp_path):
+def test_one_poster_has_no_pair_labels_and_three_are_cut_to_two(tmp_path):
     one = card.render_card(_two_posters(tmp_path, ("a.jpg",)), media_from=tmp_path)
     assert one.count("<img") == 1 and ">Start<" not in one
     three = card.render_card(_two_posters(tmp_path, ("a.jpg", "b.jpg", "c.jpg")), media_from=tmp_path)
-    assert three.count("<img") == 3 and ">Start<" not in three
+    assert three.count("<img") == 2  # a printed card keeps the start and the end only
 
 
 def test_media_root_flag_reaches_the_card(tmp_path):
@@ -311,7 +311,7 @@ def test_a_between_passes_child_is_listed_once_and_marked():
         Step(id="rest", name="Rest", duration=Measure(value="1", unit="rep"), tags=["between-passes"])
     )
     page = card.render_card(doc)
-    assert page.count("(between passes)") == 1 and page.count("between passes</div>") == 1
+    assert page.count("(between rounds)") == 1 and page.count("between rounds</div>") == 1
 
 
 def test_posters_follow_their_position_and_carry_their_label(tmp_path):
@@ -336,3 +336,66 @@ def test_the_card_reports_steps_whose_artifacts_it_cannot_show():
     doc.steps[0].artifacts = [ArtifactRef(role="loop-video", uri="m/a.mp4")]
     with pytest.warns(UserWarning, match=r"warm \(loop-video\)"):
         card.render_card(doc)
+
+
+def _step_with_variants(i, tmp_path):
+    base = f"s{i}"
+    arts = []
+    for variant, main in (("full", True), ("pose", False)):
+        for position in ("start", "end"):
+            name = f"{base}-{variant}-{position}.jpg"
+            (tmp_path / "media").mkdir(exist_ok=True)
+            (tmp_path / "media" / name).write_bytes(_JPEG)
+            arts.append(
+                ArtifactRef(
+                    role="poster",
+                    uri=f"media/{name}",
+                    attrs={"variant": variant, "position": position, "main": main and position == "start"},
+                )
+            )
+    return Step(
+        id=base,
+        name=f"Station {i}",
+        duration=Measure(value="7", unit="rep"),
+        description="Sit back and stand tall, keeping the chest up through the whole movement.",
+        artifacts=arts,
+    )
+
+
+def _jpeg_bytes():
+    pil = pytest.importorskip("PIL.Image")
+    import io
+
+    buffer = io.BytesIO()
+    pil.new("RGB", (300, 380), (190, 120, 150)).save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+def test_only_the_main_variants_start_and_end_are_printed(tmp_path):
+    global _JPEG
+    _JPEG = _jpeg_bytes()
+    doc = StepDocument(id="six", title="Six", steps=[_step_with_variants(1, tmp_path)])
+    page = card.render_card(doc, media_from=tmp_path)
+    assert page.count("<img") == 2 and "Start" in page and "End" in page
+
+
+_JPEG = b""
+
+
+@needs_pdf
+def test_six_steps_with_four_posters_each_fit_on_one_or_two_pages(tmp_path):
+    pytest.importorskip("pdfdol")
+    pypdf = pytest.importorskip("pypdf")
+    global _JPEG
+    _JPEG = _jpeg_bytes()
+    doc = StepDocument(
+        id="six", title="Six stations", steps=[_step_with_variants(i, tmp_path) for i in range(1, 7)]
+    )
+    out = tmp_path / "six.pdf"
+    path = tmp_path / "six.json"
+    path.write_text(dumps_document(doc), encoding="utf-8")
+    render(str(path), renderer="card", output=str(out), paper="a4")
+    reader = pypdf.PdfReader(str(out))
+    assert 1 <= len(reader.pages) <= 2, f"{len(reader.pages)} pages"
+    text = " ".join(page.extract_text() for page in reader.pages)
+    assert all(f"Station {i}" in text for i in range(1, 7))

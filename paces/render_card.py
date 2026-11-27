@@ -33,7 +33,10 @@ DFLT_PAPER = "a4"
 #: Posters bigger than this are not embedded (a card is a printout).
 MAX_EMBED_BYTES = 400_000
 #: Width of one picture on the card, in mm.
-PIC_MM = 28
+PIC_MM = 21
+#: A step's picture block holds at most this many pictures: the start and end of the
+#: main variant. Alternatives do not belong on a printed card.
+MAX_PICTURES = 2
 
 DEFAULT_STRINGS = {
     "needs": "What you need",
@@ -59,7 +62,7 @@ DEFAULT_STRINGS = {
         "caption": "Note",
     },
     "learner_led": "as needed",
-    "between_passes": "between passes",
+    "between_passes": "between rounds",
     "rounds": "{n} rounds",
     "units": {
         "rep": ["rep", "reps"],
@@ -87,15 +90,16 @@ p.note { margin: 0 0 1.5mm; }
 table { width: 100%%; border-collapse: collapse; }
 td { vertical-align: top; padding: 2mm 2mm 2mm 0; }
 tr.step { page-break-inside: avoid; border-bottom: .2mm solid #e3dcee; }
-td.pic .fig { display: inline-block; vertical-align: top; width: 28mm; margin-right: 2mm; }
-td.pic img { width: 28mm; height: auto; display: block; border: .2mm solid #cfc6de; }
+td.pic .fig { display: inline-block; vertical-align: top; width: 21mm; margin-right: 2mm; }
+td.pic img { width: 21mm; height: 26mm; object-fit: cover; display: block; border: .2mm solid #cfc6de; }
 td.pic .fig span { display: block; font-size: 7pt; text-align: center; color: #5b4a73; }
 td.num { width: 8mm; font-weight: bold; color: #5b4a73; }
-td.count { width: 24mm; text-align: right; white-space: nowrap; font-weight: bold; }
+td.count { width: 26mm; text-align: right; white-space: nowrap; font-weight: bold; }
 tr.group td { padding-top: 3mm; font-weight: bold; }
 tr.nested td.name { padding-left: 4mm; }
 .name b { font-size: 11pt; }
 .desc { margin: .5mm 0 0; font-weight: normal; }
+.dose { font-weight: normal; font-size: 8pt; color: #5b4a73; }
 .cuegroup { margin: 1mm 0 0; }
 .cuegroup > span { font-size: 7pt; letter-spacing: .1em; text-transform: uppercase; color: #5b4a73; font-weight: normal; }
 .cue { margin: .4mm 0 0; padding-left: 2mm; border-left: .8mm solid #7c3aed; font-style: italic; font-weight: normal; }
@@ -133,11 +137,17 @@ def _learner_led(step: Step) -> bool:
     return "learner-led" in step.tags
 
 
+def _says_as_needed(step: Step, strings: dict) -> bool:
+    """A learner-led step whose own name already says so ("Rest as needed")."""
+    return _learner_led(step) and strings["learner_led"].lower() in step.name.lower()
+
+
 def _step_count(step: Step, strings: dict) -> str:
     """What a step's count column says: its count in the domain's unit, or
-    "as needed" for a step the learner leads (its duration is a placeholder)."""
+    "as needed" for a step the learner leads (its duration is a placeholder).
+    Empty when the step's name already says it."""
     if _learner_led(step):
-        return strings["learner_led"]
+        return "" if _says_as_needed(step, strings) else strings["learner_led"]
     return _rounds(step, strings) + _count(step.duration, strings)
 
 
@@ -147,6 +157,28 @@ def _rounds(step: Step, strings: dict) -> str:
 
 #: Where a poster sits in the movement; the card shows start before mid before end.
 _POSITION_RANK = {"start": 0, "mid": 1, "end": 2}
+
+
+def _main_variant_posters(step: Step) -> list:
+    """The start and end posters of the step's main variant, and nothing else.
+
+    The main variant is the one whose poster has ``attrs["main"]`` true, else
+    the first poster's variant (``attrs["variant"]``; posters without one form a
+    single variant). Within it: ordered by ``attrs["position"]`` (start, mid,
+    end), and cut to ``MAX_PICTURES``, keeping the first and the last."""
+    posters = [a for a in step.artifacts if a.role == "poster"]
+    if not posters:
+        return []
+
+    def variant(a):
+        return a.attrs.get("variant")
+
+    main = next((a for a in posters if a.attrs.get("main")), posters[0])
+    chosen = [a for a in posters if variant(a) == variant(main)]
+    chosen.sort(key=lambda a: _POSITION_RANK.get(str(a.attrs.get("position")), 1))
+    if len(chosen) > MAX_PICTURES:
+        chosen = [chosen[0], chosen[-1]]
+    return chosen
 
 
 def _poster_srcs(
@@ -159,8 +191,7 @@ def _poster_srcs(
     from paces.media_paths import resolve_media
 
     out = []
-    posters = [a for a in step.artifacts if a.role == "poster"]
-    posters.sort(key=lambda a: _POSITION_RANK.get(str(a.attrs.get("position")), 1))
+    posters = _main_variant_posters(step)
     for artifact in posters:
         path = resolve_media(artifact.uri, media_from, media_root)
         if path is None or path.stat().st_size > MAX_EMBED_BYTES:
@@ -256,6 +287,10 @@ def _step_row(step: Step, *, number, nested, cues, strings, imgs, pic_width) -> 
         else ""
     )
     count = _step_count(step, strings)
+    load = " · ".join(
+        str(step.attrs[k]) for k in ("load", "effort") if step.attrs.get(k)
+    )
+    dose = f'<div class="dose">{html.escape(load)}</div>' if load else ""
     row_class = "step nested" if nested else "step"
     pic_cell = (
         f'<td class="pic" style="width:{pic_width}mm">{pic}</td>' if pic_width else ""
@@ -267,7 +302,7 @@ def _step_row(step: Step, *, number, nested, cues, strings, imgs, pic_width) -> 
         f"{pic_cell}"
         f'<td class="name"><b>{html.escape(step.name)}</b>{badge}{desc}'
         f"{cue_html}</td>"
-        f'<td class="count">{html.escape(count)}</td></tr>'
+        f'<td class="count">{html.escape(count)}{dose}</td></tr>'
     )
 
 
@@ -295,13 +330,11 @@ def _outline_item(step: Step, strings: dict) -> str:
         )
         inner = "".join(_outline_item(child, strings) for child in step.steps)
         return f"<li>{html.escape(step.name)} <i>({html.escape(note)})</i><ul>{inner}</ul></li>"
-    counts = html.escape(_step_count(step, strings))
-    mark = (
-        f" <i>({html.escape(strings['between_passes'])})</i>"
-        if "between-passes" in step.tags
-        else ""
-    )
-    return f"<li>{html.escape(step.name)} — {counts}{mark}</li>"
+    counts = _step_count(step, strings)
+    mark = strings["between_passes"] if "between-passes" in step.tags else ""
+    note = f" ({html.escape(mark)})" if mark else ""
+    dash = f" — {html.escape(counts)}" if counts else ""
+    return f"<li>{html.escape(step.name)}{dash}{note}</li>"
 
 
 def render_card(
@@ -362,7 +395,7 @@ def render_card(
     base_root = Path(media_root) if media_root else None
     posters = {st.id: _poster_srcs(st, root, base_root) for st in _all(doc.steps)}
     widest = max((len(v) for v in posters.values()), default=0)
-    pic_width = widest * (PIC_MM + 2) + 1 if widest else 0
+    pic_width = MAX_PICTURES * (PIC_MM + 2) + 4 if widest else 0
     with_pics = bool(widest)
 
     def emit(step: Step, nested: bool) -> None:
