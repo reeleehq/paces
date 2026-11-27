@@ -46,8 +46,21 @@ DEFAULT_STRINGS = {
     "variant_of": "variant of {step}",
     "round_count": "{n} ×",
     "in_all": "{count} in all",
-    "caution": "Careful",
-    "cue": "Cue",
+    "cue_kinds": {
+        "setup": "Set-up",
+        "technique": "Technique",
+        "fault": "Avoid",
+        "breath": "Breathing",
+        "safety": "Safety",
+        "warning": "Careful",
+        "caution": "Careful",
+        "count": "Count",
+        "lyric": "Lyric",
+        "caption": "Note",
+    },
+    "learner_led": "as needed",
+    "between_passes": "between passes",
+    "rounds": "{n} rounds",
     "units": {
         "rep": ["rep", "reps"],
         "eight": ["eight", "eights"],
@@ -56,7 +69,8 @@ DEFAULT_STRINGS = {
         "minute": ["minute", "minutes"],
         "set": ["set", "sets"],
     },
-    "caution_kinds": ["warning", "caution"],
+    "caution_kinds": ["warning", "caution", "fault", "safety"],
+    "kind_first": ["setup"],
 }
 
 #: Plain CSS: tables and blocks only (no grid, no flex), so an old print engine
@@ -82,7 +96,9 @@ tr.group td { padding-top: 3mm; font-weight: bold; }
 tr.nested td.name { padding-left: 4mm; }
 .name b { font-size: 11pt; }
 .desc { margin: .5mm 0 0; font-weight: normal; }
-.cue { margin: .8mm 0 0; padding-left: 2mm; border-left: .8mm solid #7c3aed; font-style: italic; font-weight: normal; }
+.cuegroup { margin: 1mm 0 0; }
+.cuegroup > span { font-size: 7pt; letter-spacing: .1em; text-transform: uppercase; color: #5b4a73; font-weight: normal; }
+.cue { margin: .4mm 0 0; padding-left: 2mm; border-left: .8mm solid #7c3aed; font-style: italic; font-weight: normal; }
 .cue.caution { border-left-color: #c0143c; font-style: normal; }
 .cue span { font-size: 7pt; letter-spacing: .1em; text-transform: uppercase; font-style: normal; color: #5b4a73; }
 .badge { color: #5b4a73; font-size: 8pt; }
@@ -113,13 +129,29 @@ def _count(measure, strings: dict) -> str:
     return f"{measure.value} {word}"
 
 
+def _learner_led(step: Step) -> bool:
+    return "learner-led" in step.tags
+
+
+def _step_count(step: Step, strings: dict) -> str:
+    """What a step's count column says: its count in the domain's unit, or
+    "as needed" for a step the learner leads (its duration is a placeholder)."""
+    if _learner_led(step):
+        return strings["learner_led"]
+    return _rounds(step, strings) + _count(step.duration, strings)
+
+
 def _rounds(step: Step, strings: dict) -> str:
     return f"{strings['round_count'].format(n=step.repeat)} " if step.repeat > 1 else ""
 
 
+#: Where a poster sits in the movement; the card shows start before mid before end.
+_POSITION_RANK = {"start": 0, "mid": 1, "end": 2}
+
+
 def _poster_srcs(
     step: Step, media_from: Path | None, media_root: Path | None
-) -> list[str]:
+) -> list[tuple[str, str | None]]:
     """The step's posters, in order, as data URIs (embedded, so the card is one
     file). Posters whose file is missing, too big, or not a relative path are
     left out; a remote poster is left out too: printing must not fetch from the
@@ -127,14 +159,15 @@ def _poster_srcs(
     from paces.media_paths import resolve_media
 
     out = []
-    for artifact in step.artifacts:
-        if artifact.role != "poster":
-            continue
+    posters = [a for a in step.artifacts if a.role == "poster"]
+    posters.sort(key=lambda a: _POSITION_RANK.get(str(a.attrs.get("position")), 1))
+    for artifact in posters:
         path = resolve_media(artifact.uri, media_from, media_root)
         if path is None or path.stat().st_size > MAX_EMBED_BYTES:
             continue
         mime = artifact.mime or mimetypes.guess_type(path.name)[0] or "image/jpeg"
-        out.append(f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}")
+        data = f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
+        out.append((data, artifact.attrs.get("label")))
     return out
 
 
@@ -153,21 +186,52 @@ def _resource_item(resource, strings: dict) -> str:
     return f"<li>{text}</li>"
 
 
-def _cue_html(cue, strings: dict) -> str:
-    caution = cue.kind in strings["caution_kinds"]
-    label = strings["caution"] if caution else strings["cue"]
-    return (
-        f'<p class="cue{" caution" if caution else ""}">'
-        f"<span>{html.escape(label)}</span>{_cue_label(cue)} {html.escape(cue.text)}</p>"
-    )
+def _kind_label(kind: str, strings: dict) -> str:
+    """A cue kind's heading: from the strings table, else the kind's own name."""
+    return strings["cue_kinds"].get(kind, kind)
 
 
-def _pictures(imgs: list[str], strings: dict) -> str:
-    """One picture, or a start and end pair, or all of them in order."""
-    labels = [strings["start"], strings["end"]] if len(imgs) == 2 else [""] * len(imgs)
+def group_cues(cues: list, strings: dict) -> list[tuple[str, list]]:
+    """Cues grouped by kind, in reading order: the ``kind_first`` kinds (set-up),
+    then the cautions, then every other kind in first-seen order."""
+    kinds: list[str] = []
+    for cue in cues:
+        if cue.kind not in kinds:
+            kinds.append(cue.kind)
+
+    def rank(kind: str) -> int:
+        if kind in strings["kind_first"]:
+            return 0
+        return 1 if kind in strings["caution_kinds"] else 2
+
+    kinds.sort(key=rank)  # stable: first-seen order within a rank
+    return [(k, [c for c in cues if c.kind == k]) for k in kinds]
+
+
+def _cue_html(cues: list, strings: dict) -> str:
+    """A step's cues, one block per kind: a heading, then the lines."""
+    blocks = []
+    for kind, group in group_cues(cues, strings):
+        caution = kind in strings["caution_kinds"]
+        lines = "".join(
+            f'<p class="cue{" caution" if caution else ""}">'
+            f"{_cue_label(cue).strip()}{' ' if cue.label else ''}{html.escape(cue.text)}</p>"
+            for cue in group
+        )
+        blocks.append(
+            f'<div class="cuegroup"><span>{html.escape(_kind_label(kind, strings))}</span>{lines}</div>'
+        )
+    return "".join(blocks)
+
+
+def _pictures(imgs: list[tuple[str, str | None]], strings: dict) -> str:
+    """One picture, or a start and end pair, or all of them in order. An
+    artifact's own ``label`` is its caption; a bare pair is Start and End."""
+    pair = [strings["start"], strings["end"]] if len(imgs) == 2 else [""] * len(imgs)
     figures = []
-    for src, label in zip(imgs, labels):
-        caption = f"<span>{html.escape(label)}</span>" if label else ""
+    for (src, own), default in zip(imgs, pair):
+        label = own or default
+        caption = f"<span>{html.escape(str(label))}</span>" if label else ""
         figures.append(
             f'<div class="fig"><img src="{html.escape(src)}" alt="">{caption}</div>'
         )
@@ -181,6 +245,8 @@ def _step_row(step: Step, *, number, nested, cues, strings, imgs, pic_width) -> 
         badges.append(strings["optional"])
     if step.variant_of:
         badges.append(strings["variant_of"].format(step=step.variant_of))
+    if "between-passes" in step.tags:
+        badges.append(strings["between_passes"])
     badge = (
         f'<div class="badge">{html.escape(" · ".join(badges))}</div>' if badges else ""
     )
@@ -189,12 +255,12 @@ def _step_row(step: Step, *, number, nested, cues, strings, imgs, pic_width) -> 
         if step.description
         else ""
     )
-    count = _rounds(step, strings) + _count(step.duration, strings)
+    count = _step_count(step, strings)
     row_class = "step nested" if nested else "step"
     pic_cell = (
         f'<td class="pic" style="width:{pic_width}mm">{pic}</td>' if pic_width else ""
     )
-    cue_html = "".join(_cue_html(c, strings) for c in cues)
+    cue_html = _cue_html(cues, strings)
     return (
         f'<tr class="{row_class}">'
         f'<td class="num">{number}</td>'
@@ -213,7 +279,7 @@ def _group_row(step: Step, cues: list, strings: dict, span: int) -> str:
         if step.description
         else ""
     )
-    own = "".join(_cue_html(c, strings) for c in cues)
+    own = _cue_html(cues, strings)
     title = html.escape(f"{_rounds(step, strings)}{step.name}")
     return f'<tr class="group"><td colspan="{span}">{title}{desc}{own}</td></tr>'
 
@@ -222,11 +288,20 @@ def _outline_item(step: Step, strings: dict) -> str:
     if step.steps:
         # a group's duration is the total, repeats included (validate_document)
         total = strings["in_all"].format(count=_count(step.duration, strings))
-        note = f"{_rounds(step, strings)}{total}"
+        note = (
+            f"{strings['rounds'].format(n=step.repeat)} · {total}"
+            if step.repeat > 1
+            else total
+        )
         inner = "".join(_outline_item(child, strings) for child in step.steps)
         return f"<li>{html.escape(step.name)} <i>({html.escape(note)})</i><ul>{inner}</ul></li>"
-    counts = html.escape(_rounds(step, strings) + _count(step.duration, strings))
-    return f"<li>{html.escape(step.name)} — {counts}</li>"
+    counts = html.escape(_step_count(step, strings))
+    mark = (
+        f" <i>({html.escape(strings['between_passes'])})</i>"
+        if "between-passes" in step.tags
+        else ""
+    )
+    return f"<li>{html.escape(step.name)} — {counts}{mark}</li>"
 
 
 def render_card(
