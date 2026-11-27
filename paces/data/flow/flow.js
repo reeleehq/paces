@@ -326,7 +326,7 @@
     function renderDone() {
       stage.appendChild(el("article", { class: "card overview done" }, [
         el("h2", { class: "ovtitle", text: learner.rounds > 1 ? fmt(S.doneRounds, { n: learner.rounds }) : S.done }),
-        el("p", { class: "ovcounts", text: learnerBits().concat(state.totalSeconds >= 1 ? [mmss(state.totalSeconds)] : []).join(" · ") }),
+        el("p", { class: "ovcounts", text: state.totalSeconds >= 1 ? mmss(state.totalSeconds) : learnerBits().slice(learner.rounds > 1 ? 1 : 0).join(" · ") }),
         el("button", { class: "bigbtn primary", type: "button", onclick: function () { state.finished = false; state.totalSeconds = 0; state.mode = "timed"; go(0); state.view = "step"; render(); } }, [icon(ICONS.play), document.createTextNode(S.restart)]),
         el("button", { class: "bigbtn ghost", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)])]));
     }
@@ -439,6 +439,11 @@
       if (m.kind === "video") {
         var v = el("video", { class: cls, loop: "", muted: "", playsinline: "", autoplay: "", preload: "metadata" }, [el("source", { src: m.src, type: m.mime })]);
         v.muted = true; if (m.poster) v.setAttribute("poster", m.poster);
+        /* a clip that cannot play falls back to its poster, else to nothing (no hole) */
+        v.addEventListener("error", function () {
+          if (m.poster) { var img = el("img", { class: cls, src: m.poster, alt: "" }); if (v.parentNode) v.parentNode.replaceChild(img, v); }
+          else v.remove();
+        }, true);
         return v;
       }
       return el("img", { class: cls, src: m.src, alt: "" });

@@ -1,6 +1,6 @@
 # Flow player: design brief
 
-The static step-through player that `render(document, renderer="flow", output=...)` writes. Source: `paces/data/flow/`. This brief describes the current build (v2); the decisions behind it are in the section at the end.
+The static step-through player that `render(document, renderer="flow", output=...)` writes. Source: `paces/data/flow/`. This brief describes the current build (v3); the decisions behind it are in the section at the end.
 
 ## Kind, person, tasks
 
@@ -52,3 +52,11 @@ An independent critique of a real workout-circuit document (phone and desktop, l
 - **Versions.** Alternatives among a step's artifacts are a small switcher; the main one is marked (`attrs.main`, else the first), a label comes from `attrs.label`.
 - **Fonts and network.** The stylesheet names the three faces; shipping them is a separate change. The folder fetches nothing.
 - **Not built, on purpose.** Vibration, a hidden-video wake-lock fallback, per-step custom rest lengths.
+
+
+## v3 (paces#87)
+
+- One chip per variant: `attrs.variant` groups a step's loops; an mp4 and a gif of one variant are one choice and the player takes the video. A clip that cannot play falls back to its poster, else disappears (no empty hole).
+- The opening and done cards speak in the learner's units: rounds, steps (rests are not steps) and, when every step counts in one unit, the total. The words come from the strings table (`--strings` lets a deployer say "stations").
+- On a wide screen the clip is sized to the window (`100dvh - 36rem`) so the chips and the first cues are above the bar.
+- A cue of kind `notice` is information, not an instruction: a plain muted note apart from the cues and not counted among them. The disclosure reads "N more cues".
