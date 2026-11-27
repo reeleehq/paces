@@ -32,12 +32,30 @@
   "sources": "Sources",
   "openQuestions": "Open questions",
   "units": {
-    "rep": ["rep", "reps"],
-    "eight": ["eight", "eights"],
-    "bar": ["bar", "bars"],
-    "second": ["second", "seconds"],
-    "minute": ["minute", "minutes"],
-    "set": ["set", "sets"]
+    "rep": [
+      "rep",
+      "reps"
+    ],
+    "eight": [
+      "eight",
+      "eights"
+    ],
+    "bar": [
+      "bar",
+      "bars"
+    ],
+    "second": [
+      "second",
+      "seconds"
+    ],
+    "minute": [
+      "minute",
+      "minutes"
+    ],
+    "set": [
+      "set",
+      "sets"
+    ]
   },
   "roles": {
     "performance": "run-through",
@@ -57,6 +75,41 @@
     "lyric": "Lyric",
     "caption": "Note"
   },
-  "cautionKinds": ["warning", "caution", "fault", "safety"],
-  "kindFirst": ["setup"]
+  "cautionKinds": [
+    "warning",
+    "caution",
+    "fault",
+    "safety"
+  ],
+  "kindFirst": [
+    "setup"
+  ],
+  "sounds": "Sounds",
+  "keepAwake": "Keep screen on",
+  "awakePlaying": "while playing",
+  "awakeOpen": "while open",
+  "awakeNever": "never",
+  "restUp": "resting",
+  "remaining": "left",
+  "about": "about {t} min at this pace",
+  "stepsCount": "{n} steps",
+  "roundsCount": "{n} rounds",
+  "start": "Start",
+  "stepThrough": "Step through",
+  "firstUp": "First:",
+  "done": "Done",
+  "doneShort": "Done",
+  "doneCounts": "{n} steps · {t}",
+  "restart": "Restart",
+  "stepOf": "step {n} of {of}",
+  "versions": "Versions",
+  "main": "Main",
+  "alternative": "Alternative {n}",
+  "getReady": "Get ready",
+  "watch": "Watch the source ({t})",
+  "allCues": "All {n} cues",
+  "moreInfo": "More",
+  "next2": "Next",
+  "close": "Close",
+  "pausedHidden": "Paused when the screen turned off"
 }

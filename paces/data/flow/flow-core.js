@@ -18,20 +18,22 @@
       var rounds = Math.max(1, step.repeat || 1);
       if (step.steps && step.steps.length) {
         for (var r = 1; r <= rounds; r++) {
-          var inner = { group: ctx.group, parents: ctx.parents.concat([step]),
-            rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: r, of: rounds }] : []) };
-          var firstShown = true;
-          step.steps.forEach(function (child) {
-            /* a rest BETWEEN the passes is not after the last one */
-            if (r === rounds && hasTag(child, "between-passes")) return;
-            walk(child, inner, firstShown ? (r === 1 ? first : []).concat([step]) : []);
-            firstShown = false;
+          /* a rest BETWEEN the passes is not after the last one */
+          var shown = step.steps.filter(function (child) {
+            return !(r === rounds && hasTag(child, "between-passes"));
+          });
+          shown.forEach(function (child, i) {
+            var inner = { group: ctx.group, parents: ctx.parents.concat([step]),
+              rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: r, of: rounds }] : []),
+              pos: { n: i + 1, of: shown.length } };
+            walk(child, inner, i === 0 ? (r === 1 ? first : []).concat([step]) : []);
           });
         }
       } else {
         for (var k = 1; k <= rounds; k++) {
           stops.push({
             step: step, group: ctx.group, parents: ctx.parents, heads: k === 1 ? first : [],
+            pos: ctx.pos || null,
             rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: k, of: rounds }] : []),
             index: stops.length
           });
