@@ -433,3 +433,81 @@ def test_a_notice_is_plain_information_not_a_cue():
     page = card.render_card(doc)
     assert '<p class="notice">No demonstration yet.</p>' in page
     assert "<span>Notice</span>" not in page and page.count('class="cuegroup"') == 1
+
+
+# ── aspect ratio (#91) ─────────────────────────────────────────────────────
+
+
+def _poster_png(path, size):
+    pil = pytest.importorskip("PIL.Image")
+    pil.new("RGB", size, (190, 120, 150)).save(path)
+
+
+def _two_ratio_doc(tmp_path):
+    (tmp_path / "media").mkdir(exist_ok=True)
+    _poster_png(tmp_path / "media" / "tall.png", (270, 480))  # 9:16
+    _poster_png(tmp_path / "media" / "wide.png", (480, 270))  # 16:9
+    step = Step(
+        id="s",
+        name="Station",
+        duration=Measure(value="7", unit="rep"),
+        artifacts=[
+            ArtifactRef(role="poster", uri="media/tall.png", attrs={"position": "start"}),
+            ArtifactRef(role="poster", uri="media/wide.png", attrs={"position": "end"}),
+        ],
+    )
+    return StepDocument(id="d", title="D", steps=[step])
+
+
+def test_a_picture_keeps_its_aspect_ratio_inside_the_block(tmp_path):
+    import re
+
+    page = card.render_card(_two_ratio_doc(tmp_path), media_from=tmp_path)
+    boxes = [
+        (float(w), float(h))
+        for w, h in re.findall(r"<img[^>]*style=\"width:([\d.]+)mm;height:([\d.]+)mm\"", page)
+    ]
+    assert len(boxes) == 2
+    (tw, th), (ww, wh) = boxes
+    assert abs(tw / th - 9 / 16) < 0.01 and abs(ww / wh - 16 / 9) < 0.01  # not stretched
+    for w, h in boxes:  # and both fit inside the block
+        assert w <= card.PIC_MM + 0.01 and h <= card.PIC_H_MM + 0.01
+
+
+@pytest.mark.parametrize(
+    "fmt, size", [("PNG", (90, 160)), ("JPEG", (320, 180)), ("GIF", (50, 70))]
+)
+def test_natural_sizes_are_read_from_the_headers(fmt, size):
+    import io
+
+    pil = pytest.importorskip("PIL.Image")
+    buffer = io.BytesIO()
+    pil.new("RGB", size, (10, 20, 30)).save(buffer, format=fmt)
+    assert card._image_size(buffer.getvalue()) == size
+    assert card._image_size(b"not an image") is None
+
+
+@needs_pdf
+def test_the_pdf_draws_each_picture_at_its_natural_ratio(tmp_path):
+    pytest.importorskip("pdfdol")
+    fitz = pytest.importorskip("fitz")
+    doc = _two_ratio_doc(tmp_path)
+    path = tmp_path / "d.json"
+    path.write_text(dumps_document(doc), encoding="utf-8")
+    out = tmp_path / "d.pdf"
+    render(str(path), renderer="card", output=str(out))
+    page = fitz.open(str(out))[0]
+    ratios = sorted(
+        round(rect.width / rect.height, 2)
+        for info in page.get_image_info()
+        for rect in [fitz.Rect(info["bbox"])]
+    )
+    assert len(ratios) == 2
+    assert abs(ratios[0] - 9 / 16) < 0.03 and abs(ratios[1] - 16 / 9) < 0.03
+
+
+def test_one_strings_object_serves_flow_and_card():
+    page = card.render_card(_doc(), strings={"stepsCount": "{n} stations"})
+    assert "<h2>Stations</h2>" in page
+    explicit = card.render_card(_doc(), strings={"stepsCount": "{n} stations", "steps": "Moves"})
+    assert "<h2>Moves</h2>" in explicit

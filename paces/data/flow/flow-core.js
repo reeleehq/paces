@@ -142,6 +142,9 @@
    * three; a step with artifacts but none of these is reported at render time. */
   var SHOWN_ROLES = ["clip", "gif", "poster"];
 
+  /* width / height of an artifact when the document says them, else null */
+  function ratioOf(a) { return a.width && a.height ? a.width / a.height : null; }
+
   function stemOf(uri) { return uri.replace(/\.[^./]+$/, ""); }
 
   /* Everything a step can show, main first. Each option is a looping clip with
@@ -158,11 +161,11 @@
       if (a.role !== "clip") return;
       var p = posters.filter(function (q) { return stemOf(q.uri) === stemOf(a.uri); })[0];
       if (p) used[p.uri] = true;
-      options.push({ kind: "video", src: a.uri, mime: a.mime || "video/mp4", poster: p && p.uri,
+      options.push({ kind: "video", src: a.uri, mime: a.mime || "video/mp4", poster: p && p.uri, ratio: ratioOf(a),
         label: label(a), main: !!(a.attrs && a.attrs.main), variant: a.attrs && a.attrs.variant });
     });
     arts.forEach(function (a) {
-      if (a.role === "gif") options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main), variant: a.attrs && a.attrs.variant });
+      if (a.role === "gif") options.push({ kind: "image", src: a.uri, ratio: ratioOf(a), label: label(a), main: !!(a.attrs && a.attrs.main), variant: a.attrs && a.attrs.variant });
     });
     arts.forEach(function (a) {
       if (a.role === "poster" && !used[a.uri]) options.push({ kind: "image", still: true, src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });

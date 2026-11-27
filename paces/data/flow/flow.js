@@ -436,8 +436,10 @@
 
     function mediaNode(m, small) {
       var cls = "media" + (small ? " small" : "");
+      var ratioStyle = m.ratio && !small ? "aspect-ratio:" + m.ratio : null;
       if (m.kind === "video") {
         var v = el("video", { class: cls, loop: "", muted: "", playsinline: "", autoplay: "", preload: "metadata" }, [el("source", { src: m.src, type: m.mime })]);
+        if (ratioStyle) v.setAttribute("style", ratioStyle);
         v.muted = true; if (m.poster) v.setAttribute("poster", m.poster);
         /* a clip that cannot play falls back to its poster, else to nothing (no hole) */
         v.addEventListener("error", function () {
@@ -446,7 +448,9 @@
         }, true);
         return v;
       }
-      return el("img", { class: cls, src: m.src, alt: "" });
+      var image = el("img", { class: cls, src: m.src, alt: "" });
+      if (ratioStyle) image.setAttribute("style", ratioStyle);
+      return image;
     }
 
     function drawBeats(active) {

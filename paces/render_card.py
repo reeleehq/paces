@@ -34,6 +34,8 @@ DFLT_PAPER = "a4"
 MAX_EMBED_BYTES = 400_000
 #: Width of one picture on the card, in mm.
 PIC_MM = 21
+#: Height of the picture block, in mm. Pictures are fitted inside it (contain).
+PIC_H_MM = 26
 #: A step's picture block holds at most this many pictures: the start and end of the
 #: main variant. Alternatives do not belong on a printed card.
 MAX_PICTURES = 2
@@ -93,7 +95,7 @@ table { width: 100%%; border-collapse: collapse; }
 td { vertical-align: top; padding: 2mm 2mm 2mm 0; }
 tr.step { page-break-inside: avoid; border-bottom: .2mm solid #e3dcee; }
 td.pic .fig { display: inline-block; vertical-align: top; width: 21mm; margin-right: 2mm; }
-td.pic img { width: 21mm; height: 26mm; object-fit: cover; display: block; border: .2mm solid #cfc6de; }
+td.pic img { display: block; margin: 0 auto; border: .2mm solid #cfc6de; }
 td.pic .fig span { display: block; font-size: 7pt; text-align: center; color: #5b4a73; }
 td.num { width: 8mm; font-weight: bold; color: #5b4a73; }
 td.count { width: 26mm; text-align: right; white-space: nowrap; font-weight: bold; }
@@ -121,7 +123,15 @@ def _merged(overrides: Mapping | None) -> dict:
     table = {
         k: (dict(v) if isinstance(v, dict) else v) for k, v in DEFAULT_STRINGS.items()
     }
-    for key, value in (overrides or {}).items():
+    overrides = dict(overrides or {})
+    # one --strings object serves flow and card: the flow's "stepsCount"
+    # ("{n} stations") also names the card's steps heading ("Stations")
+    noun = overrides.get("stepsCount")
+    if isinstance(noun, str) and "steps" not in overrides:
+        word = noun.replace("{n}", "").strip()
+        if word:
+            table["steps"] = word[:1].upper() + word[1:]
+    for key, value in overrides.items():
         if isinstance(value, Mapping) and isinstance(table.get(key), dict):
             table[key] = {**table[key], **value}
         else:
@@ -184,9 +194,48 @@ def _main_variant_posters(step: Step) -> list:
     return chosen
 
 
+def _image_size(data: bytes) -> tuple[int, int] | None:
+    """Natural (width, height) in pixels of a PNG, JPEG or GIF, read from its
+    header (no imaging library), or ``None`` when it cannot be read."""
+    import struct
+
+    if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
+        return struct.unpack(">II", data[16:24])
+    if data[:6] in (b"GIF87a", b"GIF89a") and len(data) >= 10:
+        return struct.unpack("<HH", data[6:10])
+    if data[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(data):
+            if data[i] != 0xFF:
+                i += 1
+                continue
+            marker = data[i + 1]
+            if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+                i += 2
+                continue
+            length = struct.unpack(">H", data[i + 2 : i + 4])[0]
+            if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+                h, w = struct.unpack(">HH", data[i + 5 : i + 9])
+                return w, h
+            i += 2 + length
+    return None
+
+
+def _contain(size: tuple[int, int] | None) -> str:
+    """CSS sizes that fit an image of natural ``size`` inside the picture block,
+    keeping its aspect ratio (contain: a figure must not lose its head or feet to
+    a crop, and a stretch squashes it). Explicit sizes, so every print engine
+    agrees; without a readable size, the block's maxima with automatic sizing."""
+    if not size or not size[0] or not size[1]:
+        return f"max-width:{PIC_MM}mm;max-height:{PIC_H_MM}mm;width:auto;height:auto"
+    w, h = size
+    scale = min(PIC_MM / w, PIC_H_MM / h)
+    return f"width:{w * scale:.2f}mm;height:{h * scale:.2f}mm"
+
+
 def _poster_srcs(
     step: Step, media_from: Path | None, media_root: Path | None
-) -> list[tuple[str, str | None]]:
+) -> list[tuple[str, str | None, tuple[int, int] | None]]:
     """The step's posters, in order, as data URIs (embedded, so the card is one
     file). Posters whose file is missing, too big, or not a relative path are
     left out; a remote poster is left out too: printing must not fetch from the
@@ -200,8 +249,9 @@ def _poster_srcs(
         if path is None or path.stat().st_size > MAX_EMBED_BYTES:
             continue
         mime = artifact.mime or mimetypes.guess_type(path.name)[0] or "image/jpeg"
-        data = f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
-        out.append((data, artifact.attrs.get("position")))
+        raw = path.read_bytes()
+        data = f"data:{mime};base64,{base64.b64encode(raw).decode()}"
+        out.append((data, artifact.attrs.get("position"), _image_size(raw)))
     return out
 
 
@@ -274,18 +324,19 @@ def _cue_html(cues: list, strings: dict) -> str:
     return "".join(blocks)
 
 
-def _pictures(imgs: list[tuple[str, str | None]], strings: dict) -> str:
+def _pictures(imgs: list, strings: dict) -> str:
     """One picture, or a start and end pair, or all of them in order. The
     caption is the position in the movement ("Start", "End"), or for a bare pair
     the order; the variant is not the reader's concern, so an artifact's own
     ``label`` is not printed on a card."""
     pair = [strings["start"], strings["end"]] if len(imgs) == 2 else [""] * len(imgs)
     figures = []
-    for (src, position), default in zip(imgs, pair):
+    for (src, position, size), default in zip(imgs, pair):
         label = strings.get("positions", {}).get(str(position)) or default
         caption = f"<span>{html.escape(str(label))}</span>" if label else ""
         figures.append(
-            f'<div class="fig"><img src="{html.escape(src)}" alt="">{caption}</div>'
+            f'<div class="fig"><img src="{html.escape(src)}" alt="" '
+            f'style="{_contain(size)}">{caption}</div>'
         )
     return "".join(figures)
 
