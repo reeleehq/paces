@@ -112,7 +112,10 @@
     var stage = el("main", { class: "stage" });
     var outline = el("nav", { class: "outline", "aria-label": S.allSteps });
     var prev = el("button", { class: "nav", type: "button", "aria-label": S.previous, onclick: function () { advance(-1, true); } }, [icon(ICONS.prev)]);
-    var next = el("button", { class: "nav", type: "button", "aria-label": S.next, onclick: function () { advance(1, true); } }, [icon(ICONS.next)]);
+    var next = el("button", { class: "nav", type: "button", "aria-label": S.next, onclick: function () {
+      if (state.i === stops.length - 1) { if (state.playing) { complete(); } else { state.finished = true; state.view = "done"; render(); } }
+      else advance(1, true);
+    } }, [icon(ICONS.next)]);
     var playBtn = el("button", { class: "play", type: "button", onclick: function () { togglePlay(); } });
     var playLabel = el("span", { class: "playlabel" });
     var beats = el("div", { class: "beats", "aria-hidden": "true" });
@@ -198,9 +201,9 @@
     /* ── what the big count shows ─────────────────────────────── */
     function bigCount(stop) {
       var m = stop.step.duration, forms = (S.units || {})[m.unit];
-      var unitWord = forms ? forms[1] : m.unit;
+      var unitWord = forms ? (Number(m.value) === 1 ? forms[0] : forms[1]) : m.unit;
       if (C.isLearnerLed(stop.step)) {
-        return state.playing && state.waiting ? { text: mmss(state.waited), sub: S.restUp } : { text: S.learnerLed, sub: "" };
+        return state.playing && state.waiting ? { text: mmss(state.waited), sub: S.restUp } : { text: S.learnerLed, sub: "", small: true };
       }
       if (state.mode !== "timed" || (!state.playing && state.progress === 0 && state.countIn === 0)) {
         return { text: m.value, sub: unitWord };       /* the target, in the same spot as the count */
@@ -209,11 +212,11 @@
       var byReps = !C.gridApplies(doc, m) && m.unit !== "second" && m.unit !== "minute" && state.settings.pace !== "step";
       if (C.gridApplies(doc, m)) {
         var n = Number(m.value);
-        return { text: Math.min(n, Math.floor(state.progress * n) + 1) + " / " + n, sub: unitWord };
+        return { text: String(Math.min(n, Math.floor(state.progress * n) + 1)), sub: "/ " + n + " " + unitWord };
       }
       if (byReps) {
         var N = Number(m.value);
-        return { text: Math.min(N, Math.floor(state.progress * N) + 1) + " / " + N, sub: unitWord };
+        return { text: String(Math.min(N, Math.floor(state.progress * N) + 1)), sub: "/ " + N + " " + unitWord };
       }
       return { text: mmss(total * (1 - state.progress)), sub: S.remaining };
     }
@@ -256,7 +259,11 @@
       modeBtn.setAttribute("aria-label", S.mode + ": " + modeBtn.textContent);
       var barOn = state.view === "step";
       bar.hidden = !barOn;
-      prev.setAttribute("aria-disabled", String(state.i === 0)); next.setAttribute("aria-disabled", String(state.i === stops.length - 1));
+      var lastStop = state.i === stops.length - 1;
+      prev.setAttribute("aria-disabled", String(state.i === 0));
+      next.setAttribute("aria-disabled", "false");
+      next.textContent = ""; next.appendChild(icon(lastStop ? ICONS.check : ICONS.next));
+      next.setAttribute("aria-label", lastStop ? S.finish : S.next);
       var timed = state.mode === "timed";
       playBtn.hidden = !timed; playLabel.hidden = !timed;
       playBtn.textContent = "";
@@ -284,7 +291,7 @@
         el("p", { class: "ovcounts", text: counts() }),
         doc.credits ? el("p", { class: "ovcredit", text: doc.credits }) : null,
         el("button", { class: "bigbtn primary", type: "button", onclick: function () { beginTimed(); } }, [icon(ICONS.play), document.createTextNode(S.start)]),
-        el("button", { class: "bigbtn", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)]),
+        el("button", { class: "bigbtn ghost", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)]),
         resourcesBlock(),
         el("p", { class: "ovnext", text: S.firstUp + " " + first.step.name })]));
     }
@@ -312,7 +319,7 @@
         el("h2", { class: "ovtitle", text: S.done }),
         el("p", { class: "ovcounts", text: fmt(S.doneCounts, { n: stops.length, t: mmss(state.totalSeconds) }) }),
         el("button", { class: "bigbtn primary", type: "button", onclick: function () { state.finished = false; state.totalSeconds = 0; state.mode = "timed"; go(0); state.view = "step"; render(); } }, [icon(ICONS.play), document.createTextNode(S.restart)]),
-        el("button", { class: "bigbtn", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)])]));
+        el("button", { class: "bigbtn ghost", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)])]));
     }
 
     function renderStep(s) {
@@ -322,16 +329,26 @@
       var ctx = [];
       s.rounds.forEach(function (r) { if (s.parents.indexOf(r.step) >= 0) ctx.push(C.formatRound(r, S)); });
       if (s.pos && s.pos.of > 1) ctx.push(fmt(S.stepOf, { n: s.pos.n, of: s.pos.of }));
-      card.appendChild(el("p", { class: "context", text: ctx.join(" · ") || " " }));
+      card.appendChild(el("p", { class: "context", text: ctx.join(" · ") || "\u00a0" }));
 
-      var options = C.listMedia(step);
+      var big = bigCount(s);
+      var counting = state.countIn > 0;
+      var dose = C.dosage(step);
+      card.appendChild(el("div", { class: "head" }, [
+        el("div", { class: "namecol" }, [el("h2", { text: step.name }), dose ? el("p", { class: "dose", text: dose }) : null]),
+        el("div", { class: "bigcount" + (counting ? " getready" : "") + (big.small && !counting ? " small" : ""), "data-big": "1", "aria-hidden": counting || state.playing ? "true" : "false" }, [
+          el("span", { class: "bignum", text: counting ? String(Math.ceil(state.countIn)) : big.text }),
+          el("span", { class: "bigsub", text: counting ? S.getReady : big.sub })])]));
+      card.appendChild(el("div", { class: "fillbar", "aria-hidden": "true" }, [el("i", {})]));
+
+      var options = C.choices(C.listMedia(step));
       var shown = state.mediaIndex[step.id] || 0;
       if (shown >= options.length) shown = 0;
       if (options.length) {
         card.appendChild(mediaNode(options[shown]));
         if (options.length > 1) {
           card.appendChild(el("div", { class: "alts", role: "group", "aria-label": S.versions }, options.map(function (o, i) {
-            var name = (i === 0 ? S.main : "") + (o.label ? (i === 0 ? " · " : "") + o.label : (i === 0 ? "" : fmt(S.alternative, { n: i })));
+            var name = o.label || (i === 0 ? S.main : fmt(S.alternative, { n: i }));
             return el("button", { class: "alt" + (i === shown ? " on" : ""), type: "button", "aria-pressed": String(i === shown), text: name,
               onclick: function () { state.mediaIndex[step.id] = i; render(); } });
           })));
@@ -339,21 +356,10 @@
       }
       (s.heads || []).forEach(function (p) { if (!options.length) { var m = C.listMedia(p)[0]; if (m) card.appendChild(mediaNode(m)); } });
 
-      card.appendChild(el("div", { class: "head" }, [el("h2", { text: step.name }),
-        el("span", { class: "count", text: C.formatCount(step, S) })]));
       var badges = [];
       if (step.optional) badges.push(S.optional);
       if (step.variantOf) badges.push(fmt(S.variantOf, { step: step.variantOf }));
       if (badges.length) card.appendChild(el("p", { class: "badges", text: badges.join(" · ") }));
-
-      var big = bigCount(s);
-      var counting = state.countIn > 0;
-      var bigEl = el("div", { class: "bigcount" + (counting ? " getready" : ""), "aria-hidden": counting || state.playing ? "true" : "false" }, [
-        el("span", { class: "bignum", text: counting ? String(Math.ceil(state.countIn)) : big.text }),
-        el("span", { class: "bigsub", text: counting ? S.getReady : big.sub })]);
-      bigEl.setAttribute("data-big", "1");
-      card.appendChild(bigEl);
-      card.appendChild(el("div", { class: "fillbar", "aria-hidden": "true" }, [el("i", {})]));
 
       (s.heads || []).forEach(function (p) { if (p.description) card.appendChild(el("p", { class: "lead", text: p.description })); });
       if (step.description) card.appendChild(el("p", { class: "desc", text: step.description }));
