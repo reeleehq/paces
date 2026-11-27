@@ -163,49 +163,66 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="28"><span class="p">)</span>
 </span><span data-line="29">
 </span><span data-line="30">
+</span><span data-line="31"><span class="k">def</span><span class="w"> </span><span class="nf">_strip_null_defaults</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+</span><span data-line="32"><span class="w">    </span><span class="sd">"""Drop ``"default": null`` everywhere. Pydantic emits it for every optional</span>
+</span><span data-line="33"><span class="sd">    field, but on the wire an absent field is *absent* (the canonical form omits</span>
+</span><span data-line="34"><span class="sd">    ``None``): a consumer that applies schema defaults (Zod 4's</span>
+</span><span data-line="35"><span class="sd">    ``z.fromJSONSchema``) would otherwise fill ``null`` into every one."""</span>
+</span><span data-line="36">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span data-line="37">        <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="38">            <span class="n">key</span><span class="p">:</span> <span class="n">_strip_null_defaults</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</span><span data-line="39">            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+</span><span data-line="40">            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">key</span> <span class="o">==</span> <span class="s2">"default"</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+</span><span data-line="41">        <span class="p">}</span>
+</span><span data-line="42">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+</span><span data-line="43">        <span class="k">return</span> <span class="p">[</span><span class="n">_strip_null_defaults</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">node</span><span class="p">]</span>
+</span><span data-line="44">    <span class="k">return</span> <span class="n">node</span>
+</span><span data-line="45">
+</span><span data-line="46">
 <div class="viewcode-block" id="step_document_schema">
 <a class="viewcode-back" href="../../_autosummary/paces.schema.html#paces.schema.step_document_schema">[docs]</a>
-</span><span data-line="31"><span class="k">def</span><span class="w"> </span><span class="nf">step_document_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="32"><span class="w">    </span><span class="sd">"""The JSON Schema of the document's wire form (camelCase keys)."""</span>
-</span><span data-line="33">    <span class="n">body</span> <span class="o">=</span> <span class="n">StepDocument</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="34">    <span class="k">return</span> <span class="p">{</span><span class="s2">"$schema"</span><span class="p">:</span> <span class="n">JSON_SCHEMA_DRAFT</span><span class="p">,</span> <span class="s2">"$id"</span><span class="p">:</span> <span class="n">SCHEMA_ID</span><span class="p">,</span> <span class="o">**</span><span class="n">body</span><span class="p">}</span></div>
+</span><span data-line="47"><span class="k">def</span><span class="w"> </span><span class="nf">step_document_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="48"><span class="w">    </span><span class="sd">"""The JSON Schema of the document's wire form (camelCase keys; optional</span>
+</span><span data-line="49"><span class="sd">    fields carry no ``default: null``, they are simply optional)."""</span>
+</span><span data-line="50">    <span class="n">body</span> <span class="o">=</span> <span class="n">_strip_null_defaults</span><span class="p">(</span><span class="n">StepDocument</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</span><span data-line="51">    <span class="k">return</span> <span class="p">{</span><span class="s2">"$schema"</span><span class="p">:</span> <span class="n">JSON_SCHEMA_DRAFT</span><span class="p">,</span> <span class="s2">"$id"</span><span class="p">:</span> <span class="n">SCHEMA_ID</span><span class="p">,</span> <span class="o">**</span><span class="n">body</span><span class="p">}</span></div>
 
-</span><span data-line="35">
-</span><span data-line="36">
+</span><span data-line="52">
+</span><span data-line="53">
 <div class="viewcode-block" id="dumps_schema">
 <a class="viewcode-back" href="../../_autosummary/paces.schema.html#paces.schema.dumps_schema">[docs]</a>
-</span><span data-line="37"><span class="k">def</span><span class="w"> </span><span class="nf">dumps_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="38"><span class="w">    </span><span class="sd">"""The canonical text of the schema file: 2-space indent, trailing newline."""</span>
-</span><span data-line="39">    <span class="n">schema</span> <span class="o">=</span> <span class="n">step_document_schema</span><span class="p">()</span> <span class="k">if</span> <span class="n">schema</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">schema</span>
-</span><span data-line="40">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span></div>
+</span><span data-line="54"><span class="k">def</span><span class="w"> </span><span class="nf">dumps_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="55"><span class="w">    </span><span class="sd">"""The canonical text of the schema file: 2-space indent, trailing newline."""</span>
+</span><span data-line="56">    <span class="n">schema</span> <span class="o">=</span> <span class="n">step_document_schema</span><span class="p">()</span> <span class="k">if</span> <span class="n">schema</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">schema</span>
+</span><span data-line="57">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span></div>
 
-</span><span data-line="41">
-</span><span data-line="42">
+</span><span data-line="58">
+</span><span data-line="59">
 <div class="viewcode-block" id="packaged_schema_text">
 <a class="viewcode-back" href="../../_autosummary/paces.schema.html#paces.schema.packaged_schema_text">[docs]</a>
-</span><span data-line="43"><span class="k">def</span><span class="w"> </span><span class="nf">packaged_schema_text</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="44"><span class="w">    </span><span class="sd">"""The committed copy of the schema that ships with the package."""</span>
-</span><span data-line="45">    <span class="k">return</span> <span class="p">(</span>
-</span><span data-line="46">        <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span>
-</span><span data-line="47">        <span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"schema"</span><span class="p">,</span> <span class="n">SCHEMA_FILENAME</span><span class="p">)</span>
-</span><span data-line="48">        <span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="49">    <span class="p">)</span></div>
+</span><span data-line="60"><span class="k">def</span><span class="w"> </span><span class="nf">packaged_schema_text</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="61"><span class="w">    </span><span class="sd">"""The committed copy of the schema that ships with the package."""</span>
+</span><span data-line="62">    <span class="k">return</span> <span class="p">(</span>
+</span><span data-line="63">        <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span>
+</span><span data-line="64">        <span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"schema"</span><span class="p">,</span> <span class="n">SCHEMA_FILENAME</span><span class="p">)</span>
+</span><span data-line="65">        <span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="66">    <span class="p">)</span></div>
 
-</span><span data-line="50">
-</span><span data-line="51">
+</span><span data-line="67">
+</span><span data-line="68">
 <div class="viewcode-block" id="fixture_paths">
 <a class="viewcode-back" href="../../_autosummary/paces.schema.html#paces.schema.fixture_paths">[docs]</a>
-</span><span data-line="52"><span class="k">def</span><span class="w"> </span><span class="nf">fixture_paths</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
-</span><span data-line="53"><span class="w">    </span><span class="sd">"""The shipped fixture documents.</span>
-</span><span data-line="54">
-</span><span data-line="55"><span class="sd">    ``"pass"`` validate; ``"fail"`` are rejected by the JSON Schema itself (and</span>
-</span><span data-line="56"><span class="sd">    by pydantic); ``"fail-python"`` break rules a JSON Schema cannot express</span>
-</span><span data-line="57"><span class="sd">    (a positive tempo, an ISO lock time), so only the Python model rejects them.</span>
-</span><span data-line="58"><span class="sd">    """</span>
-</span><span data-line="59">    <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pass"</span><span class="p">,</span> <span class="s2">"fail"</span><span class="p">,</span> <span class="s2">"fail-python"</span><span class="p">):</span>
-</span><span data-line="60">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"kind must be 'pass', 'fail' or 'fail-python', got </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="61">    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"fixtures"</span><span class="p">,</span> <span class="n">kind</span><span class="p">)))</span>
-</span><span data-line="62">    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">))</span></div>
+</span><span data-line="69"><span class="k">def</span><span class="w"> </span><span class="nf">fixture_paths</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+</span><span data-line="70"><span class="w">    </span><span class="sd">"""The shipped fixture documents.</span>
+</span><span data-line="71">
+</span><span data-line="72"><span class="sd">    ``"pass"`` validate; ``"fail"`` are rejected by the JSON Schema itself (and</span>
+</span><span data-line="73"><span class="sd">    by pydantic); ``"fail-python"`` break rules a JSON Schema cannot express</span>
+</span><span data-line="74"><span class="sd">    (a positive tempo, an ISO lock time), so only the Python model rejects them.</span>
+</span><span data-line="75"><span class="sd">    """</span>
+</span><span data-line="76">    <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pass"</span><span class="p">,</span> <span class="s2">"fail"</span><span class="p">,</span> <span class="s2">"fail-python"</span><span class="p">):</span>
+</span><span data-line="77">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"kind must be 'pass', 'fail' or 'fail-python', got </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="78">    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"fixtures"</span><span class="p">,</span> <span class="n">kind</span><span class="p">)))</span>
+</span><span data-line="79">    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">))</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -234,7 +251,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=9dd25805"></script>
+      <script src="../../_static/documentation_options.js?v=39aadc1c"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

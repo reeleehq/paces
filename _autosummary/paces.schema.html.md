@@ -22,11 +22,11 @@ can test against the same files.
 
 ### Functions
 
-| [`dumps_schema`](#paces.schema.dumps_schema)([schema])   | The canonical text of the schema file: 2-space indent, trailing newline.   |
-|---------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`fixture_paths`](#paces.schema.fixture_paths)(kind)      | The shipped fixture documents.                                             |
-| [`packaged_schema_text`](#paces.schema.packaged_schema_text)()   | The committed copy of the schema that ships with the package.              |
-| [`step_document_schema`](#paces.schema.step_document_schema)()   | The JSON Schema of the document's wire form (camelCase keys).              |
+| [`dumps_schema`](#paces.schema.dumps_schema)([schema])   | The canonical text of the schema file: 2-space indent, trailing newline.                                                          |
+|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`fixture_paths`](#paces.schema.fixture_paths)(kind)      | The shipped fixture documents.                                                                                                    |
+| [`packaged_schema_text`](#paces.schema.packaged_schema_text)()   | The committed copy of the schema that ships with the package.                                                                     |
+| [`step_document_schema`](#paces.schema.step_document_schema)()   | The JSON Schema of the document's wire form (camelCase keys; optional fields carry no `default: null`, they are simply optional). |
 
 ### paces.schema.JSON_SCHEMA_DRAFT *= 'https://json-schema.org/draft/2020-12/schema'*
 
@@ -59,7 +59,8 @@ The committed copy of the schema that ships with the package.
 
 ### paces.schema.step_document_schema()
 
-The JSON Schema of the document’s wire form (camelCase keys).
+The JSON Schema of the document’s wire form (camelCase keys; optional
+fields carry no `default: null`, they are simply optional).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)

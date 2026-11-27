@@ -1,4 +1,4 @@
-> built 2026-11-27 15:54 UTC from e5fdc24 (main) · paces 0.0.34. Details: build_info.json
+> built 2026-11-27 16:01 UTC from 96a3f02 (main) · paces 0.0.35. Details: build_info.json
 
 # index.html.md
 
@@ -2883,11 +2883,11 @@ can test against the same files.
 
 ### Functions
 
-| [`dumps_schema`](_autosummary/paces.schema.html.md#paces.schema.dumps_schema)([schema])   | The canonical text of the schema file: 2-space indent, trailing newline.   |
-|---------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`fixture_paths`](_autosummary/paces.schema.html.md#paces.schema.fixture_paths)(kind)      | The shipped fixture documents.                                             |
-| [`packaged_schema_text`](_autosummary/paces.schema.html.md#paces.schema.packaged_schema_text)()   | The committed copy of the schema that ships with the package.              |
-| [`step_document_schema`](_autosummary/paces.schema.html.md#paces.schema.step_document_schema)()   | The JSON Schema of the document's wire form (camelCase keys).              |
+| [`dumps_schema`](_autosummary/paces.schema.html.md#paces.schema.dumps_schema)([schema])   | The canonical text of the schema file: 2-space indent, trailing newline.                                                          |
+|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`fixture_paths`](_autosummary/paces.schema.html.md#paces.schema.fixture_paths)(kind)      | The shipped fixture documents.                                                                                                    |
+| [`packaged_schema_text`](_autosummary/paces.schema.html.md#paces.schema.packaged_schema_text)()   | The committed copy of the schema that ships with the package.                                                                     |
+| [`step_document_schema`](_autosummary/paces.schema.html.md#paces.schema.step_document_schema)()   | The JSON Schema of the document's wire form (camelCase keys; optional fields carry no `default: null`, they are simply optional). |
 
 ### paces.schema.JSON_SCHEMA_DRAFT *= 'https://json-schema.org/draft/2020-12/schema'*
 
@@ -2920,7 +2920,8 @@ The committed copy of the schema that ships with the package.
 
 ### paces.schema.step_document_schema()
 
-The JSON Schema of the document’s wire form (camelCase keys).
+The JSON Schema of the document’s wire form (camelCase keys; optional
+fields carry no `default: null`, they are simply optional).
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
@@ -3478,20 +3479,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 15:54 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/e5fdc24681b0737324e9070c049ecadd082b1a01"><code>e5fdc24</code></a> on branch <code>main</code>, for **paces 0.0.34** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 16:01 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/96a3f02d2357bfca12304b3ea690259462f628f4"><code>96a3f02</code></a> on branch <code>main</code>, for **paces 0.0.35** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.34) is ahead of the latest release on PyPI (0.0.33): these docs describe unreleased code.
+- The documented version (0.0.35) is ahead of the latest release on PyPI (0.0.34): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/e5fdc24681b0737324e9070c049ecadd082b1a01"><code>e5fdc24681b0737324e9070c049ecadd082b1a01</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/96a3f02d2357bfca12304b3ea690259462f628f4"><code>96a3f02d2357bfca12304b3ea690259462f628f4</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.34</code>                                                                                                                                   |
+| Tags at this commit | none                                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3500,9 +3501,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46028586172">46028586172</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46029519055">46029519055</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>9afe59b1ee41feef61d486e02954fd719e4c20be</code> (in the history of the built commit) |
+| Event commit | <code>3334b20ee10b92e29781cc1ef225dd13a087d5fb</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3527,13 +3528,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.33/">0.0.33</a>, older than the documented version (0.0.34).
+Latest release: <a href="https://pypi.org/project/paces/0.0.34/">0.0.34</a>, older than the documented version (0.0.35).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout e5fdc24681b0737324e9070c049ecadd082b1a01
+git checkout 96a3f02d2357bfca12304b3ea690259462f628f4
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
