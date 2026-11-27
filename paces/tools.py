@@ -20,6 +20,7 @@ from paces import (
     model,
     projection,
     render as render_module,
+    render_card as render_card_module,
     render_flow as render_flow_module,
     schema as schema_module,
     segmenters as segment_module,
@@ -226,7 +227,7 @@ def to_document(
     return json.loads(text)
 
 
-def _render_html_page(doc, output, media_from):
+def _render_html_page(doc, output, media_from, options):
     """The ``html`` renderer: returns the page text; writes it to ``output``."""
     text = render_module.render_html(doc)
     if output:
@@ -234,29 +235,50 @@ def _render_html_page(doc, output, media_from):
     return text
 
 
-def _render_flow_folder(doc, output, media_from):
+def _render_flow_folder(doc, output, media_from, options):
     """The ``flow`` renderer: writes a player folder at ``output``."""
     render_flow_module.render_flow(doc, output, media_from=media_from)
 
 
-#: name -> (run(doc, output, media_from), needs_output). Every renderer takes the
+def _render_card(doc, output, media_from, options):
+    """The ``card`` renderer: print HTML, or a PDF when ``output`` ends in .pdf."""
+    paper = options.get("paper") or render_card_module.DFLT_PAPER
+    page = render_card_module.render_card(doc, paper=paper, media_from=media_from)
+    if output and str(output).lower().endswith(".pdf"):
+        render_card_module.write_card_pdf(page, output, paper=paper)
+    elif output:
+        Path(output).write_text(page, encoding="utf-8")
+    return page
+
+
+#: name -> (run(doc, output, media_from, options), needs_output). Every renderer takes the
 #: same arguments, so a new one (a card, a deck) is one more row here and no
 #: change to ``render`` or its callers. A renderer that writes returns None
 #: (or, for text, its text); ``render`` answers with ``output`` when given.
 _RENDERERS = {
     "html": (_render_html_page, False),
     "flow": (_render_flow_folder, True),
+    "card": (_render_card, False),
 }
 
 
-def render(document, *, output: str | None = None, renderer: str = "html") -> str:
+def render(
+    document,
+    *,
+    output: str | None = None,
+    renderer: str = "html",
+    paper: str | None = None,
+) -> str:
     """Render a step document into learning material.
 
     ``renderer='html'`` produces the self-contained practice page.
     ``renderer='flow'`` produces a folder: a static step-through player (manual
     and timed), ``document.json`` and the document's media; it needs
-    ``output=`` (the folder). Returns the output path when ``output=`` is
-    given, otherwise the rendered text itself.
+    ``output=`` (the folder). ``renderer='card'`` produces a printable card
+    (one or two sheets): HTML, or a PDF when ``output`` ends in ``.pdf`` and
+    the ``paces[pdf]`` extra is installed; ``paper`` is ``'a4'`` (default) or
+    ``'letter'``. Returns the output path when ``output=`` is given, otherwise
+    the rendered text itself.
     """
     if renderer not in _RENDERERS:
         raise ValueError(
@@ -268,9 +290,9 @@ def render(document, *, output: str | None = None, renderer: str = "html") -> st
     doc = _as_document(document)
     from_a_file = isinstance(document, str) and Path(document).is_file()
     media_from = Path(document).resolve().parent if from_a_file else None
-    if output and not needs_output:
+    if output and renderer == "html":
         _warn_if_page_leaves_media_behind(doc, document, output)
-    text = run(doc, output, media_from)
+    text = run(doc, output, media_from, {"paper": paper})
     return output if output else text
 
 
