@@ -15,6 +15,7 @@
 - [paces.excerpts](paces.excerpts.html.md): Excerpt suggestion: mark the loopable sub-window each step’s clip is cut
 - [paces.known_k](paces.known_k.html.md): Known-K change points: the step count a human gave turns peak-picking into exact change-point detect...
 - [paces.measure](paces.measure.html.md): Measure a &#96;MetricGrid&#96; from the media itself.
+- [paces.media_paths](paces.media_paths.html.md): Where a document’s relative media lives, and the one boundary it is read within.
 - [paces.model](paces.model.html.md): The paces intermediate representation: the &#96;StepDocument&#96;.
 - [paces.pose](paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.
 - [paces.projection](paces.projection.html.md): The projection from analysis result to document: &#96;to_document&#96;.

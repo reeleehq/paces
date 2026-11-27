@@ -75,6 +75,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.excerpts.html">paces.excerpts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.known_k.html">paces.known_k</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.measure.html">paces.measure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.media_paths.html">paces.media_paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.model.html">paces.model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.pose.html">paces.pose</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.projection.html">paces.projection</a></li>
@@ -199,11 +200,13 @@ generated.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.render_flow.render_flow">
-<span class="sig-prename descclassname"><span class="pre">paces.render_flow.</span></span><span class="sig-name descname"><span class="pre">render_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_from</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/render_flow.html#render_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.render_flow.render_flow" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.render_flow.</span></span><span class="sig-name descname"><span class="pre">render_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_from</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/render_flow.html#render_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.render_flow.render_flow" title="Link to this definition">#</a></dt>
 <dd><p>Write the player folder for <code class="docutils literal notranslate"><span class="pre">doc</span></code> into <code class="docutils literal notranslate"><span class="pre">output_dir</span></code> and return it.</p>
 <p><code class="docutils literal notranslate"><span class="pre">media_from</span></code> is the folder the document’s relative artifact uris are
-relative to (usually the document’s own folder); the files are copied to the
-same relative paths in the output. <code class="docutils literal notranslate"><span class="pre">strings</span></code> overrides entries of the
+relative to (usually the document’s own folder). Files are read only within
+<code class="docutils literal notranslate"><span class="pre">media_root</span></code> (default <code class="docutils literal notranslate"><span class="pre">media_from</span></code>; widen it for media that lives beside
+the document) and are copied to their path relative to that root, which is
+where the shipped <code class="docutils literal notranslate"><span class="pre">document.json</span></code> points. <code class="docutils literal notranslate"><span class="pre">strings</span></code> overrides entries of the
 default strings table (a translation, a different word for “Start”).
 Warns, naming them, about artifacts whose files could not be found.</p>
 <dl class="field-list simple">
@@ -255,7 +258,7 @@ Warns, naming them, about artifacts whose files could not be found.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=0e525676"></script>
+      <script src="../_static/documentation_options.js?v=aa2ad26f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

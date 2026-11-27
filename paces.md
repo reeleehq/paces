@@ -1,4 +1,4 @@
-> built 2026-11-27 16:13 UTC from e772ba0 (main) · paces 0.0.36. Details: build_info.json
+> built 2026-11-27 16:34 UTC from 35c31e9 (main) · paces 0.0.37. Details: build_info.json
 
 # index.html.md
 
@@ -1893,6 +1893,7 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 | [`excerpts`](_autosummary/paces.excerpts.html.md#module-paces.excerpts)         | Excerpt suggestion: mark the loopable sub-window each step's clip is cut from.                                                                                                                                                          |
 | [`known_k`](_autosummary/paces.known_k.html.md#module-paces.known_k)           | Known-K change points: the step count a human gave turns peak-picking into exact change-point detection (paces#39).                                                                                                                     |
 | [`measure`](_autosummary/paces.measure.html.md#module-paces.measure)           | Measure a [`MetricGrid`](_autosummary/paces.model.html.md#paces.model.MetricGrid) from the media itself.                                                                                                                     |
+| [`media_paths`](_autosummary/paces.media_paths.html.md#module-paces.media_paths)   | Where a document's relative media lives, and the one boundary it is read within.                                                                                                                                                        |
 | [`model`](_autosummary/paces.model.html.md#module-paces.model)               | The paces intermediate representation: the `StepDocument`.                                                                                                                                                                              |
 | [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                                                                                                               |
 | [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)     | The projection from analysis result to document: `to_document`.                                                                                                                                                                         |
@@ -2120,6 +2121,44 @@ honestly `None` on the grid, with a flag naming it.
 
 * **Return type:**
   [`GridMeasurement`](_autosummary/paces.measure.html.md#paces.measure.GridMeasurement)
+
+
+# _autosummary/paces.media_paths.html.md
+
+# paces.media_paths
+
+Where a document’s relative media lives, and the one boundary it is read within.
+
+A document’s artifact uris are relative to a *base* folder (`media_from`,
+usually the document’s own folder). Reading them is confined to a *root*
+(`media_root`, by default the base itself), so a document cannot name a file
+the caller did not mean to expose; a caller whose media sits beside the
+document (`../media/a.mp4`) widens the root explicitly. Both renderers that
+read files (flow copies them, card embeds posters) resolve through here.
+
+### Functions
+
+| [`is_relative_path`](_autosummary/paces.media_paths.html.md#paces.media_paths.is_relative_path)(uri)                        | A file path relative to the document: no scheme, no leading slash or drive.                                   |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| [`resolve_media`](_autosummary/paces.media_paths.html.md#paces.media_paths.resolve_media)(uri, media_from[, media_root]) | The file `uri` names, or `None` when it is not a relative path, there is no base, or the file does not exist. |
+
+### paces.media_paths.is_relative_path(uri)
+
+A file path relative to the document: no scheme, no leading slash or drive.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+### paces.media_paths.resolve_media(uri, media_from, media_root=None)
+
+The file `uri` names, or `None` when it is not a relative path, there
+is no base, or the file does not exist.
+
+Raises `ValueError` when the uri leaves the root (`media_root`, default
+`media_from`): the caller must widen it on purpose.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/paces.model.html.md
@@ -2771,18 +2810,23 @@ uses for the web page, since the document has no equipment field.
 
 | [`MAX_EMBED_BYTES`](_autosummary/paces.render_card.html.md#paces.render_card.MAX_EMBED_BYTES)   | Posters bigger than this are not embedded (a card is a printout).   |
 |--------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`PIC_MM`](_autosummary/paces.render_card.html.md#paces.render_card.PIC_MM)            | Width of one picture on the card, in mm.                            |
 
 ### Functions
 
-| [`render_card`](_autosummary/paces.render_card.html.md#paces.render_card.render_card)(doc, \*[, paper, media_from, strings])   | The print-styled card page for `doc` (self-contained HTML).   |
-|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| [`write_card_pdf`](_autosummary/paces.render_card.html.md#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine])    | Convert a card page to a PDF at `output` through `pdfdol`.    |
+| [`render_card`](_autosummary/paces.render_card.html.md#paces.render_card.render_card)(doc, \*[, paper, media_from, ...])    | The print-styled card page for `doc` (self-contained HTML).   |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`write_card_pdf`](_autosummary/paces.render_card.html.md#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine]) | Convert a card page to a PDF at `output` through `pdfdol`.    |
 
 ### paces.render_card.MAX_EMBED_BYTES *= 400000*
 
 Posters bigger than this are not embedded (a card is a printout).
 
-### paces.render_card.render_card(doc, , paper='a4', media_from=None, strings=None)
+### paces.render_card.PIC_MM *= 28*
+
+Width of one picture on the card, in mm.
+
+### paces.render_card.render_card(doc, , paper='a4', media_from=None, media_root=None, strings=None)
 
 The print-styled card page for `doc` (self-contained HTML).
 
@@ -2845,13 +2889,15 @@ The player’s one strings table, as shipped (English).
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.render_flow.render_flow(doc, output_dir, , media_from=None, strings=None)
+### paces.render_flow.render_flow(doc, output_dir, , media_from=None, media_root=None, strings=None)
 
 Write the player folder for `doc` into `output_dir` and return it.
 
 `media_from` is the folder the document’s relative artifact uris are
-relative to (usually the document’s own folder); the files are copied to the
-same relative paths in the output. `strings` overrides entries of the
+relative to (usually the document’s own folder). Files are read only within
+`media_root` (default `media_from`; widen it for media that lives beside
+the document) and are copied to their path relative to that root, which is
+where the shipped `document.json` points. `strings` overrides entries of the
 default strings table (a translation, a different word for “Start”).
 Warns, naming them, about artifacts whose files could not be found.
 
@@ -3297,7 +3343,7 @@ a JSON file, so the same function serves the library, the shell, and an agent.
 | [`list_segmenters`](_autosummary/paces.tools.html.md#paces.tools.list_segmenters)()                                    | The registered segmentation capabilities: name → what it needs/gives.                                        |
 | [`measure_grid`](_autosummary/paces.tools.html.md#paces.tools.measure_grid)(media, \*[, unit, subdivisions, ...])   | Measure a metric grid (tempo, macro-structure, estimated origin) from a local media file.                    |
 | [`merge`](_autosummary/paces.tools.html.md#paces.tools.merge)(committed, fresh, \*[, output])                | Merge a fresh analysis projection against the committed document.                                            |
-| [`render`](_autosummary/paces.tools.html.md#paces.tools.render)(document, \*[, output, renderer, paper])      | Render a step document into learning material.                                                               |
+| [`render`](_autosummary/paces.tools.html.md#paces.tools.render)(document, \*[, output, renderer, ...])        | Render a step document into learning material.                                                               |
 | [`resolve`](_autosummary/paces.tools.html.md#paces.tools.resolve)(document)                                    | Compute absolute offsets and wall-clock times for a document's steps.                                        |
 | [`schema`](_autosummary/paces.tools.html.md#paces.tools.schema)(\*[, output])                                 | The JSON Schema of a step document (for other languages and agents).                                         |
 | [`segment`](_autosummary/paces.tools.html.md#paces.tools.segment)([media, steps, boundaries, grid, ...])       | Cut media into steps using whatever else is present (ADR-0003).                                              |
@@ -3382,7 +3428,7 @@ analysis never eats a hand edit.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.render(document, , output=None, renderer='html', paper=None)
+### paces.tools.render(document, , output=None, renderer='html', paper=None, media_from=None, media_root=None)
 
 Render a step document into learning material.
 
@@ -3394,6 +3440,12 @@ and timed), `document.json` and the document’s media; it needs
 the `paces[pdf]` extra is installed; `paper` is `'a4'` (default) or
 `'letter'`. Returns the output path when `output=` is given, otherwise
 the rendered text itself.
+
+`media_from` is the folder the document’s relative artifact uris are
+relative to (default: the document’s own folder), and `media_root` the
+boundary media may be read from (default: `media_from`): widen it when the
+media lives beside the document (`../media/a.mp4`). Both apply to `flow`
+and `card`.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -3481,18 +3533,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 16:13 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/e772ba019bf56fd00057c122a99cd8b088fcc504"><code>e772ba0</code></a> on branch <code>main</code>, for **paces 0.0.36** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 16:34 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7"><code>35c31e9</code></a> on branch <code>main</code>, for **paces 0.0.37** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.37) is ahead of the latest release on PyPI (0.0.36): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/e772ba019bf56fd00057c122a99cd8b088fcc504"><code>e772ba019bf56fd00057c122a99cd8b088fcc504</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7"><code>35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.36</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.37</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3501,9 +3555,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46031356572">46031356572</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46034227922">46034227922</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>82a4a9cfce15a808a9ab7c257d0f75c8d147cdd5</code> (in the history of the built commit) |
+| Event commit | <code>38744931f1f955d402d7dd8cace4a1eb66e1abf4</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3528,13 +3582,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.36/">0.0.36</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.36/">0.0.36</a>, older than the documented version (0.0.37).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout e772ba019bf56fd00057c122a99cd8b088fcc504
+git checkout 35c31e95bfdf53733abb09a0d86be7b7cf9ae8d7
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

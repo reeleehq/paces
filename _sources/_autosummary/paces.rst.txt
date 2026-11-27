@@ -70,6 +70,7 @@
    excerpts
    known_k
    measure
+   media_paths
    model
    pose
    projection

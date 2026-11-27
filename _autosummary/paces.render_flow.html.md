@@ -36,13 +36,15 @@ The player’s one strings table, as shipped (English).
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.render_flow.render_flow(doc, output_dir, , media_from=None, strings=None)
+### paces.render_flow.render_flow(doc, output_dir, , media_from=None, media_root=None, strings=None)
 
 Write the player folder for `doc` into `output_dir` and return it.
 
 `media_from` is the folder the document’s relative artifact uris are
-relative to (usually the document’s own folder); the files are copied to the
-same relative paths in the output. `strings` overrides entries of the
+relative to (usually the document’s own folder). Files are read only within
+`media_root` (default `media_from`; widen it for media that lives beside
+the document) and are copied to their path relative to that root, which is
+where the shipped `document.json` points. `strings` overrides entries of the
 default strings table (a translation, a different word for “Start”).
 Warns, naming them, about artifacts whose files could not be found.
 

@@ -17,6 +17,7 @@
 - [paces.excerpts](_autosummary/paces.excerpts.html.md): Excerpt suggestion: mark the loopable sub-window each step’s clip is cut
 - [paces.known_k](_autosummary/paces.known_k.html.md): Known-K change points: the step count a human gave turns peak-picking into exact change-point detect...
 - [paces.measure](_autosummary/paces.measure.html.md): Measure a &#96;MetricGrid&#96; from the media itself.
+- [paces.media_paths](_autosummary/paces.media_paths.html.md): Where a document’s relative media lives, and the one boundary it is read within.
 - [paces.model](_autosummary/paces.model.html.md): The paces intermediate representation: the &#96;StepDocument&#96;.
 - [paces.pose](_autosummary/paces.pose.html.md): The pointable &#96;subject_locator&#96;: person boxes from rtmlib pose keypoints.
 - [paces.projection](_autosummary/paces.projection.html.md): The projection from analysis result to document: &#96;to_document&#96;.
@@ -29,7 +30,7 @@
 - [paces.timed_text](_autosummary/paces.timed_text.html.md): Timed-text normalisation: any subtitle/transcript shape → &#96;{start, end, text}&#96; rows.
 - [paces.tools](_autosummary/paces.tools.html.md): Agent-callable tool surface over &#96;paces&#96; — plain functions with JSON-able
 - [For AI agents](ai-agents.html.md): &#96;paces&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-27 16:13 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-11-27 16:34 UTC&#42;&#42; from commit &lt;a href="https://github.com/ree...
 
 ## Optional
 

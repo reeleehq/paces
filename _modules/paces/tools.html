@@ -72,6 +72,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.excerpts.html">paces.excerpts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.known_k.html">paces.known_k</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.measure.html">paces.measure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.media_paths.html">paces.media_paths</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.model.html">paces.model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.pose.html">paces.pose</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/paces.projection.html">paces.projection</a></li>
@@ -379,403 +380,434 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="238">
 </span><span data-line="239"><span class="k">def</span><span class="w"> </span><span class="nf">_render_flow_folder</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
 </span><span data-line="240"><span class="w">    </span><span class="sd">"""The ``flow`` renderer: writes a player folder at ``output``."""</span>
-</span><span data-line="241">    <span class="n">render_flow_module</span><span class="o">.</span><span class="n">render_flow</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">media_from</span><span class="o">=</span><span class="n">media_from</span><span class="p">)</span>
-</span><span data-line="242">
-</span><span data-line="243">
-</span><span data-line="244"><span class="k">def</span><span class="w"> </span><span class="nf">_render_card</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
-</span><span data-line="245"><span class="w">    </span><span class="sd">"""The ``card`` renderer: print HTML, or a PDF when ``output`` ends in .pdf."""</span>
-</span><span data-line="246">    <span class="n">paper</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"paper"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">render_card_module</span><span class="o">.</span><span class="n">DFLT_PAPER</span>
-</span><span data-line="247">    <span class="n">page</span> <span class="o">=</span> <span class="n">render_card_module</span><span class="o">.</span><span class="n">render_card</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">paper</span><span class="o">=</span><span class="n">paper</span><span class="p">,</span> <span class="n">media_from</span><span class="o">=</span><span class="n">media_from</span><span class="p">)</span>
-</span><span data-line="248">    <span class="k">if</span> <span class="n">output</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".pdf"</span><span class="p">):</span>
-</span><span data-line="249">        <span class="n">render_card_module</span><span class="o">.</span><span class="n">write_card_pdf</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">paper</span><span class="o">=</span><span class="n">paper</span><span class="p">)</span>
-</span><span data-line="250">    <span class="k">elif</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="251">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="252">    <span class="k">return</span> <span class="n">page</span>
-</span><span data-line="253">
-</span><span data-line="254">
-</span><span data-line="255"><span class="c1">#: name -&gt; (run(doc, output, media_from, options), needs_output, accepted options). Every renderer takes the</span>
-</span><span data-line="256"><span class="c1">#: same arguments, so a new one (a card, a deck) is one more row here and no</span>
-</span><span data-line="257"><span class="c1">#: change to ``render`` or its callers. A renderer that writes returns None</span>
-</span><span data-line="258"><span class="c1">#: (or, for text, its text); ``render`` answers with ``output`` when given.</span>
-</span><span data-line="259"><span class="n">_RENDERERS</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="260">    <span class="s2">"html"</span><span class="p">:</span> <span class="p">(</span><span class="n">_render_html_page</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">()),</span>
-</span><span data-line="261">    <span class="s2">"flow"</span><span class="p">:</span> <span class="p">(</span><span class="n">_render_flow_folder</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">()),</span>
-</span><span data-line="262">    <span class="s2">"card"</span><span class="p">:</span> <span class="p">(</span><span class="n">_render_card</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"paper"</span><span class="p">})),</span>
-</span><span data-line="263"><span class="p">}</span>
+</span><span data-line="241">    <span class="n">render_flow_module</span><span class="o">.</span><span class="n">render_flow</span><span class="p">(</span>
+</span><span data-line="242">        <span class="n">doc</span><span class="p">,</span>
+</span><span data-line="243">        <span class="n">output</span><span class="p">,</span>
+</span><span data-line="244">        <span class="n">media_from</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"media_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">media_from</span><span class="p">,</span>
+</span><span data-line="245">        <span class="n">media_root</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"media_root"</span><span class="p">),</span>
+</span><span data-line="246">    <span class="p">)</span>
+</span><span data-line="247">
+</span><span data-line="248">
+</span><span data-line="249"><span class="k">def</span><span class="w"> </span><span class="nf">_render_card</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+</span><span data-line="250"><span class="w">    </span><span class="sd">"""The ``card`` renderer: print HTML, or a PDF when ``output`` ends in .pdf."""</span>
+</span><span data-line="251">    <span class="n">paper</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"paper"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">render_card_module</span><span class="o">.</span><span class="n">DFLT_PAPER</span>
+</span><span data-line="252">    <span class="n">page</span> <span class="o">=</span> <span class="n">render_card_module</span><span class="o">.</span><span class="n">render_card</span><span class="p">(</span>
+</span><span data-line="253">        <span class="n">doc</span><span class="p">,</span>
+</span><span data-line="254">        <span class="n">paper</span><span class="o">=</span><span class="n">paper</span><span class="p">,</span>
+</span><span data-line="255">        <span class="n">media_from</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"media_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">media_from</span><span class="p">,</span>
+</span><span data-line="256">        <span class="n">media_root</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"media_root"</span><span class="p">),</span>
+</span><span data-line="257">    <span class="p">)</span>
+</span><span data-line="258">    <span class="k">if</span> <span class="n">output</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".pdf"</span><span class="p">):</span>
+</span><span data-line="259">        <span class="n">render_card_module</span><span class="o">.</span><span class="n">write_card_pdf</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">paper</span><span class="o">=</span><span class="n">paper</span><span class="p">)</span>
+</span><span data-line="260">    <span class="k">elif</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="261">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="262">    <span class="k">return</span> <span class="n">page</span>
+</span><span data-line="263">
 </span><span data-line="264">
-</span><span data-line="265">
+</span><span data-line="265"><span class="n">_MEDIA_OPTIONS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"media_from"</span><span class="p">,</span> <span class="s2">"media_root"</span><span class="p">})</span>
+</span><span data-line="266">
+</span><span data-line="267"><span class="c1">#: name -&gt; (run(doc, output, media_from, options), needs_output, accepted options). Every renderer takes the</span>
+</span><span data-line="268"><span class="c1">#: same arguments, so a new one (a card, a deck) is one more row here and no</span>
+</span><span data-line="269"><span class="c1">#: change to ``render`` or its callers. A renderer that writes returns None</span>
+</span><span data-line="270"><span class="c1">#: (or, for text, its text); ``render`` answers with ``output`` when given.</span>
+</span><span data-line="271"><span class="n">_RENDERERS</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="272">    <span class="s2">"html"</span><span class="p">:</span> <span class="p">(</span><span class="n">_render_html_page</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">()),</span>
+</span><span data-line="273">    <span class="s2">"flow"</span><span class="p">:</span> <span class="p">(</span><span class="n">_render_flow_folder</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">_MEDIA_OPTIONS</span><span class="p">),</span>
+</span><span data-line="274">    <span class="s2">"card"</span><span class="p">:</span> <span class="p">(</span><span class="n">_render_card</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">_MEDIA_OPTIONS</span> <span class="o">|</span> <span class="p">{</span><span class="s2">"paper"</span><span class="p">}),</span>
+</span><span data-line="275"><span class="p">}</span>
+</span><span data-line="276">
+</span><span data-line="277">
 <div class="viewcode-block" id="render">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.render">[docs]</a>
-</span><span data-line="266"><span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span>
-</span><span data-line="267">    <span class="n">document</span><span class="p">,</span>
-</span><span data-line="268">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="269">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="270">    <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"html"</span><span class="p">,</span>
-</span><span data-line="271">    <span class="n">paper</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="272"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="273"><span class="w">    </span><span class="sd">"""Render a step document into learning material.</span>
-</span><span data-line="274">
-</span><span data-line="275"><span class="sd">    ``renderer='html'`` produces the self-contained practice page.</span>
-</span><span data-line="276"><span class="sd">    ``renderer='flow'`` produces a folder: a static step-through player (manual</span>
-</span><span data-line="277"><span class="sd">    and timed), ``document.json`` and the document's media; it needs</span>
-</span><span data-line="278"><span class="sd">    ``output=`` (the folder). ``renderer='card'`` produces a printable card</span>
-</span><span data-line="279"><span class="sd">    (one or two sheets): HTML, or a PDF when ``output`` ends in ``.pdf`` and</span>
-</span><span data-line="280"><span class="sd">    the ``paces[pdf]`` extra is installed; ``paper`` is ``'a4'`` (default) or</span>
-</span><span data-line="281"><span class="sd">    ``'letter'``. Returns the output path when ``output=`` is given, otherwise</span>
-</span><span data-line="282"><span class="sd">    the rendered text itself.</span>
-</span><span data-line="283"><span class="sd">    """</span>
-</span><span data-line="284">    <span class="k">if</span> <span class="n">renderer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_RENDERERS</span><span class="p">:</span>
-</span><span data-line="285">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="286">            <span class="sa">f</span><span class="s2">"unknown renderer </span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2">; available: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_RENDERERS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="287">        <span class="p">)</span>
-</span><span data-line="288">    <span class="n">run</span><span class="p">,</span> <span class="n">needs_output</span><span class="p">,</span> <span class="n">accepted</span> <span class="o">=</span> <span class="n">_RENDERERS</span><span class="p">[</span><span class="n">renderer</span><span class="p">]</span>
-</span><span data-line="289">    <span class="k">if</span> <span class="n">paper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"paper"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accepted</span><span class="p">:</span>
-</span><span data-line="290">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> renderer does not take paper="</span><span class="p">)</span>
-</span><span data-line="291">    <span class="k">if</span> <span class="n">needs_output</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="292">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> renderer writes files: pass output=&lt;path&gt;"</span><span class="p">)</span>
-</span><span data-line="293">    <span class="n">doc</span> <span class="o">=</span> <span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
-</span><span data-line="294">    <span class="n">from_a_file</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
-</span><span data-line="295">    <span class="n">media_from</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span> <span class="k">if</span> <span class="n">from_a_file</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="296">    <span class="n">text</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="p">{</span><span class="s2">"paper"</span><span class="p">:</span> <span class="n">paper</span><span class="p">,</span> <span class="s2">"document"</span><span class="p">:</span> <span class="n">document</span><span class="p">})</span>
-</span><span data-line="297">    <span class="k">return</span> <span class="n">output</span> <span class="k">if</span> <span class="n">output</span> <span class="k">else</span> <span class="n">text</span></div>
+</span><span data-line="278"><span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span>
+</span><span data-line="279">    <span class="n">document</span><span class="p">,</span>
+</span><span data-line="280">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="281">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="282">    <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"html"</span><span class="p">,</span>
+</span><span data-line="283">    <span class="n">paper</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="284">    <span class="n">media_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="285">    <span class="n">media_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="286"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="287"><span class="w">    </span><span class="sd">"""Render a step document into learning material.</span>
+</span><span data-line="288">
+</span><span data-line="289"><span class="sd">    ``renderer='html'`` produces the self-contained practice page.</span>
+</span><span data-line="290"><span class="sd">    ``renderer='flow'`` produces a folder: a static step-through player (manual</span>
+</span><span data-line="291"><span class="sd">    and timed), ``document.json`` and the document's media; it needs</span>
+</span><span data-line="292"><span class="sd">    ``output=`` (the folder). ``renderer='card'`` produces a printable card</span>
+</span><span data-line="293"><span class="sd">    (one or two sheets): HTML, or a PDF when ``output`` ends in ``.pdf`` and</span>
+</span><span data-line="294"><span class="sd">    the ``paces[pdf]`` extra is installed; ``paper`` is ``'a4'`` (default) or</span>
+</span><span data-line="295"><span class="sd">    ``'letter'``. Returns the output path when ``output=`` is given, otherwise</span>
+</span><span data-line="296"><span class="sd">    the rendered text itself.</span>
+</span><span data-line="297">
+</span><span data-line="298"><span class="sd">    ``media_from`` is the folder the document's relative artifact uris are</span>
+</span><span data-line="299"><span class="sd">    relative to (default: the document's own folder), and ``media_root`` the</span>
+</span><span data-line="300"><span class="sd">    boundary media may be read from (default: ``media_from``): widen it when the</span>
+</span><span data-line="301"><span class="sd">    media lives beside the document (``../media/a.mp4``). Both apply to ``flow``</span>
+</span><span data-line="302"><span class="sd">    and ``card``.</span>
+</span><span data-line="303"><span class="sd">    """</span>
+</span><span data-line="304">    <span class="k">if</span> <span class="n">renderer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_RENDERERS</span><span class="p">:</span>
+</span><span data-line="305">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="306">            <span class="sa">f</span><span class="s2">"unknown renderer </span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2">; available: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_RENDERERS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="307">        <span class="p">)</span>
+</span><span data-line="308">    <span class="n">run</span><span class="p">,</span> <span class="n">needs_output</span><span class="p">,</span> <span class="n">accepted</span> <span class="o">=</span> <span class="n">_RENDERERS</span><span class="p">[</span><span class="n">renderer</span><span class="p">]</span>
+</span><span data-line="309">    <span class="k">if</span> <span class="p">(</span>
+</span><span data-line="310">        <span class="n">media_root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span data-line="311">        <span class="ow">and</span> <span class="n">media_from</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span data-line="312">        <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span>
+</span><span data-line="313">    <span class="p">):</span>
+</span><span data-line="314">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="315">            <span class="s2">"media_root needs media_from when the document is not a file "</span>
+</span><span data-line="316">            <span class="s2">"(there is no folder its relative uris are relative to)"</span>
+</span><span data-line="317">        <span class="p">)</span>
+</span><span data-line="318">    <span class="n">given</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"paper"</span><span class="p">:</span> <span class="n">paper</span><span class="p">,</span> <span class="s2">"media_from"</span><span class="p">:</span> <span class="n">media_from</span><span class="p">,</span> <span class="s2">"media_root"</span><span class="p">:</span> <span class="n">media_root</span><span class="p">}</span>
+</span><span data-line="319">    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">given</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span data-line="320">        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accepted</span><span class="p">:</span>
+</span><span data-line="321">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> renderer does not take </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">="</span><span class="p">)</span>
+</span><span data-line="322">    <span class="k">if</span> <span class="n">needs_output</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="323">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> renderer writes files: pass output=&lt;path&gt;"</span><span class="p">)</span>
+</span><span data-line="324">    <span class="n">doc</span> <span class="o">=</span> <span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+</span><span data-line="325">    <span class="n">from_a_file</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+</span><span data-line="326">    <span class="n">media_from</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span> <span class="k">if</span> <span class="n">from_a_file</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="327">    <span class="n">text</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="p">{</span><span class="o">**</span><span class="n">given</span><span class="p">,</span> <span class="s2">"document"</span><span class="p">:</span> <span class="n">document</span><span class="p">})</span>
+</span><span data-line="328">    <span class="k">return</span> <span class="n">output</span> <span class="k">if</span> <span class="n">output</span> <span class="k">else</span> <span class="n">text</span></div>
 
-</span><span data-line="298">
-</span><span data-line="299">
+</span><span data-line="329">
+</span><span data-line="330">
 <div class="viewcode-block" id="ask">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.ask">[docs]</a>
-</span><span data-line="300"><span class="k">def</span><span class="w"> </span><span class="nf">ask</span><span class="p">(</span>
-</span><span data-line="301">    <span class="n">segmentation</span><span class="p">,</span>
-</span><span data-line="302">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="303">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="304">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
-</span><span data-line="305">    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
-</span><span data-line="306">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="307"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="308"><span class="w">    </span><span class="sd">"""Write the page a human answers a segmentation on (the ask segmenter).</span>
-</span><span data-line="309">
-</span><span data-line="310"><span class="sd">    It asks how many steps there are (the machine's guess pre-filled), lets</span>
-</span><span data-line="311"><span class="sd">    them tap along with the media to add cuts, strike wrong cuts and mark</span>
-</span><span data-line="312"><span class="sd">    steps that are not in the media, and exports ``answers.json`` for</span>
-</span><span data-line="313"><span class="sd">    ``segment --answers``. ``media`` is what the page plays (a path relative</span>
-</span><span data-line="314"><span class="sd">    to the page, or a URL); without it the human opens the file on their</span>
-</span><span data-line="315"><span class="sd">    device. Returns the output path when ``output=`` is given, otherwise the</span>
-</span><span data-line="316"><span class="sd">    page itself.</span>
-</span><span data-line="317"><span class="sd">    """</span>
-</span><span data-line="318">    <span class="n">proposal</span> <span class="o">=</span> <span class="n">ask_module</span><span class="o">.</span><span class="n">propose</span><span class="p">(</span>
-</span><span data-line="319">        <span class="n">_segmentation_from_dict</span><span class="p">(</span><span class="n">segmentation</span><span class="p">),</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span>
-</span><span data-line="320">    <span class="p">)</span>
-</span><span data-line="321">    <span class="n">text</span> <span class="o">=</span> <span class="n">ask_module</span><span class="o">.</span><span class="n">render_ask_page</span><span class="p">(</span><span class="n">proposal</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">author</span><span class="p">)</span>
-</span><span data-line="322">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="323">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="324">        <span class="k">return</span> <span class="n">output</span>
-</span><span data-line="325">    <span class="k">return</span> <span class="n">text</span></div>
+</span><span data-line="331"><span class="k">def</span><span class="w"> </span><span class="nf">ask</span><span class="p">(</span>
+</span><span data-line="332">    <span class="n">segmentation</span><span class="p">,</span>
+</span><span data-line="333">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="334">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="335">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+</span><span data-line="336">    <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+</span><span data-line="337">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="338"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="339"><span class="w">    </span><span class="sd">"""Write the page a human answers a segmentation on (the ask segmenter).</span>
+</span><span data-line="340">
+</span><span data-line="341"><span class="sd">    It asks how many steps there are (the machine's guess pre-filled), lets</span>
+</span><span data-line="342"><span class="sd">    them tap along with the media to add cuts, strike wrong cuts and mark</span>
+</span><span data-line="343"><span class="sd">    steps that are not in the media, and exports ``answers.json`` for</span>
+</span><span data-line="344"><span class="sd">    ``segment --answers``. ``media`` is what the page plays (a path relative</span>
+</span><span data-line="345"><span class="sd">    to the page, or a URL); without it the human opens the file on their</span>
+</span><span data-line="346"><span class="sd">    device. Returns the output path when ``output=`` is given, otherwise the</span>
+</span><span data-line="347"><span class="sd">    page itself.</span>
+</span><span data-line="348"><span class="sd">    """</span>
+</span><span data-line="349">    <span class="n">proposal</span> <span class="o">=</span> <span class="n">ask_module</span><span class="o">.</span><span class="n">propose</span><span class="p">(</span>
+</span><span data-line="350">        <span class="n">_segmentation_from_dict</span><span class="p">(</span><span class="n">segmentation</span><span class="p">),</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span>
+</span><span data-line="351">    <span class="p">)</span>
+</span><span data-line="352">    <span class="n">text</span> <span class="o">=</span> <span class="n">ask_module</span><span class="o">.</span><span class="n">render_ask_page</span><span class="p">(</span><span class="n">proposal</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">author</span><span class="p">)</span>
+</span><span data-line="353">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="354">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="355">        <span class="k">return</span> <span class="n">output</span>
+</span><span data-line="356">    <span class="k">return</span> <span class="n">text</span></div>
 
-</span><span data-line="326">
-</span><span data-line="327">
-</span><span data-line="328"><span class="k">def</span><span class="w"> </span><span class="nf">_warn_if_page_leaves_media_behind</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">document</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="329"><span class="w">    </span><span class="sd">"""A page rendered away from the document's directory shows dead clips:</span>
-</span><span data-line="330"><span class="sd">    ``ArtifactRef.uri`` is document-relative (ADR-0005 §1). Warn, loudly."""</span>
-</span><span data-line="331">    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span data-line="332">
-</span><span data-line="333">    <span class="k">def</span><span class="w"> </span><span class="nf">_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
-</span><span data-line="334">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
-</span><span data-line="335">            <span class="k">yield</span> <span class="n">step</span>
-</span><span data-line="336">            <span class="k">yield from</span> <span class="n">_steps</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="337">
-</span><span data-line="338">    <span class="n">has_relative_media</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
-</span><span data-line="339">        <span class="ow">not</span> <span class="n">artifact</span><span class="o">.</span><span class="n">uri</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"http://"</span><span class="p">,</span> <span class="s2">"https://"</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">))</span>
-</span><span data-line="340">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">_steps</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="341">        <span class="k">for</span> <span class="n">artifact</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">artifacts</span>
-</span><span data-line="342">    <span class="p">)</span>
-</span><span data-line="343">    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_relative_media</span><span class="p">:</span>
-</span><span data-line="344">        <span class="k">return</span>
-</span><span data-line="345">    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()):</span>
-</span><span data-line="346">        <span class="k">return</span>
-</span><span data-line="347">    <span class="n">doc_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
-</span><span data-line="348">    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
-</span><span data-line="349">    <span class="k">if</span> <span class="n">doc_dir</span> <span class="o">!=</span> <span class="n">out_dir</span><span class="p">:</span>
-</span><span data-line="350">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-</span><span data-line="351">            <span class="sa">f</span><span class="s2">"rendering to </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2"> but the document (and its media/) live "</span>
-</span><span data-line="352">            <span class="sa">f</span><span class="s2">"in </span><span class="si">{</span><span class="n">doc_dir</span><span class="si">}</span><span class="s2"> — the page's relative media uris will not "</span>
-</span><span data-line="353">            <span class="s2">"resolve there"</span><span class="p">,</span>
-</span><span data-line="354">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-</span><span data-line="355">        <span class="p">)</span>
-</span><span data-line="356">
 </span><span data-line="357">
+</span><span data-line="358">
+</span><span data-line="359"><span class="k">def</span><span class="w"> </span><span class="nf">_warn_if_page_leaves_media_behind</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">document</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="360"><span class="w">    </span><span class="sd">"""A page rendered away from the document's directory shows dead clips:</span>
+</span><span data-line="361"><span class="sd">    ``ArtifactRef.uri`` is document-relative (ADR-0005 §1). Warn, loudly."""</span>
+</span><span data-line="362">    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+</span><span data-line="363">
+</span><span data-line="364">    <span class="k">def</span><span class="w"> </span><span class="nf">_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+</span><span data-line="365">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+</span><span data-line="366">            <span class="k">yield</span> <span class="n">step</span>
+</span><span data-line="367">            <span class="k">yield from</span> <span class="n">_steps</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="368">
+</span><span data-line="369">    <span class="n">has_relative_media</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+</span><span data-line="370">        <span class="ow">not</span> <span class="n">artifact</span><span class="o">.</span><span class="n">uri</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"http://"</span><span class="p">,</span> <span class="s2">"https://"</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">))</span>
+</span><span data-line="371">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">_steps</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="372">        <span class="k">for</span> <span class="n">artifact</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">artifacts</span>
+</span><span data-line="373">    <span class="p">)</span>
+</span><span data-line="374">    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_relative_media</span><span class="p">:</span>
+</span><span data-line="375">        <span class="k">return</span>
+</span><span data-line="376">    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()):</span>
+</span><span data-line="377">        <span class="k">return</span>
+</span><span data-line="378">    <span class="n">doc_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+</span><span data-line="379">    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+</span><span data-line="380">    <span class="k">if</span> <span class="n">doc_dir</span> <span class="o">!=</span> <span class="n">out_dir</span><span class="p">:</span>
+</span><span data-line="381">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+</span><span data-line="382">            <span class="sa">f</span><span class="s2">"rendering to </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2"> but the document (and its media/) live "</span>
+</span><span data-line="383">            <span class="sa">f</span><span class="s2">"in </span><span class="si">{</span><span class="n">doc_dir</span><span class="si">}</span><span class="s2"> — the page's relative media uris will not "</span>
+</span><span data-line="384">            <span class="s2">"resolve there"</span><span class="p">,</span>
+</span><span data-line="385">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+</span><span data-line="386">        <span class="p">)</span>
+</span><span data-line="387">
+</span><span data-line="388">
 <div class="viewcode-block" id="resolve">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.resolve">[docs]</a>
-</span><span data-line="358"><span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="n">document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="359"><span class="w">    </span><span class="sd">"""Compute absolute offsets and wall-clock times for a document's steps."""</span>
-</span><span data-line="360">    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">))</span></div>
+</span><span data-line="389"><span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="n">document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="390"><span class="w">    </span><span class="sd">"""Compute absolute offsets and wall-clock times for a document's steps."""</span>
+</span><span data-line="391">    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">))</span></div>
 
-</span><span data-line="361">
-</span><span data-line="362">
+</span><span data-line="392">
+</span><span data-line="393">
 <div class="viewcode-block" id="validate">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.validate">[docs]</a>
-</span><span data-line="363"><span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="364"><span class="w">    </span><span class="sd">"""Schema + semantic check of a step document; returns ``{"issues": [...]}``."""</span>
-</span><span data-line="365">    <span class="k">return</span> <span class="p">{</span><span class="s2">"issues"</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">validate_document</span><span class="p">(</span><span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">))}</span></div>
+</span><span data-line="394"><span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="395"><span class="w">    </span><span class="sd">"""Schema + semantic check of a step document; returns ``{"issues": [...]}``."""</span>
+</span><span data-line="396">    <span class="k">return</span> <span class="p">{</span><span class="s2">"issues"</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">validate_document</span><span class="p">(</span><span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">))}</span></div>
 
-</span><span data-line="366">
-</span><span data-line="367">
+</span><span data-line="397">
+</span><span data-line="398">
 <div class="viewcode-block" id="edit">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.edit">[docs]</a>
-</span><span data-line="368"><span class="k">def</span><span class="w"> </span><span class="nf">edit</span><span class="p">(</span>
-</span><span data-line="369">    <span class="n">document</span><span class="p">,</span>
-</span><span data-line="370">    <span class="n">edits</span><span class="p">,</span>
-</span><span data-line="371">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="372">    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span data-line="373">    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="374">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="375"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="376"><span class="w">    </span><span class="sd">"""Apply typed patches to a document; every edit writes a Lock.</span>
-</span><span data-line="377">
-</span><span data-line="378"><span class="sd">    ``edits`` is a list of ``{"op": "set", "path": "/steps/b4/name",</span>
-</span><span data-line="379"><span class="sd">    "value": ...}`` (JSON value, string, or file path). ``by`` identifies the</span>
-</span><span data-line="380"><span class="sd">    editor ("user:thor", "agent:&lt;model&gt;"). Locked paths survive</span>
-</span><span data-line="381"><span class="sd">    regeneration (see ``merge``).</span>
-</span><span data-line="382"><span class="sd">    """</span>
-</span><span data-line="383">    <span class="n">doc</span> <span class="o">=</span> <span class="n">edits_module</span><span class="o">.</span><span class="n">apply_edits</span><span class="p">(</span>
-</span><span data-line="384">        <span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">),</span>
-</span><span data-line="385">        <span class="n">_structured</span><span class="p">(</span><span class="n">edits</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"edits"</span><span class="p">),</span>
-</span><span data-line="386">        <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span>
-</span><span data-line="387">        <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">,</span>
-</span><span data-line="388">    <span class="p">)</span>
-</span><span data-line="389">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</span><span data-line="390">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="391">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="392">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+</span><span data-line="399"><span class="k">def</span><span class="w"> </span><span class="nf">edit</span><span class="p">(</span>
+</span><span data-line="400">    <span class="n">document</span><span class="p">,</span>
+</span><span data-line="401">    <span class="n">edits</span><span class="p">,</span>
+</span><span data-line="402">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="403">    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span data-line="404">    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="405">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="406"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="407"><span class="w">    </span><span class="sd">"""Apply typed patches to a document; every edit writes a Lock.</span>
+</span><span data-line="408">
+</span><span data-line="409"><span class="sd">    ``edits`` is a list of ``{"op": "set", "path": "/steps/b4/name",</span>
+</span><span data-line="410"><span class="sd">    "value": ...}`` (JSON value, string, or file path). ``by`` identifies the</span>
+</span><span data-line="411"><span class="sd">    editor ("user:thor", "agent:&lt;model&gt;"). Locked paths survive</span>
+</span><span data-line="412"><span class="sd">    regeneration (see ``merge``).</span>
+</span><span data-line="413"><span class="sd">    """</span>
+</span><span data-line="414">    <span class="n">doc</span> <span class="o">=</span> <span class="n">edits_module</span><span class="o">.</span><span class="n">apply_edits</span><span class="p">(</span>
+</span><span data-line="415">        <span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">),</span>
+</span><span data-line="416">        <span class="n">_structured</span><span class="p">(</span><span class="n">edits</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"edits"</span><span class="p">),</span>
+</span><span data-line="417">        <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span>
+</span><span data-line="418">        <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">,</span>
+</span><span data-line="419">    <span class="p">)</span>
+</span><span data-line="420">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</span><span data-line="421">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="422">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="423">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
-</span><span data-line="393">
-</span><span data-line="394">
+</span><span data-line="424">
+</span><span data-line="425">
 <div class="viewcode-block" id="merge">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.merge">[docs]</a>
-</span><span data-line="395"><span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="n">committed</span><span class="p">,</span> <span class="n">fresh</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="396"><span class="w">    </span><span class="sd">"""Merge a fresh analysis projection against the committed document.</span>
-</span><span data-line="397">
-</span><span data-line="398"><span class="sd">    Locked paths keep the committed value; everything else takes the fresh</span>
-</span><span data-line="399"><span class="sd">    value; protected committed-only steps survive. This is how re-running</span>
-</span><span data-line="400"><span class="sd">    analysis never eats a hand edit.</span>
-</span><span data-line="401"><span class="sd">    """</span>
-</span><span data-line="402">    <span class="n">doc</span> <span class="o">=</span> <span class="n">edits_module</span><span class="o">.</span><span class="n">merge_regenerated</span><span class="p">(</span><span class="n">_as_document</span><span class="p">(</span><span class="n">committed</span><span class="p">),</span> <span class="n">_as_document</span><span class="p">(</span><span class="n">fresh</span><span class="p">))</span>
-</span><span data-line="403">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</span><span data-line="404">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="405">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="406">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+</span><span data-line="426"><span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="n">committed</span><span class="p">,</span> <span class="n">fresh</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="427"><span class="w">    </span><span class="sd">"""Merge a fresh analysis projection against the committed document.</span>
+</span><span data-line="428">
+</span><span data-line="429"><span class="sd">    Locked paths keep the committed value; everything else takes the fresh</span>
+</span><span data-line="430"><span class="sd">    value; protected committed-only steps survive. This is how re-running</span>
+</span><span data-line="431"><span class="sd">    analysis never eats a hand edit.</span>
+</span><span data-line="432"><span class="sd">    """</span>
+</span><span data-line="433">    <span class="n">doc</span> <span class="o">=</span> <span class="n">edits_module</span><span class="o">.</span><span class="n">merge_regenerated</span><span class="p">(</span><span class="n">_as_document</span><span class="p">(</span><span class="n">committed</span><span class="p">),</span> <span class="n">_as_document</span><span class="p">(</span><span class="n">fresh</span><span class="p">))</span>
+</span><span data-line="434">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</span><span data-line="435">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="436">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="437">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
-</span><span data-line="407">
-</span><span data-line="408">
+</span><span data-line="438">
+</span><span data-line="439">
 <div class="viewcode-block" id="measure_grid">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.measure_grid">[docs]</a>
-</span><span data-line="409"><span class="k">def</span><span class="w"> </span><span class="nf">measure_grid</span><span class="p">(</span>
-</span><span data-line="410">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span data-line="411">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="412">    <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"eight"</span><span class="p">,</span>
-</span><span data-line="413">    <span class="n">subdivisions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
-</span><span data-line="414">    <span class="n">total_units</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="415">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="416"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="417"><span class="w">    </span><span class="sd">"""Measure a metric grid (tempo, macro-structure, estimated origin) from</span>
-</span><span data-line="418"><span class="sd">    a local media file. Needs the [audio] extra.</span>
-</span><span data-line="419">
-</span><span data-line="420"><span class="sd">    Returns ``{"grid", "confidence", "flags", "evidence"}`` — origin is an</span>
-</span><span data-line="421"><span class="sd">    estimate (first beat of the music region) and the flags say so; override</span>
-</span><span data-line="422"><span class="sd">    with an explicit ``grid=`` on ``segment`` when it is wrong.</span>
-</span><span data-line="423"><span class="sd">    """</span>
-</span><span data-line="424">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">measure_grid</span> <span class="k">as</span> <span class="n">_measure_grid</span>
-</span><span data-line="425">
-</span><span data-line="426">    <span class="n">measurement</span> <span class="o">=</span> <span class="n">_measure_grid</span><span class="p">(</span>
-</span><span data-line="427">        <span class="n">media</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">subdivisions</span><span class="o">=</span><span class="n">subdivisions</span><span class="p">,</span> <span class="n">total_units</span><span class="o">=</span><span class="n">total_units</span>
-</span><span data-line="428">    <span class="p">)</span>
-</span><span data-line="429">    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-</span><span data-line="430">        <span class="s2">"grid"</span><span class="p">:</span> <span class="n">measurement</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span>
-</span><span data-line="431">            <span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span>
-</span><span data-line="432">        <span class="p">),</span>
-</span><span data-line="433">        <span class="s2">"confidence"</span><span class="p">:</span> <span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span>
-</span><span data-line="434">        <span class="s2">"flags"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">measurement</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
-</span><span data-line="435">        <span class="s2">"evidence"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">measurement</span><span class="o">.</span><span class="n">evidence</span><span class="p">),</span>
-</span><span data-line="436">    <span class="p">}</span>
-</span><span data-line="437">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="438">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-</span><span data-line="439">            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
-</span><span data-line="440">            <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
-</span><span data-line="441">        <span class="p">)</span>
-</span><span data-line="442">    <span class="k">return</span> <span class="n">payload</span></div>
+</span><span data-line="440"><span class="k">def</span><span class="w"> </span><span class="nf">measure_grid</span><span class="p">(</span>
+</span><span data-line="441">    <span class="n">media</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span data-line="442">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="443">    <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"eight"</span><span class="p">,</span>
+</span><span data-line="444">    <span class="n">subdivisions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+</span><span data-line="445">    <span class="n">total_units</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="446">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="447"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="448"><span class="w">    </span><span class="sd">"""Measure a metric grid (tempo, macro-structure, estimated origin) from</span>
+</span><span data-line="449"><span class="sd">    a local media file. Needs the [audio] extra.</span>
+</span><span data-line="450">
+</span><span data-line="451"><span class="sd">    Returns ``{"grid", "confidence", "flags", "evidence"}`` — origin is an</span>
+</span><span data-line="452"><span class="sd">    estimate (first beat of the music region) and the flags say so; override</span>
+</span><span data-line="453"><span class="sd">    with an explicit ``grid=`` on ``segment`` when it is wrong.</span>
+</span><span data-line="454"><span class="sd">    """</span>
+</span><span data-line="455">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">measure_grid</span> <span class="k">as</span> <span class="n">_measure_grid</span>
+</span><span data-line="456">
+</span><span data-line="457">    <span class="n">measurement</span> <span class="o">=</span> <span class="n">_measure_grid</span><span class="p">(</span>
+</span><span data-line="458">        <span class="n">media</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">subdivisions</span><span class="o">=</span><span class="n">subdivisions</span><span class="p">,</span> <span class="n">total_units</span><span class="o">=</span><span class="n">total_units</span>
+</span><span data-line="459">    <span class="p">)</span>
+</span><span data-line="460">    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+</span><span data-line="461">        <span class="s2">"grid"</span><span class="p">:</span> <span class="n">measurement</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span>
+</span><span data-line="462">            <span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">,</span> <span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span>
+</span><span data-line="463">        <span class="p">),</span>
+</span><span data-line="464">        <span class="s2">"confidence"</span><span class="p">:</span> <span class="n">measurement</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span>
+</span><span data-line="465">        <span class="s2">"flags"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">measurement</span><span class="o">.</span><span class="n">flags</span><span class="p">),</span>
+</span><span data-line="466">        <span class="s2">"evidence"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">measurement</span><span class="o">.</span><span class="n">evidence</span><span class="p">),</span>
+</span><span data-line="467">    <span class="p">}</span>
+</span><span data-line="468">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="469">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+</span><span data-line="470">            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+</span><span data-line="471">            <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
+</span><span data-line="472">        <span class="p">)</span>
+</span><span data-line="473">    <span class="k">return</span> <span class="n">payload</span></div>
 
-</span><span data-line="443">
-</span><span data-line="444">
+</span><span data-line="474">
+</span><span data-line="475">
 <div class="viewcode-block" id="derive">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.derive">[docs]</a>
-</span><span data-line="445"><span class="k">def</span><span class="w"> </span><span class="nf">derive</span><span class="p">(</span>
-</span><span data-line="446">    <span class="n">document</span><span class="p">,</span>
-</span><span data-line="447">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="448">    <span class="n">media</span><span class="p">,</span>
-</span><span data-line="449">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="450">    <span class="n">subject_locator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="451">    <span class="n">roles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"clip,gif,poster"</span><span class="p">,</span>
-</span><span data-line="452">    <span class="n">aspect</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="453">    <span class="n">pad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="454"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="455"><span class="w">    </span><span class="sd">"""Derive real media (clip + gif + poster) for every excerpt-bearing</span>
-</span><span data-line="456"><span class="sd">    span and write the refs into the document. Needs the [media] extra.</span>
-</span><span data-line="457">
-</span><span data-line="458"><span class="sd">    ``document`` must be a *path* here (the anchor for the ``media/`` dir</span>
-</span><span data-line="459"><span class="sd">    and the crop-recipes sidecar — ADR-0005 §1); library callers with an</span>
-</span><span data-line="460"><span class="sd">    in-memory document use :func:`paces.derivation.derive_document` with an</span>
-</span><span data-line="461"><span class="sd">    explicit store. ``media`` is one local file, or ``{"&lt;source-id&gt;":</span>
-</span><span data-line="462"><span class="sd">    "&lt;path&gt;"}`` when several sources carry excerpts. ``subject_locator`` is</span>
-</span><span data-line="463"><span class="sd">    a lazy ``"module:attr"`` ref to an ADR-0005 §3 locator; the default is</span>
-</span><span data-line="464"><span class="sd">    no crop, and ``paces.pose:rtmlib_pose`` is the shipped pointable one</span>
-</span><span data-line="465"><span class="sd">    (rtmlib pose boxes, ``pip install paces[pose]``). The updated document is written back to ``output`` (default:</span>
-</span><span data-line="466"><span class="sd">    the document path itself — derive's media side effects and the refs</span>
-</span><span data-line="467"><span class="sd">    pointing at them must not go out of sync); the returned payload carries</span>
-</span><span data-line="468"><span class="sd">    ``flags`` — read them, they are the honesty report.</span>
-</span><span data-line="469"><span class="sd">    """</span>
-</span><span data-line="470">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces</span><span class="w"> </span><span class="kn">import</span> <span class="n">derivation</span>
-</span><span data-line="471">
-</span><span data-line="472">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-</span><span data-line="473">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="474">            <span class="s2">"derive takes the document as a file path — the document's "</span>
-</span><span data-line="475">            <span class="s2">"directory anchors media/ and the recipes sidecar (ADR-0005); "</span>
-</span><span data-line="476">            <span class="s2">"for in-memory documents use paces.derivation.derive_document "</span>
-</span><span data-line="477">            <span class="s2">"with media_store= and recipes_path="</span>
-</span><span data-line="478">        <span class="p">)</span>
-</span><span data-line="479">    <span class="n">locator</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="480">    <span class="k">if</span> <span class="n">subject_locator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="481">        <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
-</span><span data-line="482">
-</span><span data-line="483">        <span class="n">module_name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">subject_locator</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
-</span><span data-line="484">        <span class="k">if</span> <span class="ow">not</span> <span class="n">module_name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">attr</span><span class="p">:</span>
-</span><span data-line="485">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="486">                <span class="sa">f</span><span class="s2">"subject_locator must be a 'module:attr' ref, got </span><span class="si">{</span><span class="n">subject_locator</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="487">            <span class="p">)</span>
-</span><span data-line="488">        <span class="n">locator</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span> <span class="n">attr</span><span class="p">)</span>
-</span><span data-line="489">    <span class="c1"># media: a dict passes through; a string is a JSON mapping (inline or</span>
-</span><span data-line="490">    <span class="c1"># .json file) or, most commonly, the media file's own path.</span>
-</span><span data-line="491">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">media</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-</span><span data-line="492">        <span class="n">media</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"{"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">media</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".json"</span><span class="p">)</span>
-</span><span data-line="493">    <span class="p">):</span>
-</span><span data-line="494">        <span class="n">media</span> <span class="o">=</span> <span class="n">_structured</span><span class="p">(</span><span class="n">media</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"media"</span><span class="p">)</span>
-</span><span data-line="495">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">media</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span data-line="496">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="497">                <span class="s2">"a JSON media argument must be a mapping "</span>
-</span><span data-line="498">                <span class="s1">'{"&lt;source-id&gt;": "&lt;path&gt;"}; got '</span>
-</span><span data-line="499">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">media</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="500">            <span class="p">)</span>
-</span><span data-line="501">    <span class="n">doc_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
-</span><span data-line="502">    <span class="n">result</span> <span class="o">=</span> <span class="n">derivation</span><span class="o">.</span><span class="n">derive_document</span><span class="p">(</span>
-</span><span data-line="503">        <span class="n">model</span><span class="o">.</span><span class="n">loads_document</span><span class="p">(</span><span class="n">doc_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)),</span>
-</span><span data-line="504">        <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span>
-</span><span data-line="505">        <span class="n">doc_path</span><span class="o">=</span><span class="n">doc_path</span><span class="p">,</span>
-</span><span data-line="506">        <span class="n">subject_locator</span><span class="o">=</span><span class="n">locator</span><span class="p">,</span>
-</span><span data-line="507">        <span class="n">aspect</span><span class="o">=</span><span class="n">derivation</span><span class="o">.</span><span class="n">DFLT_ASPECT</span> <span class="k">if</span> <span class="n">aspect</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">aspect</span><span class="p">,</span>
-</span><span data-line="508">        <span class="n">pad</span><span class="o">=</span><span class="n">derivation</span><span class="o">.</span><span class="n">DFLT_PAD</span> <span class="k">if</span> <span class="n">pad</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pad</span><span class="p">,</span>
-</span><span data-line="509">        <span class="n">roles</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span> <span class="k">if</span> <span class="n">role</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span>
-</span><span data-line="510">    <span class="p">)</span>
-</span><span data-line="511">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
-</span><span data-line="512">    <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span> <span class="ow">or</span> <span class="n">doc_path</span><span class="p">)</span>
-</span><span data-line="513">    <span class="k">if</span> <span class="n">out_path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="n">doc_path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
-</span><span data-line="514">        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span data-line="515">
-</span><span data-line="516">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-</span><span data-line="517">            <span class="sa">f</span><span class="s2">"writing the derived document to </span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> while its "</span>
-</span><span data-line="518">            <span class="sa">f</span><span class="s2">"media/ and recipes sidecar stay in </span><span class="si">{</span><span class="n">doc_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> — the "</span>
-</span><span data-line="519">            <span class="s2">"written document's relative media uris will not resolve there"</span><span class="p">,</span>
-</span><span data-line="520">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-</span><span data-line="521">        <span class="p">)</span>
-</span><span data-line="522">    <span class="n">out_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="523">    <span class="k">return</span> <span class="p">{</span>
-</span><span data-line="524">        <span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
-</span><span data-line="525">        <span class="s2">"flags"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span>
-</span><span data-line="526">        <span class="s2">"derived"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">derived</span><span class="p">,</span>
-</span><span data-line="527">    <span class="p">}</span></div>
+</span><span data-line="476"><span class="k">def</span><span class="w"> </span><span class="nf">derive</span><span class="p">(</span>
+</span><span data-line="477">    <span class="n">document</span><span class="p">,</span>
+</span><span data-line="478">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="479">    <span class="n">media</span><span class="p">,</span>
+</span><span data-line="480">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="481">    <span class="n">subject_locator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="482">    <span class="n">roles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"clip,gif,poster"</span><span class="p">,</span>
+</span><span data-line="483">    <span class="n">aspect</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="484">    <span class="n">pad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="485"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="486"><span class="w">    </span><span class="sd">"""Derive real media (clip + gif + poster) for every excerpt-bearing</span>
+</span><span data-line="487"><span class="sd">    span and write the refs into the document. Needs the [media] extra.</span>
+</span><span data-line="488">
+</span><span data-line="489"><span class="sd">    ``document`` must be a *path* here (the anchor for the ``media/`` dir</span>
+</span><span data-line="490"><span class="sd">    and the crop-recipes sidecar — ADR-0005 §1); library callers with an</span>
+</span><span data-line="491"><span class="sd">    in-memory document use :func:`paces.derivation.derive_document` with an</span>
+</span><span data-line="492"><span class="sd">    explicit store. ``media`` is one local file, or ``{"&lt;source-id&gt;":</span>
+</span><span data-line="493"><span class="sd">    "&lt;path&gt;"}`` when several sources carry excerpts. ``subject_locator`` is</span>
+</span><span data-line="494"><span class="sd">    a lazy ``"module:attr"`` ref to an ADR-0005 §3 locator; the default is</span>
+</span><span data-line="495"><span class="sd">    no crop, and ``paces.pose:rtmlib_pose`` is the shipped pointable one</span>
+</span><span data-line="496"><span class="sd">    (rtmlib pose boxes, ``pip install paces[pose]``). The updated document is written back to ``output`` (default:</span>
+</span><span data-line="497"><span class="sd">    the document path itself — derive's media side effects and the refs</span>
+</span><span data-line="498"><span class="sd">    pointing at them must not go out of sync); the returned payload carries</span>
+</span><span data-line="499"><span class="sd">    ``flags`` — read them, they are the honesty report.</span>
+</span><span data-line="500"><span class="sd">    """</span>
+</span><span data-line="501">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces</span><span class="w"> </span><span class="kn">import</span> <span class="n">derivation</span>
+</span><span data-line="502">
+</span><span data-line="503">    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+</span><span data-line="504">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="505">            <span class="s2">"derive takes the document as a file path — the document's "</span>
+</span><span data-line="506">            <span class="s2">"directory anchors media/ and the recipes sidecar (ADR-0005); "</span>
+</span><span data-line="507">            <span class="s2">"for in-memory documents use paces.derivation.derive_document "</span>
+</span><span data-line="508">            <span class="s2">"with media_store= and recipes_path="</span>
+</span><span data-line="509">        <span class="p">)</span>
+</span><span data-line="510">    <span class="n">locator</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="511">    <span class="k">if</span> <span class="n">subject_locator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="512">        <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+</span><span data-line="513">
+</span><span data-line="514">        <span class="n">module_name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="o">=</span> <span class="n">subject_locator</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
+</span><span data-line="515">        <span class="k">if</span> <span class="ow">not</span> <span class="n">module_name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">attr</span><span class="p">:</span>
+</span><span data-line="516">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="517">                <span class="sa">f</span><span class="s2">"subject_locator must be a 'module:attr' ref, got </span><span class="si">{</span><span class="n">subject_locator</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="518">            <span class="p">)</span>
+</span><span data-line="519">        <span class="n">locator</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span> <span class="n">attr</span><span class="p">)</span>
+</span><span data-line="520">    <span class="c1"># media: a dict passes through; a string is a JSON mapping (inline or</span>
+</span><span data-line="521">    <span class="c1"># .json file) or, most commonly, the media file's own path.</span>
+</span><span data-line="522">    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">media</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+</span><span data-line="523">        <span class="n">media</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"{"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">media</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".json"</span><span class="p">)</span>
+</span><span data-line="524">    <span class="p">):</span>
+</span><span data-line="525">        <span class="n">media</span> <span class="o">=</span> <span class="n">_structured</span><span class="p">(</span><span class="n">media</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"media"</span><span class="p">)</span>
+</span><span data-line="526">        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">media</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span data-line="527">            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="528">                <span class="s2">"a JSON media argument must be a mapping "</span>
+</span><span data-line="529">                <span class="s1">'{"&lt;source-id&gt;": "&lt;path&gt;"}; got '</span>
+</span><span data-line="530">                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">media</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="531">            <span class="p">)</span>
+</span><span data-line="532">    <span class="n">doc_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+</span><span data-line="533">    <span class="n">result</span> <span class="o">=</span> <span class="n">derivation</span><span class="o">.</span><span class="n">derive_document</span><span class="p">(</span>
+</span><span data-line="534">        <span class="n">model</span><span class="o">.</span><span class="n">loads_document</span><span class="p">(</span><span class="n">doc_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)),</span>
+</span><span data-line="535">        <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span>
+</span><span data-line="536">        <span class="n">doc_path</span><span class="o">=</span><span class="n">doc_path</span><span class="p">,</span>
+</span><span data-line="537">        <span class="n">subject_locator</span><span class="o">=</span><span class="n">locator</span><span class="p">,</span>
+</span><span data-line="538">        <span class="n">aspect</span><span class="o">=</span><span class="n">derivation</span><span class="o">.</span><span class="n">DFLT_ASPECT</span> <span class="k">if</span> <span class="n">aspect</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">aspect</span><span class="p">,</span>
+</span><span data-line="539">        <span class="n">pad</span><span class="o">=</span><span class="n">derivation</span><span class="o">.</span><span class="n">DFLT_PAD</span> <span class="k">if</span> <span class="n">pad</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pad</span><span class="p">,</span>
+</span><span data-line="540">        <span class="n">roles</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span> <span class="k">if</span> <span class="n">role</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span>
+</span><span data-line="541">    <span class="p">)</span>
+</span><span data-line="542">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
+</span><span data-line="543">    <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span> <span class="ow">or</span> <span class="n">doc_path</span><span class="p">)</span>
+</span><span data-line="544">    <span class="k">if</span> <span class="n">out_path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="n">doc_path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+</span><span data-line="545">        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+</span><span data-line="546">
+</span><span data-line="547">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+</span><span data-line="548">            <span class="sa">f</span><span class="s2">"writing the derived document to </span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> while its "</span>
+</span><span data-line="549">            <span class="sa">f</span><span class="s2">"media/ and recipes sidecar stay in </span><span class="si">{</span><span class="n">doc_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> — the "</span>
+</span><span data-line="550">            <span class="s2">"written document's relative media uris will not resolve there"</span><span class="p">,</span>
+</span><span data-line="551">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+</span><span data-line="552">        <span class="p">)</span>
+</span><span data-line="553">    <span class="n">out_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="554">    <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="555">        <span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
+</span><span data-line="556">        <span class="s2">"flags"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span>
+</span><span data-line="557">        <span class="s2">"derived"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">derived</span><span class="p">,</span>
+</span><span data-line="558">    <span class="p">}</span></div>
 
-</span><span data-line="528">
-</span><span data-line="529">
+</span><span data-line="559">
+</span><span data-line="560">
 <div class="viewcode-block" id="suggest_excerpts">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.suggest_excerpts">[docs]</a>
-</span><span data-line="530"><span class="k">def</span><span class="w"> </span><span class="nf">suggest_excerpts</span><span class="p">(</span>
-</span><span data-line="531">    <span class="n">document</span><span class="p">,</span>
-</span><span data-line="532">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="533">    <span class="n">units</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="534">    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">excerpts_module</span><span class="o">.</span><span class="n">DFLT_EXCERPT_ROLE</span><span class="p">,</span>
-</span><span data-line="535">    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span data-line="536">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="537"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="538"><span class="w">    </span><span class="sd">"""Mark each step's loopable sub-window (the ``excerpt`` derive cuts).</span>
-</span><span data-line="539">
-</span><span data-line="540"><span class="sd">    v1 heuristic (issue #3): the excerpt is the span's whole grid window;</span>
-</span><span data-line="541"><span class="sd">    ``units=N`` takes the first N metric units instead. Never overwrites an</span>
-</span><span data-line="542"><span class="sd">    existing excerpt unless ``overwrite`` (and never a locked one). Returns</span>
-</span><span data-line="543"><span class="sd">    ``{"document", "flags", "suggested"}``; writes to ``output=`` when given.</span>
-</span><span data-line="544"><span class="sd">    """</span>
-</span><span data-line="545">    <span class="n">result</span> <span class="o">=</span> <span class="n">excerpts_module</span><span class="o">.</span><span class="n">suggest_excerpts</span><span class="p">(</span>
-</span><span data-line="546">        <span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">),</span>
-</span><span data-line="547">        <span class="c1"># the CLI hands numbers over as strings</span>
-</span><span data-line="548">        <span class="n">units</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
-</span><span data-line="549">        <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">,</span>
-</span><span data-line="550">        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
-</span><span data-line="551">    <span class="p">)</span>
-</span><span data-line="552">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
-</span><span data-line="553">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="554">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="555">    <span class="k">return</span> <span class="p">{</span>
-</span><span data-line="556">        <span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
-</span><span data-line="557">        <span class="s2">"flags"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span>
-</span><span data-line="558">        <span class="s2">"suggested"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">suggested</span><span class="p">,</span>
-</span><span data-line="559">    <span class="p">}</span></div>
+</span><span data-line="561"><span class="k">def</span><span class="w"> </span><span class="nf">suggest_excerpts</span><span class="p">(</span>
+</span><span data-line="562">    <span class="n">document</span><span class="p">,</span>
+</span><span data-line="563">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="564">    <span class="n">units</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="565">    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">excerpts_module</span><span class="o">.</span><span class="n">DFLT_EXCERPT_ROLE</span><span class="p">,</span>
+</span><span data-line="566">    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="567">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="568"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="569"><span class="w">    </span><span class="sd">"""Mark each step's loopable sub-window (the ``excerpt`` derive cuts).</span>
+</span><span data-line="570">
+</span><span data-line="571"><span class="sd">    v1 heuristic (issue #3): the excerpt is the span's whole grid window;</span>
+</span><span data-line="572"><span class="sd">    ``units=N`` takes the first N metric units instead. Never overwrites an</span>
+</span><span data-line="573"><span class="sd">    existing excerpt unless ``overwrite`` (and never a locked one). Returns</span>
+</span><span data-line="574"><span class="sd">    ``{"document", "flags", "suggested"}``; writes to ``output=`` when given.</span>
+</span><span data-line="575"><span class="sd">    """</span>
+</span><span data-line="576">    <span class="n">result</span> <span class="o">=</span> <span class="n">excerpts_module</span><span class="o">.</span><span class="n">suggest_excerpts</span><span class="p">(</span>
+</span><span data-line="577">        <span class="n">_as_document</span><span class="p">(</span><span class="n">document</span><span class="p">),</span>
+</span><span data-line="578">        <span class="c1"># the CLI hands numbers over as strings</span>
+</span><span data-line="579">        <span class="n">units</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+</span><span data-line="580">        <span class="n">role</span><span class="o">=</span><span class="n">role</span><span class="p">,</span>
+</span><span data-line="581">        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+</span><span data-line="582">    <span class="p">)</span>
+</span><span data-line="583">    <span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">dumps_document</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
+</span><span data-line="584">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="585">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="586">    <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="587">        <span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
+</span><span data-line="588">        <span class="s2">"flags"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span>
+</span><span data-line="589">        <span class="s2">"suggested"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">suggested</span><span class="p">,</span>
+</span><span data-line="590">    <span class="p">}</span></div>
 
-</span><span data-line="560">
-</span><span data-line="561">
+</span><span data-line="591">
+</span><span data-line="592">
 <div class="viewcode-block" id="schema">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.schema">[docs]</a>
-</span><span data-line="562"><span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span data-line="563"><span class="w">    </span><span class="sd">"""The JSON Schema of a step document (for other languages and agents).</span>
-</span><span data-line="564">
-</span><span data-line="565"><span class="sd">    Returns the schema text; with ``output=`` also writes it to that path and</span>
-</span><span data-line="566"><span class="sd">    returns the path. The same text is committed as package data and checked</span>
-</span><span data-line="567"><span class="sd">    against the model by the test suite.</span>
-</span><span data-line="568"><span class="sd">    """</span>
-</span><span data-line="569">    <span class="n">text</span> <span class="o">=</span> <span class="n">schema_module</span><span class="o">.</span><span class="n">dumps_schema</span><span class="p">()</span>
-</span><span data-line="570">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
-</span><span data-line="571">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="572">        <span class="k">return</span> <span class="n">output</span>
-</span><span data-line="573">    <span class="k">return</span> <span class="n">text</span></div>
+</span><span data-line="593"><span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span data-line="594"><span class="w">    </span><span class="sd">"""The JSON Schema of a step document (for other languages and agents).</span>
+</span><span data-line="595">
+</span><span data-line="596"><span class="sd">    Returns the schema text; with ``output=`` also writes it to that path and</span>
+</span><span data-line="597"><span class="sd">    returns the path. The same text is committed as package data and checked</span>
+</span><span data-line="598"><span class="sd">    against the model by the test suite.</span>
+</span><span data-line="599"><span class="sd">    """</span>
+</span><span data-line="600">    <span class="n">text</span> <span class="o">=</span> <span class="n">schema_module</span><span class="o">.</span><span class="n">dumps_schema</span><span class="p">()</span>
+</span><span data-line="601">    <span class="k">if</span> <span class="n">output</span><span class="p">:</span>
+</span><span data-line="602">        <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="603">        <span class="k">return</span> <span class="n">output</span>
+</span><span data-line="604">    <span class="k">return</span> <span class="n">text</span></div>
 
-</span><span data-line="574">
-</span><span data-line="575">
+</span><span data-line="605">
+</span><span data-line="606">
 <div class="viewcode-block" id="list_segmenters">
 <a class="viewcode-back" href="../../_autosummary/paces.tools.html#paces.tools.list_segmenters">[docs]</a>
-</span><span data-line="576"><span class="k">def</span><span class="w"> </span><span class="nf">list_segmenters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="577"><span class="w">    </span><span class="sd">"""The registered segmentation capabilities: name → what it needs/gives."""</span>
-</span><span data-line="578">    <span class="k">return</span> <span class="p">{</span>
-</span><span data-line="579">        <span class="n">name</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="580">            <span class="s2">"summary"</span><span class="p">:</span> <span class="n">cap</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span>
-</span><span data-line="581">            <span class="s2">"gives"</span><span class="p">:</span> <span class="n">cap</span><span class="o">.</span><span class="n">gives</span><span class="p">,</span>
-</span><span data-line="582">            <span class="s2">"needs"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">needs</span><span class="p">),</span>
-</span><span data-line="583">            <span class="s2">"requires"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">requires</span><span class="p">),</span>
-</span><span data-line="584">            <span class="s2">"licence"</span><span class="p">:</span> <span class="n">cap</span><span class="o">.</span><span class="n">licence</span><span class="p">,</span>
-</span><span data-line="585">        <span class="p">}</span>
-</span><span data-line="586">        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">segment_module</span><span class="o">.</span><span class="n">capabilities</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-</span><span data-line="587">    <span class="p">}</span></div>
+</span><span data-line="607"><span class="k">def</span><span class="w"> </span><span class="nf">list_segmenters</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="608"><span class="w">    </span><span class="sd">"""The registered segmentation capabilities: name → what it needs/gives."""</span>
+</span><span data-line="609">    <span class="k">return</span> <span class="p">{</span>
+</span><span data-line="610">        <span class="n">name</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="611">            <span class="s2">"summary"</span><span class="p">:</span> <span class="n">cap</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span>
+</span><span data-line="612">            <span class="s2">"gives"</span><span class="p">:</span> <span class="n">cap</span><span class="o">.</span><span class="n">gives</span><span class="p">,</span>
+</span><span data-line="613">            <span class="s2">"needs"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">needs</span><span class="p">),</span>
+</span><span data-line="614">            <span class="s2">"requires"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">cap</span><span class="o">.</span><span class="n">requires</span><span class="p">),</span>
+</span><span data-line="615">            <span class="s2">"licence"</span><span class="p">:</span> <span class="n">cap</span><span class="o">.</span><span class="n">licence</span><span class="p">,</span>
+</span><span data-line="616">        <span class="p">}</span>
+</span><span data-line="617">        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">segment_module</span><span class="o">.</span><span class="n">capabilities</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+</span><span data-line="618">    <span class="p">}</span></div>
 
-</span><span data-line="588">
-</span><span data-line="589">
-</span><span data-line="590"><span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="591">    <span class="n">segment</span><span class="p">,</span>
-</span><span data-line="592">    <span class="n">ask</span><span class="p">,</span>
-</span><span data-line="593">    <span class="n">to_document</span><span class="p">,</span>
-</span><span data-line="594">    <span class="n">render</span><span class="p">,</span>
-</span><span data-line="595">    <span class="n">suggest_excerpts</span><span class="p">,</span>
-</span><span data-line="596">    <span class="n">derive</span><span class="p">,</span>
-</span><span data-line="597">    <span class="n">edit</span><span class="p">,</span>
-</span><span data-line="598">    <span class="n">merge</span><span class="p">,</span>
-</span><span data-line="599">    <span class="n">resolve</span><span class="p">,</span>
-</span><span data-line="600">    <span class="n">validate</span><span class="p">,</span>
-</span><span data-line="601">    <span class="n">schema</span><span class="p">,</span>
-</span><span data-line="602">    <span class="n">measure_grid</span><span class="p">,</span>
-</span><span data-line="603">    <span class="n">list_segmenters</span><span class="p">,</span>
-</span><span data-line="604"><span class="p">]</span>
+</span><span data-line="619">
+</span><span data-line="620">
+</span><span data-line="621"><span class="n">_dispatch_funcs</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="622">    <span class="n">segment</span><span class="p">,</span>
+</span><span data-line="623">    <span class="n">ask</span><span class="p">,</span>
+</span><span data-line="624">    <span class="n">to_document</span><span class="p">,</span>
+</span><span data-line="625">    <span class="n">render</span><span class="p">,</span>
+</span><span data-line="626">    <span class="n">suggest_excerpts</span><span class="p">,</span>
+</span><span data-line="627">    <span class="n">derive</span><span class="p">,</span>
+</span><span data-line="628">    <span class="n">edit</span><span class="p">,</span>
+</span><span data-line="629">    <span class="n">merge</span><span class="p">,</span>
+</span><span data-line="630">    <span class="n">resolve</span><span class="p">,</span>
+</span><span data-line="631">    <span class="n">validate</span><span class="p">,</span>
+</span><span data-line="632">    <span class="n">schema</span><span class="p">,</span>
+</span><span data-line="633">    <span class="n">measure_grid</span><span class="p">,</span>
+</span><span data-line="634">    <span class="n">list_segmenters</span><span class="p">,</span>
+</span><span data-line="635"><span class="p">]</span>
 </span></pre></div>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -803,7 +835,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=0e525676"></script>
+      <script src="../../_static/documentation_options.js?v=aa2ad26f"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

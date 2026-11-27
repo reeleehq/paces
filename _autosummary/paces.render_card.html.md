@@ -23,18 +23,23 @@ uses for the web page, since the document has no equipment field.
 
 | [`MAX_EMBED_BYTES`](#paces.render_card.MAX_EMBED_BYTES)   | Posters bigger than this are not embedded (a card is a printout).   |
 |--------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`PIC_MM`](#paces.render_card.PIC_MM)            | Width of one picture on the card, in mm.                            |
 
 ### Functions
 
-| [`render_card`](#paces.render_card.render_card)(doc, \*[, paper, media_from, strings])   | The print-styled card page for `doc` (self-contained HTML).   |
-|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| [`write_card_pdf`](#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine])    | Convert a card page to a PDF at `output` through `pdfdol`.    |
+| [`render_card`](#paces.render_card.render_card)(doc, \*[, paper, media_from, ...])    | The print-styled card page for `doc` (self-contained HTML).   |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`write_card_pdf`](#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine]) | Convert a card page to a PDF at `output` through `pdfdol`.    |
 
 ### paces.render_card.MAX_EMBED_BYTES *= 400000*
 
 Posters bigger than this are not embedded (a card is a printout).
 
-### paces.render_card.render_card(doc, , paper='a4', media_from=None, strings=None)
+### paces.render_card.PIC_MM *= 28*
+
+Width of one picture on the card, in mm.
+
+### paces.render_card.render_card(doc, , paper='a4', media_from=None, media_root=None, strings=None)
 
 The print-styled card page for `doc` (self-contained HTML).
 
