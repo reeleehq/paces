@@ -135,3 +135,50 @@ def test_the_routine_ends_on_a_done_card_with_restart(page_url, browser_page):
     assert "Restart" in page.inner_text(".overview")
     page.click("text=Restart")
     page.wait_for_selector(".bigcount")
+
+
+def test_a_portrait_clip_is_big_enough_to_read_on_a_phone(tmp_path_factory, browser_page):
+    """A 9:16 clip took a box sized for landscape and ended up about 137 px wide at
+    390 px; the media box takes its height from the clip's ratio up to half the
+    viewport, so the clip is about 237 px wide and a 4:5 clip fills the width."""
+    from paces.model import ArtifactRef
+
+    pil = pytest.importorskip("PIL.Image")
+    src = tmp_path_factory.mktemp("src")
+    (src / "media").mkdir()
+    pil.new("RGB", (540, 960), (200, 130, 150)).save(src / "media" / "tall.gif")
+    pil.new("RGB", (432, 540), (130, 160, 200)).save(src / "media" / "four5.gif")
+    doc = StepDocument(
+        id="p",
+        title="Portrait",
+        steps=[
+            Step(id="a", name="Tall", duration=Measure(value="7", unit="rep"),
+                 artifacts=[ArtifactRef(role="gif", uri="media/tall.gif", width=540, height=960)]),
+            Step(id="b", name="Four five", duration=Measure(value="7", unit="rep"),
+                 artifacts=[ArtifactRef(role="gif", uri="media/four5.gif", width=432, height=540)]),
+        ],
+    )
+    out = tmp_path_factory.mktemp("site")
+    render_flow(doc, out, media_from=src)
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(out))
+    handler.log_message = lambda *a, **k: None
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        page, _ = browser_page
+        page.goto(f"http://127.0.0.1:{server.server_address[1]}/#s=0")
+        page.wait_for_selector(".media")
+        page.wait_for_function("document.querySelector('.media').naturalWidth > 0")
+
+        def clip_width():
+            return page.evaluate(
+                "(() => { const m = document.querySelector('.media'); const b = m.getBoundingClientRect();"
+                " return Math.min(b.width, b.height * m.naturalWidth / m.naturalHeight); })()"
+            )
+
+        assert clip_width() >= 230  # was about 137
+        page.evaluate("player.go(1)")
+        page.wait_for_function("document.querySelector('.media').naturalWidth > 0")
+        assert clip_width() >= 320  # a 4:5 clip fills the card's width
+    finally:
+        server.shutdown()

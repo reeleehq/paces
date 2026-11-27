@@ -79,6 +79,9 @@
     var sources = {};
     (doc.sources || []).forEach(function (s) { sources[s.id] = s; });
     var groups = (doc.steps || []).length;
+    /* the context line ("round 2 of 3 · step 1 of 4") is reserved on every step
+     * only when some step has one, so the layout does not jump; none, no blank line */
+    var hasContext = stops.some(function (s) { return s.rounds.length || (s.pos && s.pos.of > 1); });
     var grid = doc.metric && doc.metric.tempoBpm ? doc.metric : null;
     var wide = window.matchMedia ? window.matchMedia("(min-width: 900px)") : { matches: false };
 
@@ -338,7 +341,7 @@
       var ctx = [];
       s.rounds.forEach(function (r) { if (s.parents.indexOf(r.step) >= 0) ctx.push(C.formatRound(r, S)); });
       if (s.pos && s.pos.of > 1) ctx.push(fmt(S.stepOf, { n: s.pos.n, of: s.pos.of }));
-      card.appendChild(el("p", { class: "context", text: ctx.join(" · ") || "\u00a0" }));
+      if (ctx.length || hasContext) card.appendChild(el("p", { class: "context", text: ctx.join(" · ") || "\u00a0" }));
 
       var big = bigCount(s);
       var counting = state.countIn > 0;
@@ -436,8 +439,10 @@
 
     function mediaNode(m, small) {
       var cls = "media" + (small ? " small" : "");
+      var ratioStyle = m.ratio && !small ? "aspect-ratio:" + m.ratio : null;
       if (m.kind === "video") {
         var v = el("video", { class: cls, loop: "", muted: "", playsinline: "", autoplay: "", preload: "metadata" }, [el("source", { src: m.src, type: m.mime })]);
+        if (ratioStyle) v.setAttribute("style", ratioStyle);
         v.muted = true; if (m.poster) v.setAttribute("poster", m.poster);
         /* a clip that cannot play falls back to its poster, else to nothing (no hole) */
         v.addEventListener("error", function () {
@@ -446,7 +451,9 @@
         }, true);
         return v;
       }
-      return el("img", { class: cls, src: m.src, alt: "" });
+      var image = el("img", { class: cls, src: m.src, alt: "" });
+      if (ratioStyle) image.setAttribute("style", ratioStyle);
+      return image;
     }
 
     function drawBeats(active) {
