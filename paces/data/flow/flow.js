@@ -525,8 +525,8 @@
       var stop = stops[state.i];
       var total = C.stopSeconds(doc, stop, state.settings);
       if (total === null) {                 /* learner-led: wait for the viewer, count up */
-        state.waiting = true; state.waited += dt;
-        if (!stage.querySelector(".bigcount .bignum")) render();
+        if (!state.waiting) { state.waiting = true; state.waited = 0; render(); }   /* the button becomes "Ready" */
+        else state.waited += dt;
         paint(); raf = requestAnimationFrame(tick); return;
       }
       state.progress += dt / total;
