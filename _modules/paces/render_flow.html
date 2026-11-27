@@ -301,32 +301,36 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="160">        <span class="n">Path</span><span class="p">(</span><span class="n">media_root</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_root</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="161">        <span class="n">out</span><span class="p">,</span>
 </span><span data-line="162">    <span class="p">)</span>
-</span><span data-line="163">    <span class="n">document_text</span> <span class="o">=</span> <span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</span><span data-line="164">    <span class="n">table</span> <span class="o">=</span> <span class="n">_merged_strings</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
-</span><span data-line="165">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"document.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">document_text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="166">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="n">STRINGS_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-</span><span data-line="167">        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
-</span><span data-line="168">    <span class="p">)</span>
-</span><span data-line="169">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"data.js"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-</span><span data-line="170">        <span class="s2">"window.PACES_FLOW = "</span>
-</span><span data-line="171">        <span class="o">+</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
-</span><span data-line="172">            <span class="p">{</span><span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">document_text</span><span class="p">),</span> <span class="s2">"strings"</span><span class="p">:</span> <span class="n">table</span><span class="p">},</span>
-</span><span data-line="173">            <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span data-line="174">        <span class="p">)</span>
-</span><span data-line="175">        <span class="o">+</span> <span class="s2">";</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
-</span><span data-line="176">        <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
-</span><span data-line="177">    <span class="p">)</span>
-</span><span data-line="178">    <span class="n">warn_unshowable</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"the flow player"</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</span><span data-line="179">    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span data-line="180">
-</span><span data-line="181">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-</span><span data-line="182">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-</span><span data-line="183">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> media file(s) the document points at were not shipped "</span>
-</span><span data-line="184">            <span class="sa">f</span><span class="s2">"to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2"> (not found, or not a relative path): </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="185">            <span class="o">+</span> <span class="p">(</span><span class="s2">" ..."</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
-</span><span data-line="186">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-</span><span data-line="187">        <span class="p">)</span>
-</span><span data-line="188">    <span class="k">return</span> <span class="n">out</span></div>
+</span><span data-line="163">    <span class="n">fonts</span> <span class="o">=</span> <span class="n">package</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"fonts"</span><span class="p">)</span>
+</span><span data-line="164">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"fonts"</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="165">    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">fonts</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+</span><span data-line="166">        <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"fonts"</span> <span class="o">/</span> <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span>
+</span><span data-line="167">    <span class="n">document_text</span> <span class="o">=</span> <span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</span><span data-line="168">    <span class="n">table</span> <span class="o">=</span> <span class="n">_merged_strings</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
+</span><span data-line="169">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"document.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">document_text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="170">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="n">STRINGS_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+</span><span data-line="171">        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
+</span><span data-line="172">    <span class="p">)</span>
+</span><span data-line="173">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"data.js"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+</span><span data-line="174">        <span class="s2">"window.PACES_FLOW = "</span>
+</span><span data-line="175">        <span class="o">+</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+</span><span data-line="176">            <span class="p">{</span><span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">document_text</span><span class="p">),</span> <span class="s2">"strings"</span><span class="p">:</span> <span class="n">table</span><span class="p">},</span>
+</span><span data-line="177">            <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span data-line="178">        <span class="p">)</span>
+</span><span data-line="179">        <span class="o">+</span> <span class="s2">";</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+</span><span data-line="180">        <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
+</span><span data-line="181">    <span class="p">)</span>
+</span><span data-line="182">    <span class="n">warn_unshowable</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"the flow player"</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="183">    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+</span><span data-line="184">
+</span><span data-line="185">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+</span><span data-line="186">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+</span><span data-line="187">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> media file(s) the document points at were not shipped "</span>
+</span><span data-line="188">            <span class="sa">f</span><span class="s2">"to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2"> (not found, or not a relative path): </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="189">            <span class="o">+</span> <span class="p">(</span><span class="s2">" ..."</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
+</span><span data-line="190">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+</span><span data-line="191">        <span class="p">)</span>
+</span><span data-line="192">    <span class="k">return</span> <span class="n">out</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -355,7 +359,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=173d7b4c"></script>
+      <script src="../../_static/documentation_options.js?v=b345ff55"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

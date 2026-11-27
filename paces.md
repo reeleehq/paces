@@ -1,4 +1,4 @@
-> built 2026-11-27 18:15 UTC from f5a3c15 (main) · paces 0.0.42. Details: build_info.json
+> built 2026-11-27 18:20 UTC from afa3b15 (main) · paces 0.0.43. Details: build_info.json
 
 # index.html.md
 
@@ -3615,18 +3615,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 18:15 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/f5a3c15ed869c03a3a7605a963def2ebf7d62ab7"><code>f5a3c15</code></a> on branch <code>main</code>, for **paces 0.0.42** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 18:20 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/afa3b15fe801afca1f1cc628324421a9224a3306"><code>afa3b15</code></a> on branch <code>main</code>, for **paces 0.0.43** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.43) is ahead of the latest release on PyPI (0.0.42): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/f5a3c15ed869c03a3a7605a963def2ebf7d62ab7"><code>f5a3c15ed869c03a3a7605a963def2ebf7d62ab7</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/afa3b15fe801afca1f1cc628324421a9224a3306"><code>afa3b15fe801afca1f1cc628324421a9224a3306</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.42</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.43</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3635,9 +3637,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46047589570">46047589570</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46048286104">46048286104</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>2e3c0a0599643061b085aaa59d8cf33d9438d7b4</code> (in the history of the built commit) |
+| Event commit | <code>aa145addf413eeecee8aa1804a2c7696e47f3da4</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3662,13 +3664,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.42/">0.0.42</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.42/">0.0.42</a>, older than the documented version (0.0.43).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout f5a3c15ed869c03a3a7605a963def2ebf7d62ab7
+git checkout afa3b15fe801afca1f1cc628324421a9224a3306
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
