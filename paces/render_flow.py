@@ -23,6 +23,7 @@ from collections.abc import Iterator, Mapping
 from importlib import resources
 from pathlib import Path
 
+from paces.media_paths import SHOWN_ROLES, unshowable_steps, warn_unshowable
 from paces.model import Step, StepDocument, dumps_document
 
 #: The player's own files, copied verbatim from package data.
@@ -174,9 +175,10 @@ def render_flow(
         + ";\n",
         encoding="utf-8",
     )
-    if missing:
-        import warnings
+    warn_unshowable(doc, "the flow player", stacklevel=3)
+    import warnings
 
+    if missing:
         warnings.warn(
             f"{len(missing)} media file(s) the document points at were not shipped "
             f"to {out} (not found, or not a relative path): {', '.join(missing[:5])}"

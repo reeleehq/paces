@@ -70,7 +70,7 @@
     var groups = (doc.steps || []).length;
     var grid = doc.metric && doc.metric.tempoBpm ? doc.metric : null;
 
-    var state = { i: 0, mode: "manual", playing: false, progress: 0, finished: false, lastBeat: -1, clickOn: true,
+    var state = { i: 0, mode: "manual", playing: false, waiting: false, progress: 0, finished: false, lastBeat: -1, clickOn: true,
       settings: { bpm: grid ? Number(grid.tempoBpm) : 0, secondsPerRep: 3, secondsPerStep: 30, pace: "rep" } };
     var hash = /s=(\d+)/.exec(location.hash);
     if (hash && Number(hash[1]) < stops.length) state.i = Number(hash[1]);
@@ -154,7 +154,7 @@
       var rowRounds = s.rounds.filter(function (r) { return r.step === s.step; }).map(function (r) { return C.formatRound(r, S); }).join(" · ");
       var b = el("button", { class: "ol" + (s.parents.length ? " nested" : ""), type: "button", onclick: function () { go(s.index, true); } }, [
         el("span", { class: "olname", text: s.step.name }),
-        el("span", { class: "olcount", text: (rowRounds ? rowRounds + " · " : "") + C.formatMeasure(s.step.duration, S) })]);
+        el("span", { class: "olcount", text: (rowRounds ? rowRounds + " · " : "") + C.formatCount(s.step, S) })]);
       outlineItems[s.index] = b; outline.appendChild(b);
     });
 
@@ -206,7 +206,7 @@
         el("span", { class: "bignum", text: C.formatMeasure(step.duration, S) })]));
 
       var head = el("div", { class: "head" }, [el("h2", { text: step.name }),
-        el("span", { class: "count", text: C.formatMeasure(step.duration, S) })]);
+        el("span", { class: "count", text: C.formatCount(step, S) })]);
       card.appendChild(head);
       var badges = [];
       if (step.optional) badges.push(S.optional);
@@ -216,7 +216,7 @@
       if (step.description) card.appendChild(el("p", { class: "desc", text: step.description }));
 
       C.cuesFor(doc, s).forEach(function (cue) {
-        var caution = (S.cueKindsCaution || []).indexOf(cue.kind) >= 0;
+        var caution = (S.cautionKinds || []).indexOf(cue.kind) >= 0;
         card.appendChild(el("p", { class: "cue" + (caution ? " caution" : "") },
           [el("span", { class: "cuekind", text: caution ? S.caution : S.cue })].concat(
             cue.label ? [el("b", { class: "cuelabel", text: " " + cue.label })] : [],
@@ -236,7 +236,7 @@
       modeBtn.setAttribute("aria-pressed", String(state.mode === "timed"));
       modeBtn.setAttribute("aria-label", S.mode + ": " + modeBtn.textContent);
       play.hidden = state.mode !== "timed";
-      play.textContent = state.playing ? S.pause : S.play;
+      play.textContent = state.playing ? (state.waiting ? S.ready : S.pause) : S.play;
       play.classList.toggle("running", state.playing);
       beats.hidden = !(state.mode === "timed" && C.beatsIn(doc, s));
       drawBeats(-1);
@@ -264,7 +264,7 @@
     /* ── the one way the position moves ───────────────────────── */
     function go(i, fromUser) {
       if (i < 0 || i >= stops.length) return false;
-      state.i = i; state.progress = 0; state.lastBeat = -1; state.finished = false;
+      state.i = i; state.progress = 0; state.lastBeat = -1; state.finished = false; state.waiting = false;
       render(); return true;
     }
     function advance(by, fromUser) { return go(state.i + (by === undefined ? 1 : by), !!fromUser); }
@@ -293,6 +293,9 @@
       if (!state.playing) return;
       var stop = stops[state.i];
       var total = C.stopSeconds(doc, stop, state.settings);
+      if (total === null) {                 /* learner-led: wait for the viewer */
+        state.waiting = true; render(); return;
+      }
       state.progress += (now - last) / 1000 / total;
       last = now;
       var overrun = 0;
@@ -323,7 +326,14 @@
       if (state.finished) state.progress = 0;
       render();
     }
-    function togglePlay() { state.playing ? stopPlaying() : startPlaying(); }
+    function togglePlay() {
+      if (state.playing && state.waiting) {          /* "Ready": move on, keep running */
+        state.waiting = false;
+        if (!go(state.i + 1)) { state.finished = true; stopPlaying(); return; }
+        last = performance.now(); raf = requestAnimationFrame(tick); return;
+      }
+      state.playing ? stopPlaying() : startPlaying();
+    }
     function toggleMode() {
       if (state.playing) stopPlaying();
       state.mode = state.mode === "timed" ? "manual" : "timed"; render();

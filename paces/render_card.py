@@ -320,6 +320,9 @@ def render_card(
     """
     if paper.lower() not in PAPERS:
         raise ValueError(f"unknown paper {paper!r}; available: {sorted(PAPERS)}")
+    from paces.media_paths import warn_unshowable
+
+    warn_unshowable(doc, "the card", stacklevel=3)
     table = _merged(strings)
     root = Path(media_from) if media_from else None
     cues: dict[str, list] = {}

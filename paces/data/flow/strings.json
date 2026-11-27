@@ -10,6 +10,7 @@
   "next": "Next step",
   "play": "Start",
   "pause": "Pause",
+  "ready": "Ready",
   "manual": "Manual",
   "timed": "Timed",
   "mode": "Mode",
@@ -43,5 +44,19 @@
     "instruction": "breakdown",
     "closeup": "close-up"
   },
-  "cueKindsCaution": ["warning", "caution"]
+  "learnerLed": "as needed",
+  "cueKinds": {
+    "setup": "Set-up",
+    "technique": "Technique",
+    "fault": "Avoid",
+    "breath": "Breathing",
+    "safety": "Safety",
+    "warning": "Careful",
+    "caution": "Careful",
+    "count": "Count",
+    "lyric": "Lyric",
+    "caption": "Note"
+  },
+  "cautionKinds": ["warning", "caution", "fault", "safety"],
+  "kindFirst": ["setup"]
 }

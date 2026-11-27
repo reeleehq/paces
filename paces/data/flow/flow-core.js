@@ -20,8 +20,12 @@
         for (var r = 1; r <= rounds; r++) {
           var inner = { group: ctx.group, parents: ctx.parents.concat([step]),
             rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: r, of: rounds }] : []) };
-          step.steps.forEach(function (child, i) {
-            walk(child, inner, i === 0 ? (r === 1 ? first : []).concat([step]) : []);
+          var firstShown = true;
+          step.steps.forEach(function (child) {
+            /* a rest BETWEEN the passes is not after the last one */
+            if (r === rounds && hasTag(child, "between-passes")) return;
+            walk(child, inner, firstShown ? (r === 1 ? first : []).concat([step]) : []);
+            firstShown = false;
           });
         }
       } else {
@@ -39,6 +43,12 @@
     });
     return stops;
   }
+
+  function hasTag(step, tag) { return (step.tags || []).indexOf(tag) >= 0; }
+
+  /* A step the learner leads has no fixed length: its duration is a
+   * placeholder the clock ignores and counts do not show. */
+  function isLearnerLed(step) { return hasTag(step, "learner-led"); }
 
   /* The grid applies to a measure when the document has a tempo and the
    * measure is in the grid's own unit. */
@@ -58,6 +68,7 @@
    * advances on an external event does not call this at all: it calls
    * player.advance() when its event fires. */
   function stopSeconds(doc, stop, settings) {
+    if (isLearnerLed(stop.step)) return null;     /* waits for the viewer */
     var m = stop.step.duration, value = num(m.value);
     if (gridApplies(doc, m)) {
       var bpm = settings.bpm || num(doc.metric.tempoBpm);
@@ -70,6 +81,10 @@
 
   /* "7 reps", "4 eights", "1 rep": the unit in the document's own words,
    * pluralised from the strings table. */
+  function formatCount(step, strings) {
+    return isLearnerLed(step) ? strings.learnerLed : formatMeasure(step.duration, strings);
+  }
+
   function formatMeasure(m, strings) {
     var forms = (strings.units || {})[m.unit];
     var one = num(m.value) === 1;
@@ -111,19 +126,73 @@
     return (doc.cues || []).filter(function (c) { return ids[c.anchor.step]; });
   }
 
-  /* One medium for a step: a looping clip, else a gif, else a poster. */
+  /* The artifact roles the player can show. The renderers document the same
+   * three; a step with artifacts but none of these is reported at render time. */
+  var SHOWN_ROLES = ["clip", "gif", "poster"];
+
+  function stemOf(uri) { return uri.replace(/\.[^./]+$/, ""); }
+
+  /* Everything a step can show, main first. Each option is a looping clip with
+   * its poster (paired by file name), or a gif, or a still. Order: options
+   * marked attrs.main, then document order. `label` is attrs.label, else the
+   * source role the artifact came from, else null (the caller names it). */
+  function listMedia(step) {
+    var arts = (step.artifacts || []).filter(function (a) { return SHOWN_ROLES.indexOf(a.role) >= 0; });
+    var posters = arts.filter(function (a) { return a.role === "poster"; });
+    var used = {};
+    var options = [];
+    function label(a) { return (a.attrs && a.attrs.label) || a.derivedFrom || null; }
+    arts.forEach(function (a) {
+      if (a.role !== "clip") return;
+      var p = posters.filter(function (q) { return stemOf(q.uri) === stemOf(a.uri); })[0];
+      if (p) used[p.uri] = true;
+      options.push({ kind: "video", src: a.uri, mime: a.mime || "video/mp4", poster: p && p.uri,
+        label: label(a), main: !!(a.attrs && a.attrs.main) });
+    });
+    arts.forEach(function (a) {
+      if (a.role === "gif") options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
+    });
+    arts.forEach(function (a) {
+      if (a.role === "poster" && !used[a.uri]) options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
+    });
+    var mains = options.filter(function (o) { return o.main; });
+    var rest = options.filter(function (o) { return !o.main; });
+    return mains.concat(rest);
+  }
+
+  /* The main medium of a step, or null. */
   function pickMedia(step) {
-    var by = {};
-    (step.artifacts || []).forEach(function (a) { (by[a.role] = by[a.role] || []).push(a); });
-    var stem = function (u) { return u.replace(/\.[^./]+$/, ""); };
-    if (by.clip) {
-      var clip = by.clip[0];
-      var poster = (by.poster || []).filter(function (p) { return stem(p.uri) === stem(clip.uri); })[0] || (by.poster || [])[0];
-      return { kind: "video", src: clip.uri, mime: clip.mime || "video/mp4", poster: poster && poster.uri };
-    }
-    if (by.gif) return { kind: "image", src: by.gif[0].uri };
-    if (by.poster) return { kind: "image", src: by.poster[0].uri };
-    return null;
+    var list = listMedia(step);
+    return list.length ? list[0] : null;
+  }
+
+  /* Cues grouped by kind in reading order: kinds in strings.kindFirst (set-up),
+   * then cautions (strings.cautionKinds), then the rest in first-seen order.
+   * Returns [{kind, label, caution, cues}]; an unknown kind is labelled with
+   * its own name. */
+  function groupCues(cues, strings) {
+    var kinds = [];
+    cues.forEach(function (c) { if (kinds.indexOf(c.kind) < 0) kinds.push(c.kind); });
+    var cautions = strings.cautionKinds || [], first = strings.kindFirst || [];
+    function rank(k) { return first.indexOf(k) >= 0 ? 0 : cautions.indexOf(k) >= 0 ? 1 : 2; }
+    var order = kinds.map(function (k, i) { return { k: k, i: i }; })
+      .sort(function (x, y) { return rank(x.k) - rank(y.k) || x.i - y.i; });
+    return order.map(function (o) {
+      return { kind: o.k, label: (strings.cueKinds || {})[o.k] || o.k, caution: cautions.indexOf(o.k) >= 0,
+        cues: cues.filter(function (c) { return c.kind === o.k; }) };
+    });
+  }
+
+  /* At most `max` cues to show up front: every caution first, then the rest in
+   * reading order; the remainder is for a disclosure. */
+  function headCues(groups, max) {
+    var flat = [];
+    groups.forEach(function (g) { g.cues.forEach(function (c) { flat.push({ cue: c, group: g }); }); });
+    var cautions = flat.filter(function (x) { return x.group.caution; });
+    var shown = cautions.length >= max ? cautions : cautions.concat(
+      flat.filter(function (x) { return !x.group.caution; }).slice(0, max - cautions.length));
+    var set = shown.map(function (x) { return x.cue; });
+    return { shown: set, hidden: flat.length - shown.length };
   }
 
   /* Ribbon colour for group g of n: a ramp between two colours. */
@@ -134,7 +203,8 @@
   }
 
   var api = { buildStops: buildStops, stopSeconds: stopSeconds, gridApplies: gridApplies,
-    formatMeasure: formatMeasure, formatRound: formatRound, deepLink: deepLink,
+    formatMeasure: formatMeasure, formatCount: formatCount, isLearnerLed: isLearnerLed,
+    listMedia: listMedia, groupCues: groupCues, headCues: headCues, SHOWN_ROLES: SHOWN_ROLES, formatRound: formatRound, deepLink: deepLink,
     cuesFor: cuesFor, beatsIn: beatsIn, pickMedia: pickMedia, groupColour: groupColour };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PacesFlowCore = api;
