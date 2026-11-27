@@ -154,12 +154,15 @@ def _step_row(step: Step, *, number, nested, cues, strings, img, with_pics) -> s
         else ""
     )
     count = _rounds(step, strings) + _count(step.duration, strings)
+    row_class = "step nested" if nested else "step"
+    pic_cell = f'<td class="pic">{pic}</td>' if with_pics else ""
+    cue_html = "".join(_cue_html(c, strings) for c in cues)
     return (
-        f'<tr class="step{" nested" if nested else ""}">'
+        f'<tr class="{row_class}">'
         f'<td class="num">{number}</td>'
-        f"{f'<td class="pic">{pic}</td>' if with_pics else ''}"
+        f"{pic_cell}"
         f'<td class="name"><b>{html.escape(step.name)}</b>{badge}{desc}'
-        f"{''.join(_cue_html(c, strings) for c in cues)}</td>"
+        f"{cue_html}</td>"
         f'<td class="count">{html.escape(count)}</td></tr>'
     )
 
