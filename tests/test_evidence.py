@@ -145,6 +145,7 @@ def test_roundtrip_with_every_tier_present():
                 id="calor",
                 kind="lyric",
                 text="se hace difícil respirar",
+                label="Chorus",
                 anchor={"step": "dehanches", "offset": {"value": "2", "unit": "eight"}},
                 at_s="60.5",
             )

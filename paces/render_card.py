@@ -251,11 +251,18 @@ def render_card(
     for cue in doc.cues:
         cues.setdefault(cue.anchor.step, []).append(cue)
 
+    items = [_resource_item(r, table) for r in doc.resources]
+    if not items:
+        # 0.0.3x documents kept the list in attrs["render.card"]["needs"]
+        legacy = doc.attrs.get("render.card")
+        old = legacy.get("needs") if isinstance(legacy, dict) else None
+        old = [old] if isinstance(old, str) else old if isinstance(old, list) else []
+        items = [f"<li>{html.escape(str(n))}</li>" for n in old]
     needs_html = (
         f'<h2>{html.escape(table["needs"])}</h2><ul class="needs">'
-        + "".join(_resource_item(r, table) for r in doc.resources)
+        + "".join(items)
         + "</ul>"
-        if doc.resources
+        if items
         else ""
     )
     notes_html = (

@@ -123,6 +123,9 @@ class GuideCueBodyV1(BodyBase):
     cue_id: str = Field(..., description="Stable id within the guide.")
     kind: str = Field(..., description="lyric | count | audio-landmark | caption | ...")
     text: str = Field(..., description="What the learner hears or reads.")
+    label: str | None = Field(
+        None, description="Short readable label shown beside the cue (paces#75)."
+    )
     step_id: str = Field(..., description="The step this cue is anchored to.")
     offset_value: Decimal | None = Field(
         None,

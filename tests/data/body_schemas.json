@@ -183,6 +183,19 @@
         "title": "Kind",
         "type": "string"
       },
+      "label": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Short readable label shown beside the cue (paces#75).",
+        "title": "Label"
+      },
       "offset_unit": {
         "anyOf": [
           {

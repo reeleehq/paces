@@ -335,6 +335,11 @@ def dumps_document(doc: StepDocument) -> str:
     import json
 
     payload = doc.model_dump(mode="json", by_alias=True, exclude_none=True)
+    # 0.2.0 additions are omitted while empty, so a document that never used
+    # them keeps its 0.1.0 canonical form (and still passes the 0.1.0 schema)
+    for key in ("notes", "resources"):
+        if not payload.get(key):
+            payload.pop(key, None)
     return json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
 

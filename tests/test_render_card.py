@@ -254,3 +254,10 @@ def test_remote_posters_are_not_fetched_at_print_time():
 def test_paper_is_refused_where_it_means_nothing():
     with pytest.raises(ValueError, match="paper"):
         render(_doc(), renderer="html", paper="a4")
+
+
+def test_the_older_attrs_needs_list_is_still_read_when_there_are_no_resources():
+    old = card.render_card(_doc(attrs={"render.card": {"needs": ["A mat"]}}))
+    assert "What you need" in old and "<li>A mat</li>" in old
+    assert "<li>A mat</li>" in card.render_card(_doc(attrs={"render.card": {"needs": "A mat"}}))
+    card.render_card(_doc(attrs={"render.card": "nope"}))  # odd values never crash

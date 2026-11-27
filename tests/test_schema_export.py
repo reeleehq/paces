@@ -249,3 +249,14 @@ def test_the_schema_describes_the_new_fields():
     schema = schema_module.step_document_schema()
     assert {"notes", "resources"} <= set(schema["properties"])
     assert "label" in schema["$defs"]["Cue"]["properties"]
+
+
+def test_empty_new_fields_are_left_out_of_the_canonical_form():
+    import json as _json
+
+    doc = StepDocument(id="old", title="Old")
+    payload = _json.loads(dumps_document(doc))
+    assert "notes" not in payload and "resources" not in payload
+    full = StepDocument(id="n", title="N", notes=["x"])
+    assert _json.loads(dumps_document(full))["notes"] == ["x"]
+    assert loads_document(dumps_document(full)) == full
