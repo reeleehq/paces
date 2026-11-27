@@ -92,13 +92,60 @@ def test_posters_are_embedded_and_the_column_exists_only_with_one(tmp_path):
     assert 'class="pic"' not in without and "<img" not in without
 
 
-def test_posters_cannot_be_read_from_outside_the_media_folder(tmp_path):
+def test_posters_cannot_be_read_from_outside_the_media_root(tmp_path):
     (tmp_path / "secret.jpg").write_bytes(b"x")
     doc = _doc()
     doc.steps[1].steps[0].artifacts = [ArtifactRef(role="poster", uri="../secret.jpg")]
     sub = tmp_path / "doc"
     sub.mkdir()
-    assert "data:" not in card.render_card(doc, media_from=sub)
+    with pytest.raises(ValueError, match="media root"):
+        card.render_card(doc, media_from=sub)
+    # widening the root on purpose reads it
+    assert "data:image/jpeg;base64," in card.render_card(doc, media_from=sub, media_root=tmp_path)
+
+
+def _two_posters(tmp_path, names=("start.jpg", "end.jpg")):
+    (tmp_path / "media").mkdir(exist_ok=True)
+    for n in names:
+        (tmp_path / "media" / n).write_bytes(b"\xff\xd8\xff" + n.encode())
+    doc = _doc()
+    doc.steps[1].steps[0].artifacts = [
+        ArtifactRef(role="poster", uri=f"media/{n}") for n in names
+    ]
+    return doc
+
+
+def test_two_posters_are_a_start_and_end_pair(tmp_path):
+    page = card.render_card(_two_posters(tmp_path), media_from=tmp_path)
+    assert page.count("<img") == 2
+    assert page.index("Start") < page.index("End")
+    assert "width:61mm" in page  # the picture column fits the pair
+
+
+def test_one_poster_has_no_pair_labels_and_three_are_all_shown(tmp_path):
+    one = card.render_card(_two_posters(tmp_path, ("a.jpg",)), media_from=tmp_path)
+    assert one.count("<img") == 1 and ">Start<" not in one
+    three = card.render_card(_two_posters(tmp_path, ("a.jpg", "b.jpg", "c.jpg")), media_from=tmp_path)
+    assert three.count("<img") == 3 and ">Start<" not in three
+
+
+def test_media_root_flag_reaches_the_card(tmp_path):
+    import sys
+
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "p.jpg").write_bytes(b"\xff\xd8\xff")
+    (tmp_path / "doc").mkdir()
+    doc = _doc()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="poster", uri="../media/p.jpg")]
+    path = tmp_path / "doc" / "d.json"
+    path.write_text(dumps_document(doc), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-m", "paces", "render", str(path), "--renderer", "card",
+         "--output", str(tmp_path / "c.html"), "--media-root", str(tmp_path)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "data:image/jpeg;base64," in (tmp_path / "c.html").read_text(encoding="utf-8")
 
 
 def test_strings_override():

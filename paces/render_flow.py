@@ -35,13 +35,6 @@ def _steps(steps: list[Step]) -> Iterator[Step]:
         yield from _steps(step.steps)
 
 
-def _is_relative_path(uri: str) -> bool:
-    """A document-relative file path: no scheme, no leading slash or drive."""
-    if uri.startswith(("/", "\\")) or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", uri):
-        return False
-    return True
-
-
 def default_strings() -> dict:
     """The player's one strings table, as shipped (English)."""
     text = (
@@ -65,35 +58,53 @@ def _merged_strings(overrides: Mapping | None) -> dict:
     return table
 
 
-def _copy_media(doc: StepDocument, media_from: Path | None, out: Path) -> list[str]:
-    """Copy each relative artifact into the output folder at the same relative
-    path (the document's uris are document-relative). Returns the uris that
-    were not shipped (file not found, or not a relative path), so the caller
-    can say so instead of leaving dead clips behind."""
+def _ship_media(
+    doc: StepDocument,
+    media_from: Path | None,
+    media_root: Path | None,
+    out: Path,
+) -> tuple[StepDocument, list[str]]:
+    """Copy each artifact's file into the output folder and return the document
+    to ship plus the uris that could not be shipped.
+
+    The shipped path is the file's path relative to the media root, so media that
+    lives beside the document (outside the output folder) lands under the output
+    folder and the shipped document points there. With the default root (the
+    base folder) a uri keeps its own path. Web uris are left alone; uris that
+    are not relative paths, or whose file is missing, are reported."""
+    from paces.media_paths import is_relative_path, resolve_media
+
+    shipped = doc.model_copy(deep=True)
     unshipped: list[str] = []
     out_root = out.resolve()
-    source_root = media_from.resolve() if media_from else None
-    for step in _steps(doc.steps):
+    root = (
+        Path(media_root or media_from).resolve() if (media_root or media_from) else None
+    )
+    for step in _steps(shipped.steps):
         for artifact in step.artifacts:
             uri = artifact.uri
             if uri.startswith(("http://", "https://")):
                 continue  # the player loads it from where it is
-            if not _is_relative_path(uri):
+            if not is_relative_path(uri):
                 unshipped.append(uri)
                 continue
-            target = (out_root / uri).resolve()
+            if media_from is None:
+                if not (out_root / uri).resolve().is_file():
+                    unshipped.append(uri)
+                continue
+            source = resolve_media(uri, media_from, media_root)
+            if source is None:
+                unshipped.append(uri)
+                continue
+            relative = source.relative_to(root).as_posix()
+            target = (out_root / relative).resolve()
             if out_root not in target.parents:
                 raise ValueError(f"artifact uri escapes the output folder: {uri!r}")
-            source = (source_root / uri).resolve() if source_root else None
-            if source is not None and source_root not in source.parents:
-                raise ValueError(f"artifact uri escapes the media folder: {uri!r}")
-            if source is not None and source.is_file():
-                if source != target:
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copyfile(source, target)
-            elif not target.is_file():
-                unshipped.append(uri)
-    return unshipped
+            if source != target:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+            artifact.uri = relative
+    return shipped, unshipped
 
 
 def render_flow(
@@ -101,13 +112,16 @@ def render_flow(
     output_dir: str | Path,
     *,
     media_from: str | Path | None = None,
+    media_root: str | Path | None = None,
     strings: Mapping | None = None,
 ) -> Path:
     """Write the player folder for ``doc`` into ``output_dir`` and return it.
 
     ``media_from`` is the folder the document's relative artifact uris are
-    relative to (usually the document's own folder); the files are copied to the
-    same relative paths in the output. ``strings`` overrides entries of the
+    relative to (usually the document's own folder). Files are read only within
+    ``media_root`` (default ``media_from``; widen it for media that lives beside
+    the document) and are copied to their path relative to that root, which is
+    where the shipped ``document.json`` points. ``strings`` overrides entries of the
     default strings table (a translation, a different word for "Start").
     Warns, naming them, about artifacts whose files could not be found.
     """
@@ -118,6 +132,12 @@ def render_flow(
         (out / name).write_text(
             package.joinpath(name).read_text(encoding="utf-8"), encoding="utf-8"
         )
+    doc, missing = _ship_media(
+        doc,
+        Path(media_from) if media_from else None,
+        Path(media_root) if media_root else None,
+        out,
+    )
     document_text = dumps_document(doc)
     table = _merged_strings(strings)
     (out / "document.json").write_text(document_text, encoding="utf-8")
@@ -133,7 +153,6 @@ def render_flow(
         + ";\n",
         encoding="utf-8",
     )
-    missing = _copy_media(doc, Path(media_from) if media_from else None, out)
     if missing:
         import warnings
 

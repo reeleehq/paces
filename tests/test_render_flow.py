@@ -115,7 +115,7 @@ def test_missing_media_is_named_in_a_warning(tmp_path):
 def test_media_cannot_escape_the_output_folder(tmp_path):
     doc = _circuit()
     doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../../evil.mp4")]
-    with pytest.raises(ValueError, match="escapes"):
+    with pytest.raises(ValueError, match="media root"):
         render_flow(doc, tmp_path / "out", media_from=tmp_path)
 
 
@@ -350,5 +350,40 @@ def test_media_source_cannot_climb_out_of_the_media_folder(tmp_path):
     src.mkdir()
     doc = _circuit()
     doc.steps[0].artifacts = [ArtifactRef(role="clip", uri="../secret.txt")]
-    with pytest.raises(ValueError, match="escapes"):
+    with pytest.raises(ValueError, match="media root"):
         render_flow(doc, tmp_path / "out", media_from=src)
+
+
+def test_media_beside_the_document_is_shipped_when_the_root_is_widened(tmp_path):
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "squat.mp4").write_bytes(b"v")
+    (tmp_path / "doc").mkdir()
+    doc = _circuit()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="../media/squat.mp4")]
+    out = render_flow(doc, tmp_path / "out", media_from=tmp_path / "doc", media_root=tmp_path)
+    assert (out / "media" / "squat.mp4").read_bytes() == b"v"
+    shipped = json.loads((out / "document.json").read_text(encoding="utf-8"))
+    uris = [a["uri"] for s in shipped["steps"] for c in s.get("steps", []) for a in c.get("artifacts", [])]
+    assert uris == ["media/squat.mp4"]  # the shipped document points inside the folder
+    # and the caller's own document is untouched
+    assert doc.steps[1].steps[0].artifacts[0].uri == "../media/squat.mp4"
+
+
+def test_cli_media_flags_reach_the_renderers(tmp_path):
+    import sys
+
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "squat.mp4").write_bytes(b"v")
+    (tmp_path / "doc").mkdir()
+    doc = _circuit()
+    doc.steps[1].steps[0].artifacts = [ArtifactRef(role="clip", uri="../media/squat.mp4")]
+    path = tmp_path / "doc" / "d.json"
+    path.write_text(__import__("paces.model", fromlist=["x"]).dumps_document(doc), encoding="utf-8")
+    run = lambda *extra: subprocess.run(
+        [sys.executable, "-m", "paces", "render", str(path), "--renderer", "flow",
+         "--output", str(tmp_path / "site"), *extra], capture_output=True, text=True)
+    refused = run()
+    assert refused.returncode != 0 and "media root" in refused.stderr
+    ok = run("--media-root", str(tmp_path))
+    assert ok.returncode == 0, ok.stderr
+    assert (tmp_path / "site" / "media" / "squat.mp4").is_file()
