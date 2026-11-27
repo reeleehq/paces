@@ -1,4 +1,4 @@
-> built 2026-11-27 17:23 UTC from 70b1ed2 (main) · paces 0.0.40. Details: build_info.json
+> built 2026-11-27 17:56 UTC from 1ed6754 (main) · paces 0.0.41. Details: build_info.json
 
 # index.html.md
 
@@ -2875,6 +2875,7 @@ analyser. “What you need” is the document’s `resources` and “Notes” it
 | [`MAX_EMBED_BYTES`](_autosummary/paces.render_card.html.md#paces.render_card.MAX_EMBED_BYTES)   | Posters bigger than this are not embedded (a card is a printout).   |
 |--------------------------------------------------------------------|---------------------------------------------------------------------|
 | [`PIC_MM`](_autosummary/paces.render_card.html.md#paces.render_card.PIC_MM)            | Width of one picture on the card, in mm.                            |
+| [`MAX_PICTURES`](_autosummary/paces.render_card.html.md#paces.render_card.MAX_PICTURES)      | the start and end of the main variant.                              |
 
 ### Functions
 
@@ -2887,7 +2888,15 @@ analyser. “What you need” is the document’s `resources` and “Notes” it
 
 Posters bigger than this are not embedded (a card is a printout).
 
-### paces.render_card.PIC_MM *= 28*
+### paces.render_card.MAX_PICTURES *= 2*
+
+the start and end of the
+main variant. Alternatives do not belong on a printed card.
+
+* **Type:**
+  A step’s picture block holds at most this many pictures
+
+### paces.render_card.PIC_MM *= 21*
 
 Width of one picture on the card, in mm.
 
@@ -3606,18 +3615,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 17:23 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/70b1ed2da5a751186a63437ba5bf97d391f41130"><code>70b1ed2</code></a> on branch <code>main</code>, for **paces 0.0.40** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 17:56 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/1ed6754cbad63047c66b8d82b4574e10d26a0861"><code>1ed6754</code></a> on branch <code>main</code>, for **paces 0.0.41** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.41) is ahead of the latest release on PyPI (0.0.40): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/70b1ed2da5a751186a63437ba5bf97d391f41130"><code>70b1ed2da5a751186a63437ba5bf97d391f41130</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/1ed6754cbad63047c66b8d82b4574e10d26a0861"><code>1ed6754cbad63047c66b8d82b4574e10d26a0861</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.40</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.41</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3626,9 +3637,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46041054954">46041054954</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46045332264">46045332264</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>acab31db3bdff6e0473bcd62db91f8d19f309a00</code> (in the history of the built commit) |
+| Event commit | <code>9a9e37fab8a9d158252f3fdd255eb5d2e4017458</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3653,13 +3664,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.40/">0.0.40</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.40/">0.0.40</a>, older than the documented version (0.0.41).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 70b1ed2da5a751186a63437ba5bf97d391f41130
+git checkout 1ed6754cbad63047c66b8d82b4574e10d26a0861
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -23,6 +23,7 @@ analyser. “What you need” is the document’s `resources` and “Notes” it
 | [`MAX_EMBED_BYTES`](#paces.render_card.MAX_EMBED_BYTES)   | Posters bigger than this are not embedded (a card is a printout).   |
 |--------------------------------------------------------------------|---------------------------------------------------------------------|
 | [`PIC_MM`](#paces.render_card.PIC_MM)            | Width of one picture on the card, in mm.                            |
+| [`MAX_PICTURES`](#paces.render_card.MAX_PICTURES)      | the start and end of the main variant.                              |
 
 ### Functions
 
@@ -35,7 +36,15 @@ analyser. “What you need” is the document’s `resources` and “Notes” it
 
 Posters bigger than this are not embedded (a card is a printout).
 
-### paces.render_card.PIC_MM *= 28*
+### paces.render_card.MAX_PICTURES *= 2*
+
+the start and end of the
+main variant. Alternatives do not belong on a printed card.
+
+* **Type:**
+  A step’s picture block holds at most this many pictures
+
+### paces.render_card.PIC_MM *= 21*
 
 Width of one picture on the card, in mm.
 

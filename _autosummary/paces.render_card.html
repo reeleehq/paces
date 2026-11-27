@@ -105,6 +105,7 @@ data-aria-dark="Switch to auto color mode">
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#paces.render_card.MAX_EMBED_BYTES"><code class="docutils literal notranslate"><span class="pre">MAX_EMBED_BYTES</span></code></a></li>
+<li><a class="reference internal" href="#paces.render_card.MAX_PICTURES"><code class="docutils literal notranslate"><span class="pre">MAX_PICTURES</span></code></a></li>
 <li><a class="reference internal" href="#paces.render_card.PIC_MM"><code class="docutils literal notranslate"><span class="pre">PIC_MM</span></code></a></li>
 <li><a class="reference internal" href="#paces.render_card.group_cues"><code class="docutils literal notranslate"><span class="pre">group_cues()</span></code></a></li>
 <li><a class="reference internal" href="#paces.render_card.render_card"><code class="docutils literal notranslate"><span class="pre">render_card()</span></code></a></li>
@@ -173,6 +174,9 @@ analyser. “What you need” is the document’s <code class="docutils literal 
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.render_card.PIC_MM" title="paces.render_card.PIC_MM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PIC_MM</span></code></a></p></td>
 <td><p>Width of one picture on the card, in mm.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.render_card.MAX_PICTURES" title="paces.render_card.MAX_PICTURES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_PICTURES</span></code></a></p></td>
+<td><p>the start and end of the main variant.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -199,8 +203,20 @@ analyser. “What you need” is the document’s <code class="docutils literal 
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="paces.render_card.MAX_PICTURES">
+<span class="sig-prename descclassname"><span class="pre">paces.render_card.</span></span><span class="sig-name descname"><span class="pre">MAX_PICTURES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#paces.render_card.MAX_PICTURES" title="Link to this definition">#</a></dt>
+<dd><p>the start and end of the
+main variant. Alternatives do not belong on a printed card.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A step’s picture block holds at most this many pictures</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="paces.render_card.PIC_MM">
-<span class="sig-prename descclassname"><span class="pre">paces.render_card.</span></span><span class="sig-name descname"><span class="pre">PIC_MM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">28</span></span><a class="headerlink" href="#paces.render_card.PIC_MM" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.render_card.</span></span><span class="sig-name descname"><span class="pre">PIC_MM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">21</span></span><a class="headerlink" href="#paces.render_card.PIC_MM" title="Link to this definition">#</a></dt>
 <dd><p>Width of one picture on the card, in mm.</p>
 </dd></dl>
 
@@ -286,7 +302,7 @@ prints with headless Chromium (needs <code class="docutils literal notranslate">
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=84bd753f"></script>
+      <script src="../_static/documentation_options.js?v=20c5f126"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
