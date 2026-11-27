@@ -20,6 +20,7 @@ from paces import (
     model,
     projection,
     render as render_module,
+    schema as schema_module,
     segmenters as segment_module,
 )
 from paces.corrections import normalize_corrections
@@ -507,6 +508,20 @@ def suggest_excerpts(
     }
 
 
+def schema(*, output: str | None = None) -> str:
+    """The JSON Schema of a step document (for other languages and agents).
+
+    Returns the schema text; with ``output=`` also writes it to that path and
+    returns the path. The same text is committed as package data and checked
+    against the model by the test suite.
+    """
+    text = schema_module.dumps_schema()
+    if output:
+        Path(output).write_text(text, encoding="utf-8")
+        return output
+    return text
+
+
 def list_segmenters() -> dict:
     """The registered segmentation capabilities: name → what it needs/gives."""
     return {
@@ -532,6 +547,7 @@ _dispatch_funcs = [
     merge,
     resolve,
     validate,
+    schema,
     measure_grid,
     list_segmenters,
 ]

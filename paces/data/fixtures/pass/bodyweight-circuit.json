@@ -1,0 +1,33 @@
+{
+  "kind": "StepDocument",
+  "schemaVersion": "0.1.0",
+  "id": "bodyweight-circuit",
+  "title": "Bodyweight circuit",
+  "domain": "workout",
+  "steps": [
+    {
+      "id": "warm-up",
+      "name": "Warm-up",
+      "duration": { "value": "30", "unit": "second" },
+      "description": "Easy march on the spot."
+    },
+    {
+      "id": "circuit",
+      "name": "Circuit",
+      "duration": { "value": "10", "unit": "rep" },
+      "repeat": 3,
+      "steps": [
+        { "id": "squat", "name": "Squat", "duration": { "value": "10", "unit": "rep" } },
+        { "id": "push-up", "name": "Push-up", "duration": { "value": "8", "unit": "rep" }, "optional": true }
+      ]
+    }
+  ],
+  "cues": [
+    {
+      "id": "squat-knees",
+      "kind": "warning",
+      "text": "Knees follow the toes.",
+      "anchor": { "step": "squat" }
+    }
+  ]
+}

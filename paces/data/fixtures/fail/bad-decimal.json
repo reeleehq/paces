@@ -1,0 +1,4 @@
+{
+  "kind": "StepDocument", "id": "x", "title": "T",
+  "steps": [ { "id": "a", "name": "A", "duration": { "value": "two", "unit": "rep" } } ]
+}

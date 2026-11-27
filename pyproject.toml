@@ -129,6 +129,9 @@ dev = [
     # The evidence-layer tests run against real, dict-backed lacing stores —
     # mirrored with [lacing] so they run rather than skip.
     "lacing>=0.0.54",
+    # The schema-export tests run the shipped fixtures against the committed
+    # JSON Schema with a real validator.
+    "jsonschema>=4",
     # tests/test_pose.py reads pyproject.toml to guard the licence perimeter;
     # stdlib tomllib is 3.11+, and a skipped guard guards nothing.
     "tomli>=2.0; python_version < '3.11'",

@@ -1,0 +1,5 @@
+{
+  "kind": "StepDocument", "id": "x", "title": "T",
+  "metric": { "unit": "eight", "subdivisions": 8, "tempoBpm": "0" },
+  "steps": []
+}
