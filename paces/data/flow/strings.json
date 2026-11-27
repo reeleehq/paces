@@ -75,6 +75,7 @@
     "lyric": "Lyric",
     "caption": "Note"
   },
+  "noticeKinds": ["notice"],
   "cautionKinds": [
     "warning",
     "caution",
@@ -99,6 +100,7 @@
   "firstUp": "First:",
   "done": "Done",
   "doneShort": "Done",
+  "doneRounds": "Done: {n} rounds",
   "doneCounts": "{n} steps · {t}",
   "restart": "Restart",
   "stepOf": "step {n} of {of}",

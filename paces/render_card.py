@@ -63,6 +63,7 @@ DEFAULT_STRINGS = {
         "caption": "Note",
     },
     "learner_led": "as needed",
+    "notice_kinds": ["notice"],
     "between_passes": "between rounds",
     "rounds": "{n} rounds",
     "units": {
@@ -100,6 +101,7 @@ tr.group td { padding-top: 3mm; font-weight: bold; }
 tr.nested td.name { padding-left: 4mm; }
 .name b { font-size: 11pt; }
 .desc { margin: .5mm 0 0; font-weight: normal; }
+.notice { margin: 1mm 0 0; font-style: italic; font-weight: normal; color: #5b4a73; }
 .dose { font-weight: normal; font-size: 8pt; color: #5b4a73; }
 .cuegroup { margin: 1mm 0 0; }
 .cuegroup > span { font-size: 7pt; letter-spacing: .1em; text-transform: uppercase; color: #5b4a73; font-weight: normal; }
@@ -223,10 +225,21 @@ def _kind_label(kind: str, strings: dict) -> str:
     return strings["cue_kinds"].get(kind, kind)
 
 
+def _notices_html(cues: list, strings: dict) -> str:
+    """Notices (kinds in ``notice_kinds``) are information, not instructions:
+    plain muted lines, apart from the cue groups."""
+    return "".join(
+        f'<p class="notice">{html.escape(c.text)}</p>'
+        for c in cues
+        if c.kind in strings["notice_kinds"]
+    )
+
+
 def group_cues(cues: list, strings: dict) -> list[tuple[str, list]]:
     """Cues grouped by kind, in reading order: the ``kind_first`` kinds (set-up),
     then the cautions, then every other kind in first-seen order."""
     kinds: list[str] = []
+    cues = [c for c in cues if c.kind not in strings["notice_kinds"]]
     for cue in cues:
         if cue.kind not in kinds:
             kinds.append(cue.kind)
@@ -241,8 +254,9 @@ def group_cues(cues: list, strings: dict) -> list[tuple[str, list]]:
 
 
 def _cue_html(cues: list, strings: dict) -> str:
-    """A step's cues, one block per kind: a heading, then the lines."""
-    blocks = []
+    """A step's cues, one block per kind: a heading, then the lines; notices
+    first, apart."""
+    blocks = [_notices_html(cues, strings)]
     for kind, group in group_cues(cues, strings):
         caution = kind in strings["caution_kinds"]
         lines, previous = [], None
