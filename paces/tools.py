@@ -20,6 +20,7 @@ from paces import (
     model,
     projection,
     render as render_module,
+    render_flow as render_flow_module,
     schema as schema_module,
     segmenters as segment_module,
 )
@@ -228,16 +229,32 @@ def to_document(
 def render(document, *, output: str | None = None, renderer: str = "html") -> str:
     """Render a step document into learning material.
 
-    ``renderer='html'`` (v1's one implementation) produces the self-contained
-    practice page. Returns the output path when ``output=`` is given,
-    otherwise the rendered text itself.
+    ``renderer='html'`` produces the self-contained practice page.
+    ``renderer='flow'`` produces a folder: a static step-through player (manual
+    and timed), ``document.json`` and the document's media; it needs
+    ``output=`` (the folder). Returns the output path when ``output=`` is
+    given, otherwise the rendered text itself.
     """
     renderers = {"html": render_module.render_html}
-    if renderer not in renderers:
+    folder_renderers = {"flow": render_flow_module.render_flow}
+    if renderer not in {**renderers, **folder_renderers}:
         raise ValueError(
-            f"unknown renderer {renderer!r}; available: {sorted(renderers)}"
+            f"unknown renderer {renderer!r}; "
+            f"available: {sorted([*renderers, *folder_renderers])}"
         )
     doc = _as_document(document)
+    if renderer in folder_renderers:
+        if not output:
+            raise ValueError(
+                f"the {renderer!r} renderer writes a folder: pass output=<folder>"
+            )
+        media_from = (
+            Path(document).resolve().parent
+            if isinstance(document, str) and Path(document).is_file()
+            else None
+        )
+        folder_renderers[renderer](doc, output, media_from=media_from)
+        return output
     text = renderers[renderer](doc)
     if output:
         _warn_if_page_leaves_media_behind(doc, document, output)
