@@ -18,7 +18,7 @@ a JSON file, so the same function serves the library, the shell, and an agent.
 | [`list_segmenters`](#paces.tools.list_segmenters)()                                    | The registered segmentation capabilities: name → what it needs/gives.                                        |
 | [`measure_grid`](#paces.tools.measure_grid)(media, \*[, unit, subdivisions, ...])   | Measure a metric grid (tempo, macro-structure, estimated origin) from a local media file.                    |
 | [`merge`](#paces.tools.merge)(committed, fresh, \*[, output])                | Merge a fresh analysis projection against the committed document.                                            |
-| [`render`](#paces.tools.render)(document, \*[, output, renderer])             | Render a step document into learning material.                                                               |
+| [`render`](#paces.tools.render)(document, \*[, output, renderer, paper])      | Render a step document into learning material.                                                               |
 | [`resolve`](#paces.tools.resolve)(document)                                    | Compute absolute offsets and wall-clock times for a document's steps.                                        |
 | [`schema`](#paces.tools.schema)(\*[, output])                                 | The JSON Schema of a step document (for other languages and agents).                                         |
 | [`segment`](#paces.tools.segment)([media, steps, boundaries, grid, ...])       | Cut media into steps using whatever else is present (ADR-0003).                                              |
@@ -103,15 +103,18 @@ analysis never eats a hand edit.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.render(document, , output=None, renderer='html')
+### paces.tools.render(document, , output=None, renderer='html', paper=None)
 
 Render a step document into learning material.
 
 `renderer='html'` produces the self-contained practice page.
 `renderer='flow'` produces a folder: a static step-through player (manual
 and timed), `document.json` and the document’s media; it needs
-`output=` (the folder). Returns the output path when `output=` is
-given, otherwise the rendered text itself.
+`output=` (the folder). `renderer='card'` produces a printable card
+(one or two sheets): HTML, or a PDF when `output` ends in `.pdf` and
+the `paces[pdf]` extra is installed; `paper` is `'a4'` (default) or
+`'letter'`. Returns the output path when `output=` is given, otherwise
+the rendered text itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

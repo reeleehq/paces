@@ -1,0 +1,19 @@
+paces.render\_card
+==================
+
+.. automodule:: paces.render_card
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      MAX_EMBED_BYTES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      render_card
+      write_card_pdf
+   

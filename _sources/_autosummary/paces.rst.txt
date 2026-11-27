@@ -74,6 +74,7 @@
    pose
    projection
    render
+   render_card
    render_flow
    schema
    segmentation

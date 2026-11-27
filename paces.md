@@ -1,4 +1,4 @@
-> built 2026-11-27 15:00 UTC from 9ffd04f (main) · paces 0.0.32. Details: build_info.json
+> built 2026-11-27 15:40 UTC from 36a8eaa (main) · paces 0.0.33. Details: build_info.json
 
 # index.html.md
 
@@ -1886,6 +1886,7 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 | [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                                                                                                               |
 | [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)     | The projection from analysis result to document: `to_document`.                                                                                                                                                                         |
 | [`render`](_autosummary/paces.render.html.md#module-paces.render)             | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                                                                                                                 |
+| [`render_card`](_autosummary/paces.render_card.html.md#module-paces.render_card)   | The card renderer: one routine on a printable card, as HTML or PDF.                                                                                                                                                                     |
 | [`render_flow`](_autosummary/paces.render_flow.html.md#module-paces.render_flow)   | The flow renderer: a static step-through player for any document.                                                                                                                                                                       |
 | [`schema`](_autosummary/paces.schema.html.md#module-paces.schema)             | The JSON Schema of a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument), for other languages.                                                                                                       |
 | [`segmentation`](_autosummary/paces.segmentation.html.md#module-paces.segmentation) | What a segmenter returns: [`Segmentation`](_autosummary/paces.html.md#paces.Segmentation), its [`SegStep`](_autosummary/paces.html.md#paces.SegStep) records and the `Span` they cover — the analysis-result types, with nothing else. |
@@ -2731,6 +2732,67 @@ derived clips arrive via `ArtifactRef` when the media layer exists.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
+# _autosummary/paces.render_card.html.md
+
+# paces.render_card
+
+The card renderer: one routine on a printable card, as HTML or PDF.
+
+`render_card(doc)` returns a self-contained, print-styled HTML page: the
+title, what you need, the structure with counts, and a row per step with its
+poster, description, cues and cautions. It fits one or two sheets, A4 or
+Letter (`@page` carries the paper size), and uses plain tables and no script
+so even an old print engine lays it out. Posters are embedded as data URIs
+when `media_from` is given, so the card is one file.
+
+`write_card_pdf` turns that page into a PDF through the fleet’s converter,
+`pdfdol`, an optional extra (`paces[pdf]`): the model and every renderer
+stay pydantic-only (ADR-0004), and importing this module imports nothing
+heavy. Without the extra, asking for a PDF says exactly what to install.
+
+The card reads the document and one strings table; it never depends on the
+analyser. “What you need” comes from `attrs["render.card"]["needs"]` (a list
+of strings), the same `render.*` presentation namespace the document already
+uses for the web page, since the document has no equipment field.
+
+### Module Attributes
+
+| [`MAX_EMBED_BYTES`](_autosummary/paces.render_card.html.md#paces.render_card.MAX_EMBED_BYTES)   | Posters bigger than this are not embedded (a card is a printout).   |
+|--------------------------------------------------------------------|---------------------------------------------------------------------|
+
+### Functions
+
+| [`render_card`](_autosummary/paces.render_card.html.md#paces.render_card.render_card)(doc, \*[, paper, media_from, strings])   | The print-styled card page for `doc` (self-contained HTML).   |
+|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`write_card_pdf`](_autosummary/paces.render_card.html.md#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine])    | Convert a card page to a PDF at `output` through `pdfdol`.    |
+
+### paces.render_card.MAX_EMBED_BYTES *= 400000*
+
+Posters bigger than this are not embedded (a card is a printout).
+
+### paces.render_card.render_card(doc, , paper='a4', media_from=None, strings=None)
+
+The print-styled card page for `doc` (self-contained HTML).
+
+`paper` is `"a4"` or `"letter"`. `media_from` is the folder the
+document’s relative poster uris are relative to; posters found there are
+embedded. `strings` overrides entries of the default strings table.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### paces.render_card.write_card_pdf(page, output, , paper='a4', engine=None)
+
+Convert a card page to a PDF at `output` through `pdfdol`.
+
+`engine=None` is pdfdol’s default (wkhtmltopdf); `engine="chromium"`
+prints with headless Chromium (needs `pdfdol[chromium]`). Raises
+`RuntimeError` naming exactly what to install when something is missing.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
 # _autosummary/paces.render_flow.html.md
 
 # paces.render_flow
@@ -3222,7 +3284,7 @@ a JSON file, so the same function serves the library, the shell, and an agent.
 | [`list_segmenters`](_autosummary/paces.tools.html.md#paces.tools.list_segmenters)()                                    | The registered segmentation capabilities: name → what it needs/gives.                                        |
 | [`measure_grid`](_autosummary/paces.tools.html.md#paces.tools.measure_grid)(media, \*[, unit, subdivisions, ...])   | Measure a metric grid (tempo, macro-structure, estimated origin) from a local media file.                    |
 | [`merge`](_autosummary/paces.tools.html.md#paces.tools.merge)(committed, fresh, \*[, output])                | Merge a fresh analysis projection against the committed document.                                            |
-| [`render`](_autosummary/paces.tools.html.md#paces.tools.render)(document, \*[, output, renderer])             | Render a step document into learning material.                                                               |
+| [`render`](_autosummary/paces.tools.html.md#paces.tools.render)(document, \*[, output, renderer, paper])      | Render a step document into learning material.                                                               |
 | [`resolve`](_autosummary/paces.tools.html.md#paces.tools.resolve)(document)                                    | Compute absolute offsets and wall-clock times for a document's steps.                                        |
 | [`schema`](_autosummary/paces.tools.html.md#paces.tools.schema)(\*[, output])                                 | The JSON Schema of a step document (for other languages and agents).                                         |
 | [`segment`](_autosummary/paces.tools.html.md#paces.tools.segment)([media, steps, boundaries, grid, ...])       | Cut media into steps using whatever else is present (ADR-0003).                                              |
@@ -3307,15 +3369,18 @@ analysis never eats a hand edit.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
 
-### paces.tools.render(document, , output=None, renderer='html')
+### paces.tools.render(document, , output=None, renderer='html', paper=None)
 
 Render a step document into learning material.
 
 `renderer='html'` produces the self-contained practice page.
 `renderer='flow'` produces a folder: a static step-through player (manual
 and timed), `document.json` and the document’s media; it needs
-`output=` (the folder). Returns the output path when `output=` is
-given, otherwise the rendered text itself.
+`output=` (the folder). `renderer='card'` produces a printable card
+(one or two sheets): HTML, or a PDF when `output` ends in `.pdf` and
+the `paces[pdf]` extra is installed; `paper` is `'a4'` (default) or
+`'letter'`. Returns the output path when `output=` is given, otherwise
+the rendered text itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -3403,18 +3468,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 15:00 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/9ffd04fa7057eb9dda73e7c9c37bea18212fce44"><code>9ffd04f</code></a> on branch <code>main</code>, for **paces 0.0.32** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 15:40 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d"><code>36a8eaa</code></a> on branch <code>main</code>, for **paces 0.0.33** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.33) is ahead of the latest release on PyPI (0.0.32): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/9ffd04fa7057eb9dda73e7c9c37bea18212fce44"><code>9ffd04fa7057eb9dda73e7c9c37bea18212fce44</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d"><code>36a8eaa0c72345f667a38d254b95f38fac908e0d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.32</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.33</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3423,9 +3490,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46020528057">46020528057</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46026571148">46026571148</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>33f83c846bdf293573d5f7e4151a3ef6d8059fef</code> (in the history of the built commit) |
+| Event commit | <code>697a9195e79bf51b4372619864a30ce1fc9a803a</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3450,13 +3517,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.32/">0.0.32</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.32/">0.0.32</a>, older than the documented version (0.0.33).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 9ffd04fa7057eb9dda73e7c9c37bea18212fce44
+git checkout 36a8eaa0c72345f667a38d254b95f38fac908e0d
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

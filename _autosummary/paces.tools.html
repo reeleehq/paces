@@ -79,6 +79,7 @@ data-aria-dark="Switch to auto color mode">
 <li class="toctree-l3"><a class="reference internal" href="paces.pose.html">paces.pose</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.projection.html">paces.projection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.render.html">paces.render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="paces.render_card.html">paces.render_card</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.render_flow.html">paces.render_flow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.schema.html">paces.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="paces.segmentation.html">paces.segmentation</a></li>
@@ -184,7 +185,7 @@ a JSON file, so the same function serves the library, the shell, and an agent.</
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.merge" title="paces.tools.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(committed, fresh, *[, output])</p></td>
 <td><p>Merge a fresh analysis projection against the committed document.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.render" title="paces.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(document, *[, output, renderer])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.tools.render" title="paces.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(document, *[, output, renderer, paper])</p></td>
 <td><p>Render a step document into learning material.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.tools.resolve" title="paces.tools.resolve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve</span></code></a>(document)</p></td>
@@ -306,13 +307,16 @@ analysis never eats a hand edit.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.tools.render">
-<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'html'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.render" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">paces.tools.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'html'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/tools.html#render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.tools.render" title="Link to this definition">#</a></dt>
 <dd><p>Render a step document into learning material.</p>
 <p><code class="docutils literal notranslate"><span class="pre">renderer='html'</span></code> produces the self-contained practice page.
 <code class="docutils literal notranslate"><span class="pre">renderer='flow'</span></code> produces a folder: a static step-through player (manual
 and timed), <code class="docutils literal notranslate"><span class="pre">document.json</span></code> and the document’s media; it needs
-<code class="docutils literal notranslate"><span class="pre">output=</span></code> (the folder). Returns the output path when <code class="docutils literal notranslate"><span class="pre">output=</span></code> is
-given, otherwise the rendered text itself.</p>
+<code class="docutils literal notranslate"><span class="pre">output=</span></code> (the folder). <code class="docutils literal notranslate"><span class="pre">renderer='card'</span></code> produces a printable card
+(one or two sheets): HTML, or a PDF when <code class="docutils literal notranslate"><span class="pre">output</span></code> ends in <code class="docutils literal notranslate"><span class="pre">.pdf</span></code> and
+the <code class="docutils literal notranslate"><span class="pre">paces[pdf]</span></code> extra is installed; <code class="docutils literal notranslate"><span class="pre">paper</span></code> is <code class="docutils literal notranslate"><span class="pre">'a4'</span></code> (default) or
+<code class="docutils literal notranslate"><span class="pre">'letter'</span></code>. Returns the output path when <code class="docutils literal notranslate"><span class="pre">output=</span></code> is given, otherwise
+the rendered text itself.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -458,7 +462,7 @@ canonical wire form is also written to that path.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=f2234cd1"></script>
+      <script src="../_static/documentation_options.js?v=565bc8c8"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

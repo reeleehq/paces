@@ -2,18 +2,20 @@
 
 # About this build
 
-This documentation was built on **2026-11-27 15:00 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/9ffd04fa7057eb9dda73e7c9c37bea18212fce44"><code>9ffd04f</code></a> on branch <code>main</code>, for **paces 0.0.32** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 15:40 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d"><code>36a8eaa</code></a> on branch <code>main</code>, for **paces 0.0.33** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.33) is ahead of the latest release on PyPI (0.0.32): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/9ffd04fa7057eb9dda73e7c9c37bea18212fce44"><code>9ffd04fa7057eb9dda73e7c9c37bea18212fce44</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d"><code>36a8eaa0c72345f667a38d254b95f38fac908e0d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.32</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.33</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -22,9 +24,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46020528057">46020528057</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46026571148">46026571148</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>33f83c846bdf293573d5f7e4151a3ef6d8059fef</code> (in the history of the built commit) |
+| Event commit | <code>697a9195e79bf51b4372619864a30ce1fc9a803a</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +51,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.32/">0.0.32</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.32/">0.0.32</a>, older than the documented version (0.0.33).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 9ffd04fa7057eb9dda73e7c9c37bea18212fce44
+git checkout 36a8eaa0c72345f667a38d254b95f38fac908e0d
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
