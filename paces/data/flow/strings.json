@@ -108,6 +108,7 @@
   "getReady": "Get ready",
   "watch": "Watch the source ({t})",
   "allCues": "All {n} cues",
+  "moreCues": "{n} more cues",
   "moreInfo": "More",
   "next2": "Next",
   "close": "Close",

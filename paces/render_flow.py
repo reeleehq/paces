@@ -160,6 +160,10 @@ def render_flow(
         Path(media_root) if media_root else None,
         out,
     )
+    fonts = package.joinpath("fonts")
+    (out / "fonts").mkdir(exist_ok=True)
+    for entry in fonts.iterdir():
+        (out / "fonts" / entry.name).write_bytes(entry.read_bytes())
     document_text = dumps_document(doc)
     table = _merged_strings(strings)
     (out / "document.json").write_text(document_text, encoding="utf-8")

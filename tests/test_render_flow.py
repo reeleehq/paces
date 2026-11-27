@@ -533,3 +533,18 @@ def test_flow_ships_the_resources_notes_and_cue_labels_with_the_document(tmp_pat
     assert shipped["resources"][0]["name"] == "A mat" and shipped["notes"] == ["Start easy."]
     strings = json.loads((out / "strings.json").read_text(encoding="utf-8"))
     assert {"before", "needs", "notes"} <= set(strings)
+
+
+def test_the_typefaces_ship_with_their_licences_and_the_page_fetches_nothing_outside(tmp_path):
+    out = render_flow(_circuit(), tmp_path)
+    css = (out / "flow.css").read_text(encoding="utf-8")
+    files = re.findall(r'url\("(fonts/[^"]+)"\)', css)
+    assert len(files) >= 5
+    for name in files:
+        assert (out / name).is_file() and (out / name).stat().st_size > 1000, name
+    assert sorted(p.name for p in (out / "fonts").glob("OFL-*.txt")) == [
+        "OFL-Anton.txt", "OFL-DM-Mono.txt", "OFL-Karla.txt"]
+    for name in ("index.html", "flow.css", "flow.js", "flow-core.js"):
+        text = (out / name).read_text(encoding="utf-8")
+        text = text.replace("http://www.w3.org/2000/svg", "")  # an XML namespace, not a request
+        assert not re.search(r"(https?:)?//(fonts|cdn|www)\.", text), name  # no third-party host
