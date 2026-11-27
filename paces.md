@@ -1,4 +1,4 @@
-> built 2026-11-27 17:05 UTC from 54636ca (main) · paces 0.0.38. Details: build_info.json
+> built 2026-11-27 17:18 UTC from e38e954 (main) · paces 0.0.39. Details: build_info.json
 
 # index.html.md
 
@@ -2848,9 +2848,10 @@ analyser. “What you need” is the document’s `resources` and “Notes” it
 
 ### Functions
 
-| [`render_card`](_autosummary/paces.render_card.html.md#paces.render_card.render_card)(doc, \*[, paper, media_from, ...])    | The print-styled card page for `doc` (self-contained HTML).   |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| [`write_card_pdf`](_autosummary/paces.render_card.html.md#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine]) | Convert a card page to a PDF at `output` through `pdfdol`.    |
+| [`group_cues`](_autosummary/paces.render_card.html.md#paces.render_card.group_cues)(cues, strings)                         | Cues grouped by kind, in reading order: the `kind_first` kinds (set-up), then the cautions, then every other kind in first-seen order.   |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| [`render_card`](_autosummary/paces.render_card.html.md#paces.render_card.render_card)(doc, \*[, paper, media_from, ...])    | The print-styled card page for `doc` (self-contained HTML).                                                                              |
+| [`write_card_pdf`](_autosummary/paces.render_card.html.md#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine]) | Convert a card page to a PDF at `output` through `pdfdol`.                                                                               |
 
 ### paces.render_card.MAX_EMBED_BYTES *= 400000*
 
@@ -2859,6 +2860,14 @@ Posters bigger than this are not embedded (a card is a printout).
 ### paces.render_card.PIC_MM *= 28*
 
 Width of one picture on the card, in mm.
+
+### paces.render_card.group_cues(cues, strings)
+
+Cues grouped by kind, in reading order: the `kind_first` kinds (set-up),
+then the cautions, then every other kind in first-seen order.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]]
 
 ### paces.render_card.render_card(doc, , paper='a4', media_from=None, media_root=None, strings=None)
 
@@ -3567,7 +3576,7 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 17:05 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca"><code>54636ca</code></a> on branch <code>main</code>, for **paces 0.0.38** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 17:18 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a"><code>e38e954</code></a> on branch <code>main</code>, for **paces 0.0.39** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -3576,9 +3585,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca"><code>54636ca1d01cf2105d52931299e1d325d7ee14ca</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a"><code>e38e954280a391384ca611fbb4411cf888c33f4a</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.38</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.39</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3587,9 +3596,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46038530034">46038530034</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46040245830">46040245830</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>71c0c23927569ea6705110a269e97a5ea2086994</code> (in the history of the built commit) |
+| Event commit | <code>db00ac5f8cee0c072e249db2c6cc12ac020ad208</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3614,13 +3623,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.38/">0.0.38</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.39/">0.0.39</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 54636ca1d01cf2105d52931299e1d325d7ee14ca
+git checkout e38e954280a391384ca611fbb4411cf888c33f4a
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

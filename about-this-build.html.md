@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-11-27 17:05 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca"><code>54636ca</code></a> on branch <code>main</code>, for **paces 0.0.38** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 17:18 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a"><code>e38e954</code></a> on branch <code>main</code>, for **paces 0.0.39** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,9 +11,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca"><code>54636ca1d01cf2105d52931299e1d325d7ee14ca</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a"><code>e38e954280a391384ca611fbb4411cf888c33f4a</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.38</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.39</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46038530034">46038530034</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46040245830">46040245830</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>71c0c23927569ea6705110a269e97a5ea2086994</code> (in the history of the built commit) |
+| Event commit | <code>db00ac5f8cee0c072e249db2c6cc12ac020ad208</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +49,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.38/">0.0.38</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.39/">0.0.39</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 54636ca1d01cf2105d52931299e1d325d7ee14ca
+git checkout e38e954280a391384ca611fbb4411cf888c33f4a
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

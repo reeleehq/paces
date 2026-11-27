@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-11-27T17:05:15Z",
+  "built_at": "2026-11-27T17:18:01Z",
   "package": {
     "name": "paces",
-    "version": "0.0.38",
+    "version": "0.0.39",
     "display_name": "paces",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "54636ca1d01cf2105d52931299e1d325d7ee14ca",
-    "short_commit": "54636ca",
+    "commit": "e38e954280a391384ca611fbb4411cf888c33f4a",
+    "short_commit": "e38e954",
     "branch": "main",
     "tags": [
-      "0.0.38"
+      "0.0.39"
     ],
     "dirty": false,
     "remote_url": "https://github.com/reeleehq/paces",
-    "commit_url": "https://github.com/reeleehq/paces/commit/54636ca1d01cf2105d52931299e1d325d7ee14ca",
+    "commit_url": "https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "reeleehq/paces",
-    "sha": "71c0c23927569ea6705110a269e97a5ea2086994",
+    "sha": "db00ac5f8cee0c072e249db2c6cc12ac020ad208",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "46038530034",
-    "run_url": "https://github.com/reeleehq/paces/actions/runs/46038530034",
+    "run_id": "46040245830",
+    "run_url": "https://github.com/reeleehq/paces/actions/runs/46040245830",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -58,15 +58,15 @@
   },
   "site": {
     "modules_documented": 22,
-    "objects_documented": 224
+    "objects_documented": 225
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.38",
+    "latest": "0.0.39",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout 54636ca1d01cf2105d52931299e1d325d7ee14ca\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/reeleehq/paces && cd paces\ngit checkout e38e954280a391384ca611fbb4411cf888c33f4a\npip install \"epythet==0.2.25\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,

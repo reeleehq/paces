@@ -106,6 +106,7 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#paces.render_card.MAX_EMBED_BYTES"><code class="docutils literal notranslate"><span class="pre">MAX_EMBED_BYTES</span></code></a></li>
 <li><a class="reference internal" href="#paces.render_card.PIC_MM"><code class="docutils literal notranslate"><span class="pre">PIC_MM</span></code></a></li>
+<li><a class="reference internal" href="#paces.render_card.group_cues"><code class="docutils literal notranslate"><span class="pre">group_cues()</span></code></a></li>
 <li><a class="reference internal" href="#paces.render_card.render_card"><code class="docutils literal notranslate"><span class="pre">render_card()</span></code></a></li>
 <li><a class="reference internal" href="#paces.render_card.write_card_pdf"><code class="docutils literal notranslate"><span class="pre">write_card_pdf()</span></code></a></li>
 </ul>
@@ -179,10 +180,13 @@ analyser. “What you need” is the document’s <code class="docutils literal 
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#paces.render_card.render_card" title="paces.render_card.render_card"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_card</span></code></a>(doc, *[, paper, media_from, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.render_card.group_cues" title="paces.render_card.group_cues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">group_cues</span></code></a>(cues, strings)</p></td>
+<td><p>Cues grouped by kind, in reading order: the <code class="docutils literal notranslate"><span class="pre">kind_first</span></code> kinds (set-up), then the cautions, then every other kind in first-seen order.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.render_card.render_card" title="paces.render_card.render_card"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_card</span></code></a>(doc, *[, paper, media_from, ...])</p></td>
 <td><p>The print-styled card page for <code class="docutils literal notranslate"><span class="pre">doc</span></code> (self-contained HTML).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#paces.render_card.write_card_pdf" title="paces.render_card.write_card_pdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_card_pdf</span></code></a>(page, output, *[, paper, engine])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.render_card.write_card_pdf" title="paces.render_card.write_card_pdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_card_pdf</span></code></a>(page, output, *[, paper, engine])</p></td>
 <td><p>Convert a card page to a PDF at <code class="docutils literal notranslate"><span class="pre">output</span></code> through <code class="docutils literal notranslate"><span class="pre">pdfdol</span></code>.</p></td>
 </tr>
 </tbody>
@@ -198,6 +202,18 @@ analyser. “What you need” is the document’s <code class="docutils literal 
 <dt class="sig sig-object py" id="paces.render_card.PIC_MM">
 <span class="sig-prename descclassname"><span class="pre">paces.render_card.</span></span><span class="sig-name descname"><span class="pre">PIC_MM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">28</span></span><a class="headerlink" href="#paces.render_card.PIC_MM" title="Link to this definition">#</a></dt>
 <dd><p>Width of one picture on the card, in mm.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.render_card.group_cues">
+<span class="sig-prename descclassname"><span class="pre">paces.render_card.</span></span><span class="sig-name descname"><span class="pre">group_cues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cues</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/render_card.html#group_cues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.render_card.group_cues" title="Link to this definition">#</a></dt>
+<dd><p>Cues grouped by kind, in reading order: the <code class="docutils literal notranslate"><span class="pre">kind_first</span></code> kinds (set-up),
+then the cautions, then every other kind in first-seen order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>]]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -270,7 +286,7 @@ prints with headless Chromium (needs <code class="docutils literal notranslate">
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=423071ad"></script>
+      <script src="../_static/documentation_options.js?v=e648f5b4"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

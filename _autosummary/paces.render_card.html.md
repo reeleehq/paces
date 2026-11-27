@@ -26,9 +26,10 @@ analyser. “What you need” is the document’s `resources` and “Notes” it
 
 ### Functions
 
-| [`render_card`](#paces.render_card.render_card)(doc, \*[, paper, media_from, ...])    | The print-styled card page for `doc` (self-contained HTML).   |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| [`write_card_pdf`](#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine]) | Convert a card page to a PDF at `output` through `pdfdol`.    |
+| [`group_cues`](#paces.render_card.group_cues)(cues, strings)                         | Cues grouped by kind, in reading order: the `kind_first` kinds (set-up), then the cautions, then every other kind in first-seen order.   |
+|----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| [`render_card`](#paces.render_card.render_card)(doc, \*[, paper, media_from, ...])    | The print-styled card page for `doc` (self-contained HTML).                                                                              |
+| [`write_card_pdf`](#paces.render_card.write_card_pdf)(page, output, \*[, paper, engine]) | Convert a card page to a PDF at `output` through `pdfdol`.                                                                               |
 
 ### paces.render_card.MAX_EMBED_BYTES *= 400000*
 
@@ -37,6 +38,14 @@ Posters bigger than this are not embedded (a card is a printout).
 ### paces.render_card.PIC_MM *= 28*
 
 Width of one picture on the card, in mm.
+
+### paces.render_card.group_cues(cues, strings)
+
+Cues grouped by kind, in reading order: the `kind_first` kinds (set-up),
+then the cautions, then every other kind in first-seen order.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)]]
 
 ### paces.render_card.render_card(doc, , paper='a4', media_from=None, media_root=None, strings=None)
 

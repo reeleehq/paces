@@ -15,6 +15,7 @@ paces.render\_card
 
    .. autosummary::
    
+      group_cues
       render_card
       write_card_pdf
    
