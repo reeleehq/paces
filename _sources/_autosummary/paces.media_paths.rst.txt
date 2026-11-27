@@ -4,10 +4,18 @@ paces.media\_paths
 .. automodule:: paces.media_paths
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SHOWN_ROLES
+   
    .. rubric:: Functions
 
    .. autosummary::
    
       is_relative_path
       resolve_media
+      unshowable_steps
+      warn_unshowable
    

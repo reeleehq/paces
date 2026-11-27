@@ -1,4 +1,4 @@
-> built 2026-11-27 17:18 UTC from e38e954 (main) · paces 0.0.39. Details: build_info.json
+> built 2026-11-27 17:23 UTC from 70b1ed2 (main) · paces 0.0.40. Details: build_info.json
 
 # index.html.md
 
@@ -2146,11 +2146,26 @@ the caller did not mean to expose; a caller whose media sits beside the
 document (`../media/a.mp4`) widens the root explicitly. Both renderers that
 read files (flow copies them, card embeds posters) resolve through here.
 
+### Module Attributes
+
+| [`SHOWN_ROLES`](_autosummary/paces.media_paths.html.md#paces.media_paths.SHOWN_ROLES)   | clip, gif, poster; card: poster).   |
+|----------------------------------------------------------------|-------------------------------------|
+
 ### Functions
 
-| [`is_relative_path`](_autosummary/paces.media_paths.html.md#paces.media_paths.is_relative_path)(uri)                        | A file path relative to the document: no scheme, no leading slash or drive.                                   |
-|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| [`resolve_media`](_autosummary/paces.media_paths.html.md#paces.media_paths.resolve_media)(uri, media_from[, media_root]) | The file `uri` names, or `None` when it is not a relative path, there is no base, or the file does not exist. |
+| [`is_relative_path`](_autosummary/paces.media_paths.html.md#paces.media_paths.is_relative_path)(uri)                            | A file path relative to the document: no scheme, no leading slash or drive.                                                         |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`resolve_media`](_autosummary/paces.media_paths.html.md#paces.media_paths.resolve_media)(uri, media_from[, media_root])     | The file `uri` names, or `None` when it is not a relative path, there is no base, or the file does not exist.                       |
+| [`unshowable_steps`](_autosummary/paces.media_paths.html.md#paces.media_paths.unshowable_steps)(doc)                            | Steps that have artifacts, none of which has a role a renderer knows, as `(step id, roles)`: such a step would render an empty box. |
+| [`warn_unshowable`](_autosummary/paces.media_paths.html.md#paces.media_paths.warn_unshowable)(doc, renderer, \*[, stacklevel]) | Warn, naming steps and roles, about artifacts `renderer` cannot show.                                                               |
+
+### paces.media_paths.SHOWN_ROLES *= ('clip', 'gif', 'poster')*
+
+clip, gif, poster; card:
+poster). Kept equal to `SHOWN_ROLES` in `flow-core.js` by a test.
+
+* **Type:**
+  The artifact roles the renderers can show (flow
 
 ### paces.media_paths.is_relative_path(uri)
 
@@ -2169,6 +2184,21 @@ Raises `ValueError` when the uri leaves the root (`media_root`, default
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### paces.media_paths.unshowable_steps(doc)
+
+Steps that have artifacts, none of which has a role a renderer knows, as
+`(step id, roles)`: such a step would render an empty box.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]]
+
+### paces.media_paths.warn_unshowable(doc, renderer, , stacklevel=2)
+
+Warn, naming steps and roles, about artifacts `renderer` cannot show.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/paces.model.html.md
@@ -3576,7 +3606,7 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 17:18 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a"><code>e38e954</code></a> on branch <code>main</code>, for **paces 0.0.39** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 17:23 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/70b1ed2da5a751186a63437ba5bf97d391f41130"><code>70b1ed2</code></a> on branch <code>main</code>, for **paces 0.0.40** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -3585,9 +3615,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/e38e954280a391384ca611fbb4411cf888c33f4a"><code>e38e954280a391384ca611fbb4411cf888c33f4a</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/70b1ed2da5a751186a63437ba5bf97d391f41130"><code>70b1ed2da5a751186a63437ba5bf97d391f41130</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.39</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.40</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3596,9 +3626,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46040245830">46040245830</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46041054954">46041054954</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>db00ac5f8cee0c072e249db2c6cc12ac020ad208</code> (in the history of the built commit) |
+| Event commit | <code>acab31db3bdff6e0473bcd62db91f8d19f309a00</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3623,13 +3653,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.39/">0.0.39</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.40/">0.0.40</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout e38e954280a391384ca611fbb4411cf888c33f4a
+git checkout 70b1ed2da5a751186a63437ba5bf97d391f41130
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

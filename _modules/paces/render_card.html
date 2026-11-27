@@ -461,167 +461,170 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="320"><span class="sd">    """</span>
 </span><span data-line="321">    <span class="k">if</span> <span class="n">paper</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PAPERS</span><span class="p">:</span>
 </span><span data-line="322">        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown paper </span><span class="si">{</span><span class="n">paper</span><span class="si">!r}</span><span class="s2">; available: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">PAPERS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="323">    <span class="n">table</span> <span class="o">=</span> <span class="n">_merged</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
-</span><span data-line="324">    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">media_from</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_from</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="325">    <span class="n">cues</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span data-line="326">    <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">cues</span><span class="p">:</span>
-</span><span data-line="327">        <span class="n">cues</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">anchor</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
-</span><span data-line="328">
-</span><span data-line="329">    <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">_resource_item</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">resources</span><span class="p">]</span>
-</span><span data-line="330">    <span class="k">if</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
-</span><span data-line="331">        <span class="c1"># 0.0.3x documents kept the list in attrs["render.card"]["needs"]</span>
-</span><span data-line="332">        <span class="n">legacy</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"render.card"</span><span class="p">)</span>
-</span><span data-line="333">        <span class="n">old</span> <span class="o">=</span> <span class="n">legacy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"needs"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">legacy</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="334">        <span class="n">old</span> <span class="o">=</span> <span class="p">[</span><span class="n">old</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">old</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[]</span>
-</span><span data-line="335">        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"&lt;li&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="si">}</span><span class="s2">&lt;/li&gt;"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">old</span><span class="p">]</span>
-</span><span data-line="336">    <span class="n">needs_html</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="337">        <span class="sa">f</span><span class="s1">'&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"needs"</span><span class="p">])</span><span class="si">}</span><span class="s1">&lt;/h2&gt;&lt;ul class="needs"&gt;'</span>
-</span><span data-line="338">        <span class="o">+</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
-</span><span data-line="339">        <span class="o">+</span> <span class="s2">"&lt;/ul&gt;"</span>
-</span><span data-line="340">        <span class="k">if</span> <span class="n">items</span>
-</span><span data-line="341">        <span class="k">else</span> <span class="s2">""</span>
-</span><span data-line="342">    <span class="p">)</span>
-</span><span data-line="343">    <span class="n">notes_html</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="344">        <span class="sa">f</span><span class="s2">"&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s1">'notes'</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/h2&gt;"</span>
-</span><span data-line="345">        <span class="o">+</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;p class="note"&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/p&gt;'</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">notes</span><span class="p">)</span>
-</span><span data-line="346">        <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">notes</span>
-</span><span data-line="347">        <span class="k">else</span> <span class="s2">""</span>
-</span><span data-line="348">    <span class="p">)</span>
-</span><span data-line="349">
-</span><span data-line="350">    <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="351">    <span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span data-line="323">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.media_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn_unshowable</span>
+</span><span data-line="324">
+</span><span data-line="325">    <span class="n">warn_unshowable</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"the card"</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="326">    <span class="n">table</span> <span class="o">=</span> <span class="n">_merged</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
+</span><span data-line="327">    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">media_from</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_from</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="328">    <span class="n">cues</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span data-line="329">    <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">cues</span><span class="p">:</span>
+</span><span data-line="330">        <span class="n">cues</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">anchor</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cue</span><span class="p">)</span>
+</span><span data-line="331">
+</span><span data-line="332">    <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">_resource_item</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">resources</span><span class="p">]</span>
+</span><span data-line="333">    <span class="k">if</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
+</span><span data-line="334">        <span class="c1"># 0.0.3x documents kept the list in attrs["render.card"]["needs"]</span>
+</span><span data-line="335">        <span class="n">legacy</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"render.card"</span><span class="p">)</span>
+</span><span data-line="336">        <span class="n">old</span> <span class="o">=</span> <span class="n">legacy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"needs"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">legacy</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="337">        <span class="n">old</span> <span class="o">=</span> <span class="p">[</span><span class="n">old</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">old</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[]</span>
+</span><span data-line="338">        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"&lt;li&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="si">}</span><span class="s2">&lt;/li&gt;"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">old</span><span class="p">]</span>
+</span><span data-line="339">    <span class="n">needs_html</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="340">        <span class="sa">f</span><span class="s1">'&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"needs"</span><span class="p">])</span><span class="si">}</span><span class="s1">&lt;/h2&gt;&lt;ul class="needs"&gt;'</span>
+</span><span data-line="341">        <span class="o">+</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+</span><span data-line="342">        <span class="o">+</span> <span class="s2">"&lt;/ul&gt;"</span>
+</span><span data-line="343">        <span class="k">if</span> <span class="n">items</span>
+</span><span data-line="344">        <span class="k">else</span> <span class="s2">""</span>
+</span><span data-line="345">    <span class="p">)</span>
+</span><span data-line="346">    <span class="n">notes_html</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="347">        <span class="sa">f</span><span class="s2">"&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s1">'notes'</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/h2&gt;"</span>
+</span><span data-line="348">        <span class="o">+</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'&lt;p class="note"&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/p&gt;'</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">notes</span><span class="p">)</span>
+</span><span data-line="349">        <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">notes</span>
+</span><span data-line="350">        <span class="k">else</span> <span class="s2">""</span>
+</span><span data-line="351">    <span class="p">)</span>
 </span><span data-line="352">
-</span><span data-line="353">    <span class="k">def</span><span class="w"> </span><span class="nf">_all</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
-</span><span data-line="354">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
-</span><span data-line="355">            <span class="k">yield</span> <span class="n">step</span>
-</span><span data-line="356">            <span class="k">yield from</span> <span class="n">_all</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="357">
-</span><span data-line="358">    <span class="c1"># the picture column exists only when some step has a picture to show</span>
-</span><span data-line="359">    <span class="n">base_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">media_root</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_root</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="360">    <span class="n">posters</span> <span class="o">=</span> <span class="p">{</span><span class="n">st</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">_poster_srcs</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">base_root</span><span class="p">)</span> <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">_all</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">)}</span>
-</span><span data-line="361">    <span class="n">widest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">posters</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-</span><span data-line="362">    <span class="n">pic_width</span> <span class="o">=</span> <span class="n">widest</span> <span class="o">*</span> <span class="p">(</span><span class="n">PIC_MM</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">widest</span> <span class="k">else</span> <span class="mi">0</span>
-</span><span data-line="363">    <span class="n">with_pics</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">widest</span><span class="p">)</span>
-</span><span data-line="364">
-</span><span data-line="365">    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="n">step</span><span class="p">:</span> <span class="n">Step</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="366">        <span class="k">nonlocal</span> <span class="n">number</span>
-</span><span data-line="367">        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="368">            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="369">                <span class="n">_group_row</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">cues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">table</span><span class="p">,</span> <span class="mi">4</span> <span class="k">if</span> <span class="n">with_pics</span> <span class="k">else</span> <span class="mi">3</span><span class="p">)</span>
-</span><span data-line="370">            <span class="p">)</span>
-</span><span data-line="371">            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="372">                <span class="n">emit</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span data-line="373">            <span class="k">return</span>
-</span><span data-line="374">        <span class="n">number</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span data-line="375">        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span data-line="376">            <span class="n">_step_row</span><span class="p">(</span>
-</span><span data-line="377">                <span class="n">step</span><span class="p">,</span>
-</span><span data-line="378">                <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">,</span>
-</span><span data-line="379">                <span class="n">nested</span><span class="o">=</span><span class="n">nested</span><span class="p">,</span>
-</span><span data-line="380">                <span class="n">cues</span><span class="o">=</span><span class="n">cues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">[]),</span>
-</span><span data-line="381">                <span class="n">strings</span><span class="o">=</span><span class="n">table</span><span class="p">,</span>
-</span><span data-line="382">                <span class="n">imgs</span><span class="o">=</span><span class="n">posters</span><span class="p">[</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">],</span>
-</span><span data-line="383">                <span class="n">pic_width</span><span class="o">=</span><span class="n">pic_width</span><span class="p">,</span>
-</span><span data-line="384">            <span class="p">)</span>
-</span><span data-line="385">        <span class="p">)</span>
-</span><span data-line="386">
-</span><span data-line="387">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
-</span><span data-line="388">        <span class="n">emit</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span data-line="353">    <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="354">    <span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span data-line="355">
+</span><span data-line="356">    <span class="k">def</span><span class="w"> </span><span class="nf">_all</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+</span><span data-line="357">        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+</span><span data-line="358">            <span class="k">yield</span> <span class="n">step</span>
+</span><span data-line="359">            <span class="k">yield from</span> <span class="n">_all</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="360">
+</span><span data-line="361">    <span class="c1"># the picture column exists only when some step has a picture to show</span>
+</span><span data-line="362">    <span class="n">base_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">media_root</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_root</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="363">    <span class="n">posters</span> <span class="o">=</span> <span class="p">{</span><span class="n">st</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">_poster_srcs</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">base_root</span><span class="p">)</span> <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">_all</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">)}</span>
+</span><span data-line="364">    <span class="n">widest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">posters</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span data-line="365">    <span class="n">pic_width</span> <span class="o">=</span> <span class="n">widest</span> <span class="o">*</span> <span class="p">(</span><span class="n">PIC_MM</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">widest</span> <span class="k">else</span> <span class="mi">0</span>
+</span><span data-line="366">    <span class="n">with_pics</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">widest</span><span class="p">)</span>
+</span><span data-line="367">
+</span><span data-line="368">    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="n">step</span><span class="p">:</span> <span class="n">Step</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="369">        <span class="k">nonlocal</span> <span class="n">number</span>
+</span><span data-line="370">        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="371">            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="372">                <span class="n">_group_row</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">cues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">table</span><span class="p">,</span> <span class="mi">4</span> <span class="k">if</span> <span class="n">with_pics</span> <span class="k">else</span> <span class="mi">3</span><span class="p">)</span>
+</span><span data-line="373">            <span class="p">)</span>
+</span><span data-line="374">            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="375">                <span class="n">emit</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span><span data-line="376">            <span class="k">return</span>
+</span><span data-line="377">        <span class="n">number</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span data-line="378">        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span data-line="379">            <span class="n">_step_row</span><span class="p">(</span>
+</span><span data-line="380">                <span class="n">step</span><span class="p">,</span>
+</span><span data-line="381">                <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">,</span>
+</span><span data-line="382">                <span class="n">nested</span><span class="o">=</span><span class="n">nested</span><span class="p">,</span>
+</span><span data-line="383">                <span class="n">cues</span><span class="o">=</span><span class="n">cues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">[]),</span>
+</span><span data-line="384">                <span class="n">strings</span><span class="o">=</span><span class="n">table</span><span class="p">,</span>
+</span><span data-line="385">                <span class="n">imgs</span><span class="o">=</span><span class="n">posters</span><span class="p">[</span><span class="n">step</span><span class="o">.</span><span class="n">id</span><span class="p">],</span>
+</span><span data-line="386">                <span class="n">pic_width</span><span class="o">=</span><span class="n">pic_width</span><span class="p">,</span>
+</span><span data-line="387">            <span class="p">)</span>
+</span><span data-line="388">        <span class="p">)</span>
 </span><span data-line="389">
-</span><span data-line="390">    <span class="n">credits</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;footer&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">credits</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/footer&gt;"</span> <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">credits</span> <span class="k">else</span> <span class="s2">""</span>
-</span><span data-line="391">    <span class="n">outline</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_outline_item</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="392">    <span class="n">css</span> <span class="o">=</span> <span class="n">_CSS</span> <span class="o">%</span> <span class="p">{</span><span class="s2">"paper"</span><span class="p">:</span> <span class="n">PAPERS</span><span class="p">[</span><span class="n">paper</span><span class="o">.</span><span class="n">lower</span><span class="p">()]}</span>
-</span><span data-line="393">    <span class="k">return</span> <span class="sa">f</span><span class="s2">"""&lt;!doctype html&gt;</span>
-</span><span data-line="394"><span class="s2">&lt;html lang="</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">lang</span><span class="p">)</span><span class="si">}</span><span class="s2">"&gt;</span>
-</span><span data-line="395"><span class="s2">&lt;head&gt;</span>
-</span><span data-line="396"><span class="s2">&lt;meta charset="utf-8"&gt;</span>
-</span><span data-line="397"><span class="s2">&lt;title&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">title</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/title&gt;</span>
-</span><span data-line="398"><span class="s2">&lt;style&gt;</span><span class="si">{</span><span class="n">css</span><span class="si">}</span><span class="s2">&lt;/style&gt;</span>
-</span><span data-line="399"><span class="s2">&lt;/head&gt;</span>
-</span><span data-line="400"><span class="s2">&lt;body&gt;</span>
-</span><span data-line="401"><span class="s2">&lt;h1&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">title</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/h1&gt;</span>
-</span><span data-line="402"><span class="si">{</span><span class="n">needs_html</span><span class="si">}</span>
-</span><span data-line="403"><span class="si">{</span><span class="n">notes_html</span><span class="si">}</span>
-</span><span data-line="404"><span class="s2">&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"structure"</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/h2&gt;</span>
-</span><span data-line="405"><span class="s2">&lt;ul class="outline"&gt;</span><span class="si">{</span><span class="n">outline</span><span class="si">}</span><span class="s2">&lt;/ul&gt;</span>
-</span><span data-line="406"><span class="s2">&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/h2&gt;</span>
-</span><span data-line="407"><span class="s2">&lt;table&gt;</span><span class="si">{</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/table&gt;</span>
-</span><span data-line="408"><span class="si">{</span><span class="n">credits</span><span class="si">}</span>
-</span><span data-line="409"><span class="s2">&lt;/body&gt;</span>
-</span><span data-line="410"><span class="s2">&lt;/html&gt;</span>
-</span><span data-line="411"><span class="s2">"""</span></div>
+</span><span data-line="390">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+</span><span data-line="391">        <span class="n">emit</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</span><span data-line="392">
+</span><span data-line="393">    <span class="n">credits</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;footer&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">credits</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/footer&gt;"</span> <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">credits</span> <span class="k">else</span> <span class="s2">""</span>
+</span><span data-line="394">    <span class="n">outline</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_outline_item</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+</span><span data-line="395">    <span class="n">css</span> <span class="o">=</span> <span class="n">_CSS</span> <span class="o">%</span> <span class="p">{</span><span class="s2">"paper"</span><span class="p">:</span> <span class="n">PAPERS</span><span class="p">[</span><span class="n">paper</span><span class="o">.</span><span class="n">lower</span><span class="p">()]}</span>
+</span><span data-line="396">    <span class="k">return</span> <span class="sa">f</span><span class="s2">"""&lt;!doctype html&gt;</span>
+</span><span data-line="397"><span class="s2">&lt;html lang="</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">lang</span><span class="p">)</span><span class="si">}</span><span class="s2">"&gt;</span>
+</span><span data-line="398"><span class="s2">&lt;head&gt;</span>
+</span><span data-line="399"><span class="s2">&lt;meta charset="utf-8"&gt;</span>
+</span><span data-line="400"><span class="s2">&lt;title&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">title</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/title&gt;</span>
+</span><span data-line="401"><span class="s2">&lt;style&gt;</span><span class="si">{</span><span class="n">css</span><span class="si">}</span><span class="s2">&lt;/style&gt;</span>
+</span><span data-line="402"><span class="s2">&lt;/head&gt;</span>
+</span><span data-line="403"><span class="s2">&lt;body&gt;</span>
+</span><span data-line="404"><span class="s2">&lt;h1&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">title</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/h1&gt;</span>
+</span><span data-line="405"><span class="si">{</span><span class="n">needs_html</span><span class="si">}</span>
+</span><span data-line="406"><span class="si">{</span><span class="n">notes_html</span><span class="si">}</span>
+</span><span data-line="407"><span class="s2">&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"structure"</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/h2&gt;</span>
+</span><span data-line="408"><span class="s2">&lt;ul class="outline"&gt;</span><span class="si">{</span><span class="n">outline</span><span class="si">}</span><span class="s2">&lt;/ul&gt;</span>
+</span><span data-line="409"><span class="s2">&lt;h2&gt;</span><span class="si">{</span><span class="n">html</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s2">"steps"</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/h2&gt;</span>
+</span><span data-line="410"><span class="s2">&lt;table&gt;</span><span class="si">{</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/table&gt;</span>
+</span><span data-line="411"><span class="si">{</span><span class="n">credits</span><span class="si">}</span>
+</span><span data-line="412"><span class="s2">&lt;/body&gt;</span>
+</span><span data-line="413"><span class="s2">&lt;/html&gt;</span>
+</span><span data-line="414"><span class="s2">"""</span></div>
 
-</span><span data-line="412">
-</span><span data-line="413">
-</span><span data-line="414"><span class="c1"># ── PDF (optional extra) ───────────────────────────────────────────────────</span>
 </span><span data-line="415">
-</span><span data-line="416"><span class="n">PDF_EXTRA_HINT</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="417">    <span class="s2">"PDF output needs the optional extra: install paces[pdf] "</span>
-</span><span data-line="418">    <span class="s2">"(pip install 'paces[pdf]'). It pulls pdfdol, whose default engine also "</span>
-</span><span data-line="419">    <span class="s2">"needs the wkhtmltopdf program (brew install wkhtmltopdf, or "</span>
-</span><span data-line="420">    <span class="s2">"apt-get install wkhtmltopdf)."</span>
-</span><span data-line="421"><span class="p">)</span>
-</span><span data-line="422">
-</span><span data-line="423">
+</span><span data-line="416">
+</span><span data-line="417"><span class="c1"># ── PDF (optional extra) ───────────────────────────────────────────────────</span>
+</span><span data-line="418">
+</span><span data-line="419"><span class="n">PDF_EXTRA_HINT</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="420">    <span class="s2">"PDF output needs the optional extra: install paces[pdf] "</span>
+</span><span data-line="421">    <span class="s2">"(pip install 'paces[pdf]'). It pulls pdfdol, whose default engine also "</span>
+</span><span data-line="422">    <span class="s2">"needs the wkhtmltopdf program (brew install wkhtmltopdf, or "</span>
+</span><span data-line="423">    <span class="s2">"apt-get install wkhtmltopdf)."</span>
+</span><span data-line="424"><span class="p">)</span>
+</span><span data-line="425">
+</span><span data-line="426">
 <div class="viewcode-block" id="write_card_pdf">
 <a class="viewcode-back" href="../../_autosummary/paces.render_card.html#paces.render_card.write_card_pdf">[docs]</a>
-</span><span data-line="424"><span class="k">def</span><span class="w"> </span><span class="nf">write_card_pdf</span><span class="p">(</span>
-</span><span data-line="425">    <span class="n">page</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span data-line="426">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
-</span><span data-line="427">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="428">    <span class="n">paper</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_PAPER</span><span class="p">,</span>
-</span><span data-line="429">    <span class="n">engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="430"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span data-line="431"><span class="w">    </span><span class="sd">"""Convert a card page to a PDF at ``output`` through ``pdfdol``.</span>
-</span><span data-line="432">
-</span><span data-line="433"><span class="sd">    ``engine=None`` is pdfdol's default (wkhtmltopdf); ``engine="chromium"``</span>
-</span><span data-line="434"><span class="sd">    prints with headless Chromium (needs ``pdfdol[chromium]``). Raises</span>
-</span><span data-line="435"><span class="sd">    ``RuntimeError`` naming exactly what to install when something is missing.</span>
-</span><span data-line="436"><span class="sd">    """</span>
-</span><span data-line="437">    <span class="k">try</span><span class="p">:</span>
-</span><span data-line="438">        <span class="kn">import</span><span class="w"> </span><span class="nn">pdfdol</span>
-</span><span data-line="439">    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-</span><span data-line="440">        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">PDF_EXTRA_HINT</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
-</span><span data-line="441">    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"wkhtmltopdf"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="442">        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-</span><span data-line="443">            <span class="s2">"wkhtmltopdf is not installed (it is pdfdol's default engine): "</span>
-</span><span data-line="444">            <span class="s2">"brew install wkhtmltopdf, or apt-get install wkhtmltopdf; "</span>
-</span><span data-line="445">            <span class="s2">"or pass engine='chromium' (with the pdfdol[chromium] extra)."</span>
-</span><span data-line="446">        <span class="p">)</span>
-</span><span data-line="447">    <span class="n">size</span> <span class="o">=</span> <span class="n">PAPERS</span><span class="p">[</span><span class="n">paper</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
-</span><span data-line="448">    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"chromium"</span><span class="p">:</span>
-</span><span data-line="449">        <span class="k">try</span><span class="p">:</span>
-</span><span data-line="450">            <span class="n">pdfdol</span><span class="o">.</span><span class="n">get_pdf</span><span class="p">(</span>
-</span><span data-line="451">                <span class="n">page</span><span class="p">,</span>
-</span><span data-line="452">                <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">),</span>
-</span><span data-line="453">                <span class="n">src_kind</span><span class="o">=</span><span class="s2">"html"</span><span class="p">,</span>
-</span><span data-line="454">                <span class="n">engine</span><span class="o">=</span><span class="s2">"chromium"</span><span class="p">,</span>
-</span><span data-line="455">                <span class="n">page_format</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-</span><span data-line="456">                <span class="n">media</span><span class="o">=</span><span class="s2">"print"</span><span class="p">,</span>
-</span><span data-line="457">                <span class="n">margin</span><span class="o">=</span><span class="s2">"14mm 13mm"</span><span class="p">,</span>
-</span><span data-line="458">                <span class="n">keep_together</span><span class="o">=</span><span class="s2">"tr.step"</span><span class="p">,</span>
-</span><span data-line="459">            <span class="p">)</span>
-</span><span data-line="460">        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-</span><span data-line="461">            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-</span><span data-line="462">                <span class="s2">"engine='chromium' needs the pdfdol[chromium] extra and "</span>
-</span><span data-line="463">                <span class="s2">"'playwright install chromium'."</span>
-</span><span data-line="464">            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
-</span><span data-line="465">    <span class="k">else</span><span class="p">:</span>
-</span><span data-line="466">        <span class="n">pdfdol</span><span class="o">.</span><span class="n">get_pdf</span><span class="p">(</span>
-</span><span data-line="467">            <span class="n">page</span><span class="p">,</span>
-</span><span data-line="468">            <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">),</span>
-</span><span data-line="469">            <span class="n">src_kind</span><span class="o">=</span><span class="s2">"html"</span><span class="p">,</span>
-</span><span data-line="470">            <span class="n">options</span><span class="o">=</span><span class="p">{</span>
-</span><span data-line="471">                <span class="s2">"page-size"</span><span class="p">:</span> <span class="n">size</span><span class="p">,</span>
-</span><span data-line="472">                <span class="s2">"margin-top"</span><span class="p">:</span> <span class="s2">"14mm"</span><span class="p">,</span>
-</span><span data-line="473">                <span class="s2">"margin-bottom"</span><span class="p">:</span> <span class="s2">"14mm"</span><span class="p">,</span>
-</span><span data-line="474">                <span class="s2">"margin-left"</span><span class="p">:</span> <span class="s2">"13mm"</span><span class="p">,</span>
-</span><span data-line="475">                <span class="s2">"margin-right"</span><span class="p">:</span> <span class="s2">"13mm"</span><span class="p">,</span>
-</span><span data-line="476">                <span class="s2">"encoding"</span><span class="p">:</span> <span class="s2">"UTF-8"</span><span class="p">,</span>
-</span><span data-line="477">                <span class="s2">"disable-smart-shrinking"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
-</span><span data-line="478">            <span class="p">},</span>
-</span><span data-line="479">        <span class="p">)</span>
-</span><span data-line="480">    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+</span><span data-line="427"><span class="k">def</span><span class="w"> </span><span class="nf">write_card_pdf</span><span class="p">(</span>
+</span><span data-line="428">    <span class="n">page</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span data-line="429">    <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+</span><span data-line="430">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="431">    <span class="n">paper</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_PAPER</span><span class="p">,</span>
+</span><span data-line="432">    <span class="n">engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="433"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span data-line="434"><span class="w">    </span><span class="sd">"""Convert a card page to a PDF at ``output`` through ``pdfdol``.</span>
+</span><span data-line="435">
+</span><span data-line="436"><span class="sd">    ``engine=None`` is pdfdol's default (wkhtmltopdf); ``engine="chromium"``</span>
+</span><span data-line="437"><span class="sd">    prints with headless Chromium (needs ``pdfdol[chromium]``). Raises</span>
+</span><span data-line="438"><span class="sd">    ``RuntimeError`` naming exactly what to install when something is missing.</span>
+</span><span data-line="439"><span class="sd">    """</span>
+</span><span data-line="440">    <span class="k">try</span><span class="p">:</span>
+</span><span data-line="441">        <span class="kn">import</span><span class="w"> </span><span class="nn">pdfdol</span>
+</span><span data-line="442">    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span><span data-line="443">        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">PDF_EXTRA_HINT</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+</span><span data-line="444">    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"wkhtmltopdf"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="445">        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+</span><span data-line="446">            <span class="s2">"wkhtmltopdf is not installed (it is pdfdol's default engine): "</span>
+</span><span data-line="447">            <span class="s2">"brew install wkhtmltopdf, or apt-get install wkhtmltopdf; "</span>
+</span><span data-line="448">            <span class="s2">"or pass engine='chromium' (with the pdfdol[chromium] extra)."</span>
+</span><span data-line="449">        <span class="p">)</span>
+</span><span data-line="450">    <span class="n">size</span> <span class="o">=</span> <span class="n">PAPERS</span><span class="p">[</span><span class="n">paper</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+</span><span data-line="451">    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">"chromium"</span><span class="p">:</span>
+</span><span data-line="452">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="453">            <span class="n">pdfdol</span><span class="o">.</span><span class="n">get_pdf</span><span class="p">(</span>
+</span><span data-line="454">                <span class="n">page</span><span class="p">,</span>
+</span><span data-line="455">                <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">),</span>
+</span><span data-line="456">                <span class="n">src_kind</span><span class="o">=</span><span class="s2">"html"</span><span class="p">,</span>
+</span><span data-line="457">                <span class="n">engine</span><span class="o">=</span><span class="s2">"chromium"</span><span class="p">,</span>
+</span><span data-line="458">                <span class="n">page_format</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+</span><span data-line="459">                <span class="n">media</span><span class="o">=</span><span class="s2">"print"</span><span class="p">,</span>
+</span><span data-line="460">                <span class="n">margin</span><span class="o">=</span><span class="s2">"14mm 13mm"</span><span class="p">,</span>
+</span><span data-line="461">                <span class="n">keep_together</span><span class="o">=</span><span class="s2">"tr.step"</span><span class="p">,</span>
+</span><span data-line="462">            <span class="p">)</span>
+</span><span data-line="463">        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span><span data-line="464">            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+</span><span data-line="465">                <span class="s2">"engine='chromium' needs the pdfdol[chromium] extra and "</span>
+</span><span data-line="466">                <span class="s2">"'playwright install chromium'."</span>
+</span><span data-line="467">            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+</span><span data-line="468">    <span class="k">else</span><span class="p">:</span>
+</span><span data-line="469">        <span class="n">pdfdol</span><span class="o">.</span><span class="n">get_pdf</span><span class="p">(</span>
+</span><span data-line="470">            <span class="n">page</span><span class="p">,</span>
+</span><span data-line="471">            <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">),</span>
+</span><span data-line="472">            <span class="n">src_kind</span><span class="o">=</span><span class="s2">"html"</span><span class="p">,</span>
+</span><span data-line="473">            <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+</span><span data-line="474">                <span class="s2">"page-size"</span><span class="p">:</span> <span class="n">size</span><span class="p">,</span>
+</span><span data-line="475">                <span class="s2">"margin-top"</span><span class="p">:</span> <span class="s2">"14mm"</span><span class="p">,</span>
+</span><span data-line="476">                <span class="s2">"margin-bottom"</span><span class="p">:</span> <span class="s2">"14mm"</span><span class="p">,</span>
+</span><span data-line="477">                <span class="s2">"margin-left"</span><span class="p">:</span> <span class="s2">"13mm"</span><span class="p">,</span>
+</span><span data-line="478">                <span class="s2">"margin-right"</span><span class="p">:</span> <span class="s2">"13mm"</span><span class="p">,</span>
+</span><span data-line="479">                <span class="s2">"encoding"</span><span class="p">:</span> <span class="s2">"UTF-8"</span><span class="p">,</span>
+</span><span data-line="480">                <span class="s2">"disable-smart-shrinking"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+</span><span data-line="481">            <span class="p">},</span>
+</span><span data-line="482">        <span class="p">)</span>
+</span><span data-line="483">    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -650,7 +653,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=e648f5b4"></script>
+      <script src="../../_static/documentation_options.js?v=84bd753f"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>

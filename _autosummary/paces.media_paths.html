@@ -104,8 +104,11 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#paces.media_paths.SHOWN_ROLES"><code class="docutils literal notranslate"><span class="pre">SHOWN_ROLES</span></code></a></li>
 <li><a class="reference internal" href="#paces.media_paths.is_relative_path"><code class="docutils literal notranslate"><span class="pre">is_relative_path()</span></code></a></li>
 <li><a class="reference internal" href="#paces.media_paths.resolve_media"><code class="docutils literal notranslate"><span class="pre">resolve_media()</span></code></a></li>
+<li><a class="reference internal" href="#paces.media_paths.unshowable_steps"><code class="docutils literal notranslate"><span class="pre">unshowable_steps()</span></code></a></li>
+<li><a class="reference internal" href="#paces.media_paths.warn_unshowable"><code class="docutils literal notranslate"><span class="pre">warn_unshowable()</span></code></a></li>
 </ul>
 </div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
   </aside>
@@ -153,6 +156,16 @@ usually the document’s own folder). Reading them is confined to a <em>root</em
 the caller did not mean to expose; a caller whose media sits beside the
 document (<code class="docutils literal notranslate"><span class="pre">../media/a.mp4</span></code>) widens the root explicitly. Both renderers that
 read files (flow copies them, card embeds posters) resolve through here.</p>
+<p class="rubric">Module Attributes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.media_paths.SHOWN_ROLES" title="paces.media_paths.SHOWN_ROLES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHOWN_ROLES</span></code></a></p></td>
+<td><p>clip, gif, poster; card: poster).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -163,9 +176,27 @@ read files (flow copies them, card embeds posters) resolve through here.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#paces.media_paths.resolve_media" title="paces.media_paths.resolve_media"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_media</span></code></a>(uri, media_from[, media_root])</p></td>
 <td><p>The file <code class="docutils literal notranslate"><span class="pre">uri</span></code> names, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it is not a relative path, there is no base, or the file does not exist.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#paces.media_paths.unshowable_steps" title="paces.media_paths.unshowable_steps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unshowable_steps</span></code></a>(doc)</p></td>
+<td><p>Steps that have artifacts, none of which has a role a renderer knows, as <code class="docutils literal notranslate"><span class="pre">(step</span> <span class="pre">id,</span> <span class="pre">roles)</span></code>: such a step would render an empty box.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#paces.media_paths.warn_unshowable" title="paces.media_paths.warn_unshowable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_unshowable</span></code></a>(doc, renderer, *[, stacklevel])</p></td>
+<td><p>Warn, naming steps and roles, about artifacts <code class="docutils literal notranslate"><span class="pre">renderer</span></code> cannot show.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="paces.media_paths.SHOWN_ROLES">
+<span class="sig-prename descclassname"><span class="pre">paces.media_paths.</span></span><span class="sig-name descname"><span class="pre">SHOWN_ROLES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('clip',</span> <span class="pre">'gif',</span> <span class="pre">'poster')</span></span><a class="headerlink" href="#paces.media_paths.SHOWN_ROLES" title="Link to this definition">#</a></dt>
+<dd><p>clip, gif, poster; card:
+poster). Kept equal to <code class="docutils literal notranslate"><span class="pre">SHOWN_ROLES</span></code> in <code class="docutils literal notranslate"><span class="pre">flow-core.js</span></code> by a test.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The artifact roles the renderers can show (flow</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="paces.media_paths.is_relative_path">
 <span class="sig-prename descclassname"><span class="pre">paces.media_paths.</span></span><span class="sig-name descname"><span class="pre">is_relative_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/media_paths.html#is_relative_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.media_paths.is_relative_path" title="Link to this definition">#</a></dt>
@@ -187,6 +218,29 @@ is no base, or the file does not exist.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> | <span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.media_paths.unshowable_steps">
+<span class="sig-prename descclassname"><span class="pre">paces.media_paths.</span></span><span class="sig-name descname"><span class="pre">unshowable_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/media_paths.html#unshowable_steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.media_paths.unshowable_steps" title="Link to this definition">#</a></dt>
+<dd><p>Steps that have artifacts, none of which has a role a renderer knows, as
+<code class="docutils literal notranslate"><span class="pre">(step</span> <span class="pre">id,</span> <span class="pre">roles)</span></code>: such a step would render an empty box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="paces.media_paths.warn_unshowable">
+<span class="sig-prename descclassname"><span class="pre">paces.media_paths.</span></span><span class="sig-name descname"><span class="pre">warn_unshowable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">stacklevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/paces/media_paths.html#warn_unshowable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#paces.media_paths.warn_unshowable" title="Link to this definition">#</a></dt>
+<dd><p>Warn, naming steps and roles, about artifacts <code class="docutils literal notranslate"><span class="pre">renderer</span></code> cannot show.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><span class="highlight sphinx_autodoc_typehints-value"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="kc"><span class="pre">None</span></span></code></a></span></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -233,7 +287,7 @@ is no base, or the file does not exist.</p>
     </div>
   </div>
 </footer>
-      <script src="../_static/documentation_options.js?v=e648f5b4"></script>
+      <script src="../_static/documentation_options.js?v=84bd753f"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

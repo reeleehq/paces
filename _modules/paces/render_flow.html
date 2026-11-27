@@ -159,172 +159,174 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="23"><span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">resources</span>
 </span><span data-line="24"><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span data-line="25">
-</span><span data-line="26"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Step</span><span class="p">,</span> <span class="n">StepDocument</span><span class="p">,</span> <span class="n">dumps_document</span>
-</span><span data-line="27">
-</span><span data-line="28"><span class="c1">#: The player's own files, copied verbatim from package data.</span>
-</span><span data-line="29"><span class="n">PLAYER_FILES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"index.html"</span><span class="p">,</span> <span class="s2">"flow.css"</span><span class="p">,</span> <span class="s2">"flow-core.js"</span><span class="p">,</span> <span class="s2">"flow.js"</span><span class="p">)</span>
-</span><span data-line="30"><span class="n">STRINGS_FILE</span> <span class="o">=</span> <span class="s2">"strings.json"</span>
-</span><span data-line="31">
+</span><span data-line="26"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.media_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHOWN_ROLES</span><span class="p">,</span> <span class="n">unshowable_steps</span><span class="p">,</span> <span class="n">warn_unshowable</span>
+</span><span data-line="27"><span class="kn">from</span><span class="w"> </span><span class="nn">paces.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Step</span><span class="p">,</span> <span class="n">StepDocument</span><span class="p">,</span> <span class="n">dumps_document</span>
+</span><span data-line="28">
+</span><span data-line="29"><span class="c1">#: The player's own files, copied verbatim from package data.</span>
+</span><span data-line="30"><span class="n">PLAYER_FILES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"index.html"</span><span class="p">,</span> <span class="s2">"flow.css"</span><span class="p">,</span> <span class="s2">"flow-core.js"</span><span class="p">,</span> <span class="s2">"flow.js"</span><span class="p">)</span>
+</span><span data-line="31"><span class="n">STRINGS_FILE</span> <span class="o">=</span> <span class="s2">"strings.json"</span>
 </span><span data-line="32">
-</span><span data-line="33"><span class="k">def</span><span class="w"> </span><span class="nf">_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Step</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Step</span><span class="p">]:</span>
-</span><span data-line="34">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
-</span><span data-line="35">        <span class="k">yield</span> <span class="n">step</span>
-</span><span data-line="36">        <span class="k">yield from</span> <span class="n">_steps</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
-</span><span data-line="37">
+</span><span data-line="33">
+</span><span data-line="34"><span class="k">def</span><span class="w"> </span><span class="nf">_steps</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Step</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Step</span><span class="p">]:</span>
+</span><span data-line="35">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+</span><span data-line="36">        <span class="k">yield</span> <span class="n">step</span>
+</span><span data-line="37">        <span class="k">yield from</span> <span class="n">_steps</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
 </span><span data-line="38">
+</span><span data-line="39">
 <div class="viewcode-block" id="default_strings">
 <a class="viewcode-back" href="../../_autosummary/paces.render_flow.html#paces.render_flow.default_strings">[docs]</a>
-</span><span data-line="39"><span class="k">def</span><span class="w"> </span><span class="nf">default_strings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="40"><span class="w">    </span><span class="sd">"""The player's one strings table, as shipped (English)."""</span>
-</span><span data-line="41">    <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="42">        <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span>
-</span><span data-line="43">        <span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">,</span> <span class="n">STRINGS_FILE</span><span class="p">)</span>
-</span><span data-line="44">        <span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="45">    <span class="p">)</span>
-</span><span data-line="46">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+</span><span data-line="40"><span class="k">def</span><span class="w"> </span><span class="nf">default_strings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="41"><span class="w">    </span><span class="sd">"""The player's one strings table, as shipped (English)."""</span>
+</span><span data-line="42">    <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="43">        <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span>
+</span><span data-line="44">        <span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">,</span> <span class="n">STRINGS_FILE</span><span class="p">)</span>
+</span><span data-line="45">        <span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="46">    <span class="p">)</span>
+</span><span data-line="47">    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
-</span><span data-line="47">
 </span><span data-line="48">
-</span><span data-line="49"><span class="k">def</span><span class="w"> </span><span class="nf">_merged_strings</span><span class="p">(</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span data-line="50"><span class="w">    </span><span class="sd">"""The default table with ``overrides`` applied; one level deep for the</span>
-</span><span data-line="51"><span class="sd">    nested tables (``units``, ``roles``), so a translation need only give the</span>
-</span><span data-line="52"><span class="sd">    words it changes."""</span>
-</span><span data-line="53">    <span class="n">table</span> <span class="o">=</span> <span class="n">default_strings</span><span class="p">()</span>
-</span><span data-line="54">    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span data-line="55">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span data-line="56">            <span class="n">table</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">table</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="o">**</span><span class="n">value</span><span class="p">}</span>
-</span><span data-line="57">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="58">            <span class="n">table</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-</span><span data-line="59">    <span class="k">return</span> <span class="n">table</span>
-</span><span data-line="60">
+</span><span data-line="49">
+</span><span data-line="50"><span class="k">def</span><span class="w"> </span><span class="nf">_merged_strings</span><span class="p">(</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span data-line="51"><span class="w">    </span><span class="sd">"""The default table with ``overrides`` applied; one level deep for the</span>
+</span><span data-line="52"><span class="sd">    nested tables (``units``, ``roles``), so a translation need only give the</span>
+</span><span data-line="53"><span class="sd">    words it changes."""</span>
+</span><span data-line="54">    <span class="n">table</span> <span class="o">=</span> <span class="n">default_strings</span><span class="p">()</span>
+</span><span data-line="55">    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">overrides</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span data-line="56">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span data-line="57">            <span class="n">table</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">table</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="o">**</span><span class="n">value</span><span class="p">}</span>
+</span><span data-line="58">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="59">            <span class="n">table</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span data-line="60">    <span class="k">return</span> <span class="n">table</span>
 </span><span data-line="61">
-</span><span data-line="62"><span class="k">def</span><span class="w"> </span><span class="nf">_ship_media</span><span class="p">(</span>
-</span><span data-line="63">    <span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">,</span>
-</span><span data-line="64">    <span class="n">media_from</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="65">    <span class="n">media_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="66">    <span class="n">out</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
-</span><span data-line="67"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">StepDocument</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-</span><span data-line="68"><span class="w">    </span><span class="sd">"""Copy each artifact's file into the output folder and return the document</span>
-</span><span data-line="69"><span class="sd">    to ship plus the uris that could not be shipped.</span>
-</span><span data-line="70">
-</span><span data-line="71"><span class="sd">    A file under the base folder (``media_from``) ships at the uri's own path;</span>
-</span><span data-line="72"><span class="sd">    a file outside it but within ``media_root`` ships at its path relative to</span>
-</span><span data-line="73"><span class="sd">    the root, and the shipped document points there. Two different files may</span>
-</span><span data-line="74"><span class="sd">    not land on one path, and nothing may land on a player file. Web uris are</span>
-</span><span data-line="75"><span class="sd">    left alone; uris that are not relative paths (or carry a query or fragment),</span>
-</span><span data-line="76"><span class="sd">    or whose file is missing, are reported. Shipped paths are URL-quoted when</span>
-</span><span data-line="77"><span class="sd">    rewritten."""</span>
-</span><span data-line="78">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.media_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_relative_path</span><span class="p">,</span> <span class="n">resolve_media</span>
-</span><span data-line="79">
-</span><span data-line="80">    <span class="n">shipped</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="81">    <span class="n">unshipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span data-line="82">    <span class="n">out_root</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-</span><span data-line="83">    <span class="n">reserved</span> <span class="o">=</span> <span class="p">{</span><span class="o">*</span><span class="n">PLAYER_FILES</span><span class="p">,</span> <span class="n">STRINGS_FILE</span><span class="p">,</span> <span class="s2">"document.json"</span><span class="p">,</span> <span class="s2">"data.js"</span><span class="p">}</span>
-</span><span data-line="84">    <span class="n">landed</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span data-line="85">    <span class="n">base</span> <span class="o">=</span> <span class="n">media_from</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">if</span> <span class="n">media_from</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="86">    <span class="n">root</span> <span class="o">=</span> <span class="n">media_root</span> <span class="ow">or</span> <span class="n">media_from</span>
-</span><span data-line="87">    <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">if</span> <span class="n">root</span> <span class="k">else</span> <span class="kc">None</span>
-</span><span data-line="88">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">_steps</span><span class="p">(</span><span class="n">shipped</span><span class="o">.</span><span class="n">steps</span><span class="p">):</span>
-</span><span data-line="89">        <span class="k">for</span> <span class="n">artifact</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">artifacts</span><span class="p">:</span>
-</span><span data-line="90">            <span class="n">uri</span> <span class="o">=</span> <span class="n">artifact</span><span class="o">.</span><span class="n">uri</span>
-</span><span data-line="91">            <span class="k">if</span> <span class="n">uri</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"http://"</span><span class="p">,</span> <span class="s2">"https://"</span><span class="p">)):</span>
-</span><span data-line="92">                <span class="k">continue</span>  <span class="c1"># the player loads it from where it is</span>
-</span><span data-line="93">            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_relative_path</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
-</span><span data-line="94">                <span class="n">unshipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
-</span><span data-line="95">                <span class="k">continue</span>
-</span><span data-line="96">            <span class="k">if</span> <span class="n">media_from</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="97">                <span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">out_root</span> <span class="o">/</span> <span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-</span><span data-line="98">                <span class="k">if</span> <span class="n">out_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
-</span><span data-line="99">                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"artifact uri escapes the output folder: </span><span class="si">{</span><span class="n">uri</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="100">                <span class="k">if</span> <span class="ow">not</span> <span class="n">target</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-</span><span data-line="101">                    <span class="n">unshipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
-</span><span data-line="102">                <span class="k">continue</span>
-</span><span data-line="103">            <span class="n">source</span> <span class="o">=</span> <span class="n">resolve_media</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="n">media_root</span><span class="p">)</span>
-</span><span data-line="104">            <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="105">                <span class="n">unshipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
-</span><span data-line="106">                <span class="k">continue</span>
-</span><span data-line="107">            <span class="c1"># the boundary was checked on the resolved path; the shipped path</span>
-</span><span data-line="108">            <span class="c1"># comes from the written one, so a symlink keeps its own name</span>
-</span><span data-line="109">            <span class="n">written</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">base</span> <span class="o">/</span> <span class="n">uri</span><span class="p">))</span>
-</span><span data-line="110">            <span class="n">anchor</span> <span class="o">=</span> <span class="n">base</span> <span class="k">if</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">written</span><span class="o">.</span><span class="n">parents</span> <span class="k">else</span> <span class="n">root</span>
-</span><span data-line="111">            <span class="n">relative</span> <span class="o">=</span> <span class="n">written</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">anchor</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-</span><span data-line="112">            <span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">out_root</span> <span class="o">/</span> <span class="n">relative</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-</span><span data-line="113">            <span class="k">if</span> <span class="n">out_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
-</span><span data-line="114">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"artifact uri escapes the output folder: </span><span class="si">{</span><span class="n">uri</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="115">            <span class="k">if</span> <span class="n">relative</span> <span class="ow">in</span> <span class="n">reserved</span><span class="p">:</span>
-</span><span data-line="116">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="117">                    <span class="sa">f</span><span class="s2">"media file </span><span class="si">{</span><span class="n">uri</span><span class="si">!r}</span><span class="s2"> would overwrite the player's own file </span><span class="si">{</span><span class="n">relative</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="118">                <span class="p">)</span>
-</span><span data-line="119">            <span class="k">if</span> <span class="n">landed</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span> <span class="o">!=</span> <span class="n">source</span><span class="p">:</span>
-</span><span data-line="120">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span data-line="121">                    <span class="sa">f</span><span class="s2">"two different media files would both be shipped as </span><span class="si">{</span><span class="n">relative</span><span class="si">!r}</span><span class="s2">"</span>
-</span><span data-line="122">                <span class="p">)</span>
-</span><span data-line="123">            <span class="k">if</span> <span class="n">source</span> <span class="o">!=</span> <span class="n">target</span><span class="p">:</span>
-</span><span data-line="124">                <span class="n">target</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="125">                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-</span><span data-line="126">            <span class="k">if</span> <span class="n">relative</span> <span class="o">!=</span> <span class="n">uri</span><span class="p">:</span>
-</span><span data-line="127">                <span class="n">artifact</span><span class="o">.</span><span class="n">uri</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">relative</span><span class="p">)</span>
-</span><span data-line="128">    <span class="k">return</span> <span class="n">shipped</span><span class="p">,</span> <span class="n">unshipped</span>
-</span><span data-line="129">
+</span><span data-line="62">
+</span><span data-line="63"><span class="k">def</span><span class="w"> </span><span class="nf">_ship_media</span><span class="p">(</span>
+</span><span data-line="64">    <span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">,</span>
+</span><span data-line="65">    <span class="n">media_from</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="66">    <span class="n">media_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="67">    <span class="n">out</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span data-line="68"><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">StepDocument</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+</span><span data-line="69"><span class="w">    </span><span class="sd">"""Copy each artifact's file into the output folder and return the document</span>
+</span><span data-line="70"><span class="sd">    to ship plus the uris that could not be shipped.</span>
+</span><span data-line="71">
+</span><span data-line="72"><span class="sd">    A file under the base folder (``media_from``) ships at the uri's own path;</span>
+</span><span data-line="73"><span class="sd">    a file outside it but within ``media_root`` ships at its path relative to</span>
+</span><span data-line="74"><span class="sd">    the root, and the shipped document points there. Two different files may</span>
+</span><span data-line="75"><span class="sd">    not land on one path, and nothing may land on a player file. Web uris are</span>
+</span><span data-line="76"><span class="sd">    left alone; uris that are not relative paths (or carry a query or fragment),</span>
+</span><span data-line="77"><span class="sd">    or whose file is missing, are reported. Shipped paths are URL-quoted when</span>
+</span><span data-line="78"><span class="sd">    rewritten."""</span>
+</span><span data-line="79">    <span class="kn">from</span><span class="w"> </span><span class="nn">paces.media_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_relative_path</span><span class="p">,</span> <span class="n">resolve_media</span>
+</span><span data-line="80">
+</span><span data-line="81">    <span class="n">shipped</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="82">    <span class="n">unshipped</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span data-line="83">    <span class="n">out_root</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+</span><span data-line="84">    <span class="n">reserved</span> <span class="o">=</span> <span class="p">{</span><span class="o">*</span><span class="n">PLAYER_FILES</span><span class="p">,</span> <span class="n">STRINGS_FILE</span><span class="p">,</span> <span class="s2">"document.json"</span><span class="p">,</span> <span class="s2">"data.js"</span><span class="p">}</span>
+</span><span data-line="85">    <span class="n">landed</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span data-line="86">    <span class="n">base</span> <span class="o">=</span> <span class="n">media_from</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">if</span> <span class="n">media_from</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="87">    <span class="n">root</span> <span class="o">=</span> <span class="n">media_root</span> <span class="ow">or</span> <span class="n">media_from</span>
+</span><span data-line="88">    <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">if</span> <span class="n">root</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span data-line="89">    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">_steps</span><span class="p">(</span><span class="n">shipped</span><span class="o">.</span><span class="n">steps</span><span class="p">):</span>
+</span><span data-line="90">        <span class="k">for</span> <span class="n">artifact</span> <span class="ow">in</span> <span class="n">step</span><span class="o">.</span><span class="n">artifacts</span><span class="p">:</span>
+</span><span data-line="91">            <span class="n">uri</span> <span class="o">=</span> <span class="n">artifact</span><span class="o">.</span><span class="n">uri</span>
+</span><span data-line="92">            <span class="k">if</span> <span class="n">uri</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"http://"</span><span class="p">,</span> <span class="s2">"https://"</span><span class="p">)):</span>
+</span><span data-line="93">                <span class="k">continue</span>  <span class="c1"># the player loads it from where it is</span>
+</span><span data-line="94">            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_relative_path</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
+</span><span data-line="95">                <span class="n">unshipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+</span><span data-line="96">                <span class="k">continue</span>
+</span><span data-line="97">            <span class="k">if</span> <span class="n">media_from</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="98">                <span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">out_root</span> <span class="o">/</span> <span class="n">uri</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+</span><span data-line="99">                <span class="k">if</span> <span class="n">out_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+</span><span data-line="100">                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"artifact uri escapes the output folder: </span><span class="si">{</span><span class="n">uri</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="101">                <span class="k">if</span> <span class="ow">not</span> <span class="n">target</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+</span><span data-line="102">                    <span class="n">unshipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+</span><span data-line="103">                <span class="k">continue</span>
+</span><span data-line="104">            <span class="n">source</span> <span class="o">=</span> <span class="n">resolve_media</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">media_from</span><span class="p">,</span> <span class="n">media_root</span><span class="p">)</span>
+</span><span data-line="105">            <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="106">                <span class="n">unshipped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+</span><span data-line="107">                <span class="k">continue</span>
+</span><span data-line="108">            <span class="c1"># the boundary was checked on the resolved path; the shipped path</span>
+</span><span data-line="109">            <span class="c1"># comes from the written one, so a symlink keeps its own name</span>
+</span><span data-line="110">            <span class="n">written</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">base</span> <span class="o">/</span> <span class="n">uri</span><span class="p">))</span>
+</span><span data-line="111">            <span class="n">anchor</span> <span class="o">=</span> <span class="n">base</span> <span class="k">if</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">written</span><span class="o">.</span><span class="n">parents</span> <span class="k">else</span> <span class="n">root</span>
+</span><span data-line="112">            <span class="n">relative</span> <span class="o">=</span> <span class="n">written</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">anchor</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+</span><span data-line="113">            <span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">out_root</span> <span class="o">/</span> <span class="n">relative</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+</span><span data-line="114">            <span class="k">if</span> <span class="n">out_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+</span><span data-line="115">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"artifact uri escapes the output folder: </span><span class="si">{</span><span class="n">uri</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="116">            <span class="k">if</span> <span class="n">relative</span> <span class="ow">in</span> <span class="n">reserved</span><span class="p">:</span>
+</span><span data-line="117">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="118">                    <span class="sa">f</span><span class="s2">"media file </span><span class="si">{</span><span class="n">uri</span><span class="si">!r}</span><span class="s2"> would overwrite the player's own file </span><span class="si">{</span><span class="n">relative</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="119">                <span class="p">)</span>
+</span><span data-line="120">            <span class="k">if</span> <span class="n">landed</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span> <span class="o">!=</span> <span class="n">source</span><span class="p">:</span>
+</span><span data-line="121">                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span data-line="122">                    <span class="sa">f</span><span class="s2">"two different media files would both be shipped as </span><span class="si">{</span><span class="n">relative</span><span class="si">!r}</span><span class="s2">"</span>
+</span><span data-line="123">                <span class="p">)</span>
+</span><span data-line="124">            <span class="k">if</span> <span class="n">source</span> <span class="o">!=</span> <span class="n">target</span><span class="p">:</span>
+</span><span data-line="125">                <span class="n">target</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="126">                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+</span><span data-line="127">            <span class="k">if</span> <span class="n">relative</span> <span class="o">!=</span> <span class="n">uri</span><span class="p">:</span>
+</span><span data-line="128">                <span class="n">artifact</span><span class="o">.</span><span class="n">uri</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">relative</span><span class="p">)</span>
+</span><span data-line="129">    <span class="k">return</span> <span class="n">shipped</span><span class="p">,</span> <span class="n">unshipped</span>
 </span><span data-line="130">
+</span><span data-line="131">
 <div class="viewcode-block" id="render_flow">
 <a class="viewcode-back" href="../../_autosummary/paces.render_flow.html#paces.render_flow.render_flow">[docs]</a>
-</span><span data-line="131"><span class="k">def</span><span class="w"> </span><span class="nf">render_flow</span><span class="p">(</span>
-</span><span data-line="132">    <span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">,</span>
-</span><span data-line="133">    <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
-</span><span data-line="134">    <span class="o">*</span><span class="p">,</span>
-</span><span data-line="135">    <span class="n">media_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="136">    <span class="n">media_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="137">    <span class="n">strings</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="138"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-</span><span data-line="139"><span class="w">    </span><span class="sd">"""Write the player folder for ``doc`` into ``output_dir`` and return it.</span>
-</span><span data-line="140">
-</span><span data-line="141"><span class="sd">    ``media_from`` is the folder the document's relative artifact uris are</span>
-</span><span data-line="142"><span class="sd">    relative to (usually the document's own folder). Files are read only within</span>
-</span><span data-line="143"><span class="sd">    ``media_root`` (default ``media_from``; widen it for media that lives beside</span>
-</span><span data-line="144"><span class="sd">    the document) and are copied to their path relative to that root, which is</span>
-</span><span data-line="145"><span class="sd">    where the shipped ``document.json`` points. ``strings`` overrides entries of the</span>
-</span><span data-line="146"><span class="sd">    default strings table (a translation, a different word for "Start").</span>
-</span><span data-line="147"><span class="sd">    Warns, naming them, about artifacts whose files could not be found.</span>
-</span><span data-line="148"><span class="sd">    """</span>
-</span><span data-line="149">    <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
-</span><span data-line="150">    <span class="n">out</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span data-line="151">    <span class="n">package</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">)</span>
-</span><span data-line="152">    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">PLAYER_FILES</span><span class="p">:</span>
-</span><span data-line="153">        <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-</span><span data-line="154">            <span class="n">package</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
-</span><span data-line="155">        <span class="p">)</span>
-</span><span data-line="156">    <span class="n">doc</span><span class="p">,</span> <span class="n">missing</span> <span class="o">=</span> <span class="n">_ship_media</span><span class="p">(</span>
-</span><span data-line="157">        <span class="n">doc</span><span class="p">,</span>
-</span><span data-line="158">        <span class="n">Path</span><span class="p">(</span><span class="n">media_from</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_from</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="159">        <span class="n">Path</span><span class="p">(</span><span class="n">media_root</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_root</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="160">        <span class="n">out</span><span class="p">,</span>
-</span><span data-line="161">    <span class="p">)</span>
-</span><span data-line="162">    <span class="n">document_text</span> <span class="o">=</span> <span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</span><span data-line="163">    <span class="n">table</span> <span class="o">=</span> <span class="n">_merged_strings</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
-</span><span data-line="164">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"document.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">document_text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-</span><span data-line="165">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="n">STRINGS_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-</span><span data-line="166">        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
-</span><span data-line="167">    <span class="p">)</span>
-</span><span data-line="168">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"data.js"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-</span><span data-line="169">        <span class="s2">"window.PACES_FLOW = "</span>
-</span><span data-line="170">        <span class="o">+</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
-</span><span data-line="171">            <span class="p">{</span><span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">document_text</span><span class="p">),</span> <span class="s2">"strings"</span><span class="p">:</span> <span class="n">table</span><span class="p">},</span>
-</span><span data-line="172">            <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span data-line="173">        <span class="p">)</span>
-</span><span data-line="174">        <span class="o">+</span> <span class="s2">";</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
-</span><span data-line="175">        <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
-</span><span data-line="176">    <span class="p">)</span>
-</span><span data-line="177">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-</span><span data-line="178">        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-</span><span data-line="179">
-</span><span data-line="180">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-</span><span data-line="181">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> media file(s) the document points at were not shipped "</span>
-</span><span data-line="182">            <span class="sa">f</span><span class="s2">"to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2"> (not found, or not a relative path): </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
-</span><span data-line="183">            <span class="o">+</span> <span class="p">(</span><span class="s2">" ..."</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
-</span><span data-line="184">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-</span><span data-line="185">        <span class="p">)</span>
-</span><span data-line="186">    <span class="k">return</span> <span class="n">out</span></div>
+</span><span data-line="132"><span class="k">def</span><span class="w"> </span><span class="nf">render_flow</span><span class="p">(</span>
+</span><span data-line="133">    <span class="n">doc</span><span class="p">:</span> <span class="n">StepDocument</span><span class="p">,</span>
+</span><span data-line="134">    <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+</span><span data-line="135">    <span class="o">*</span><span class="p">,</span>
+</span><span data-line="136">    <span class="n">media_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="137">    <span class="n">media_root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="138">    <span class="n">strings</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="139"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+</span><span data-line="140"><span class="w">    </span><span class="sd">"""Write the player folder for ``doc`` into ``output_dir`` and return it.</span>
+</span><span data-line="141">
+</span><span data-line="142"><span class="sd">    ``media_from`` is the folder the document's relative artifact uris are</span>
+</span><span data-line="143"><span class="sd">    relative to (usually the document's own folder). Files are read only within</span>
+</span><span data-line="144"><span class="sd">    ``media_root`` (default ``media_from``; widen it for media that lives beside</span>
+</span><span data-line="145"><span class="sd">    the document) and are copied to their path relative to that root, which is</span>
+</span><span data-line="146"><span class="sd">    where the shipped ``document.json`` points. ``strings`` overrides entries of the</span>
+</span><span data-line="147"><span class="sd">    default strings table (a translation, a different word for "Start").</span>
+</span><span data-line="148"><span class="sd">    Warns, naming them, about artifacts whose files could not be found.</span>
+</span><span data-line="149"><span class="sd">    """</span>
+</span><span data-line="150">    <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+</span><span data-line="151">    <span class="n">out</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span data-line="152">    <span class="n">package</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">"paces"</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">)</span>
+</span><span data-line="153">    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">PLAYER_FILES</span><span class="p">:</span>
+</span><span data-line="154">        <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+</span><span data-line="155">            <span class="n">package</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
+</span><span data-line="156">        <span class="p">)</span>
+</span><span data-line="157">    <span class="n">doc</span><span class="p">,</span> <span class="n">missing</span> <span class="o">=</span> <span class="n">_ship_media</span><span class="p">(</span>
+</span><span data-line="158">        <span class="n">doc</span><span class="p">,</span>
+</span><span data-line="159">        <span class="n">Path</span><span class="p">(</span><span class="n">media_from</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_from</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="160">        <span class="n">Path</span><span class="p">(</span><span class="n">media_root</span><span class="p">)</span> <span class="k">if</span> <span class="n">media_root</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="161">        <span class="n">out</span><span class="p">,</span>
+</span><span data-line="162">    <span class="p">)</span>
+</span><span data-line="163">    <span class="n">document_text</span> <span class="o">=</span> <span class="n">dumps_document</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</span><span data-line="164">    <span class="n">table</span> <span class="o">=</span> <span class="n">_merged_strings</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
+</span><span data-line="165">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"document.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">document_text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+</span><span data-line="166">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="n">STRINGS_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+</span><span data-line="167">        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span>
+</span><span data-line="168">    <span class="p">)</span>
+</span><span data-line="169">    <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"data.js"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+</span><span data-line="170">        <span class="s2">"window.PACES_FLOW = "</span>
+</span><span data-line="171">        <span class="o">+</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+</span><span data-line="172">            <span class="p">{</span><span class="s2">"document"</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">document_text</span><span class="p">),</span> <span class="s2">"strings"</span><span class="p">:</span> <span class="n">table</span><span class="p">},</span>
+</span><span data-line="173">            <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+</span><span data-line="174">        <span class="p">)</span>
+</span><span data-line="175">        <span class="o">+</span> <span class="s2">";</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+</span><span data-line="176">        <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
+</span><span data-line="177">    <span class="p">)</span>
+</span><span data-line="178">    <span class="n">warn_unshowable</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"the flow player"</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span data-line="179">    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+</span><span data-line="180">
+</span><span data-line="181">    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+</span><span data-line="182">        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+</span><span data-line="183">            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> media file(s) the document points at were not shipped "</span>
+</span><span data-line="184">            <span class="sa">f</span><span class="s2">"to </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2"> (not found, or not a relative path): </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+</span><span data-line="185">            <span class="o">+</span> <span class="p">(</span><span class="s2">" ..."</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
+</span><span data-line="186">            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+</span><span data-line="187">        <span class="p">)</span>
+</span><span data-line="188">    <span class="k">return</span> <span class="n">out</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
@@ -353,7 +355,7 @@ data-aria-dark="Switch to auto color mode">
     </div>
   </div>
 </footer>
-      <script src="../../_static/documentation_options.js?v=e648f5b4"></script>
+      <script src="../../_static/documentation_options.js?v=84bd753f"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
