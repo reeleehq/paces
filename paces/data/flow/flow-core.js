@@ -18,20 +18,27 @@
       var rounds = Math.max(1, step.repeat || 1);
       if (step.steps && step.steps.length) {
         for (var r = 1; r <= rounds; r++) {
-          var inner = { group: ctx.group, parents: ctx.parents.concat([step]),
-            rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: r, of: rounds }] : []) };
-          var firstShown = true;
-          step.steps.forEach(function (child) {
-            /* a rest BETWEEN the passes is not after the last one */
-            if (r === rounds && hasTag(child, "between-passes")) return;
-            walk(child, inner, firstShown ? (r === 1 ? first : []).concat([step]) : []);
-            firstShown = false;
+          /* a rest BETWEEN the passes is not after the last one */
+          var shown = step.steps.filter(function (child) {
+            return !(r === rounds && hasTag(child, "between-passes"));
+          });
+          /* a learner counts stations: rests are not numbered */
+          var stations = shown.filter(function (child) { return !isRest(child); });
+          var seen = 0;
+          shown.forEach(function (child, i) {
+            var rest = isRest(child);
+            if (!rest) seen += 1;
+            var inner = { group: ctx.group, parents: ctx.parents.concat([step]),
+              rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: r, of: rounds }] : []),
+              pos: rest ? null : { n: seen, of: stations.length } };
+            walk(child, inner, i === 0 ? (r === 1 ? first : []).concat([step]) : []);
           });
         }
       } else {
         for (var k = 1; k <= rounds; k++) {
           stops.push({
             step: step, group: ctx.group, parents: ctx.parents, heads: k === 1 ? first : [],
+            pos: ctx.pos || null,
             rounds: ctx.rounds.concat(rounds > 1 ? [{ step: step, round: k, of: rounds }] : []),
             index: stops.length
           });
@@ -42,6 +49,11 @@
       walk(step, { group: g, parents: [], rounds: [] }, []);
     });
     return stops;
+  }
+
+  /* A rest: led by the learner, or between the passes of a repeat, or tagged rest. */
+  function isRest(step) {
+    return hasTag(step, "learner-led") || hasTag(step, "between-passes") || hasTag(step, "rest");
   }
 
   function hasTag(step, tag) { return (step.tags || []).indexOf(tag) >= 0; }
@@ -153,11 +165,24 @@
       if (a.role === "gif") options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
     });
     arts.forEach(function (a) {
-      if (a.role === "poster" && !used[a.uri]) options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
+      if (a.role === "poster" && !used[a.uri]) options.push({ kind: "image", still: true, src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
     });
     var mains = options.filter(function (o) { return o.main; });
     var rest = options.filter(function (o) { return !o.main; });
     return mains.concat(rest);
+  }
+
+  /* The versions a viewer can choose between: the loops (video, gif). Stills
+   * are not choices; they are shown only when there is nothing that moves. */
+  function choices(options) {
+    var loops = options.filter(function (o) { return !o.still; });
+    return loops.length ? loops : options.slice(0, 1);
+  }
+
+  /* The dosage a step carries (attrs.load, attrs.effort), as one short line. */
+  function dosage(step) {
+    var a = step.attrs || {};
+    return [a.load, a.effort].filter(Boolean).join(" · ");
   }
 
   /* The main medium of a step, or null. */
@@ -204,7 +229,7 @@
 
   var api = { buildStops: buildStops, stopSeconds: stopSeconds, gridApplies: gridApplies,
     formatMeasure: formatMeasure, formatCount: formatCount, isLearnerLed: isLearnerLed,
-    listMedia: listMedia, groupCues: groupCues, headCues: headCues, SHOWN_ROLES: SHOWN_ROLES, formatRound: formatRound, deepLink: deepLink,
+    listMedia: listMedia, choices: choices, dosage: dosage, isRest: isRest, groupCues: groupCues, headCues: headCues, SHOWN_ROLES: SHOWN_ROLES, formatRound: formatRound, deepLink: deepLink,
     cuesFor: cuesFor, beatsIn: beatsIn, pickMedia: pickMedia, groupColour: groupColour };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PacesFlowCore = api;

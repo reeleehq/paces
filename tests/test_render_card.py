@@ -328,7 +328,8 @@ def test_posters_follow_their_position_and_carry_their_label(tmp_path):
 
     first = b64.b64encode(b"\xff\xd8\xffb.jpg").decode()
     assert page.index(first) < page.index(b64.b64encode(b"\xff\xd8\xffa.jpg").decode())
-    assert "<span>Top</span>" in page and "<span>Start</span>" in page
+    assert "<span>End</span>" in page and "<span>Start</span>" in page
+    assert "Top" not in page  # the variant label is not the reader's concern
 
 
 def test_the_card_reports_steps_whose_artifacts_it_cannot_show():
@@ -399,3 +400,25 @@ def test_six_steps_with_four_posters_each_fit_on_one_or_two_pages(tmp_path):
     assert 1 <= len(reader.pages) <= 2, f"{len(reader.pages)} pages"
     text = " ".join(page.extract_text() for page in reader.pages)
     assert all(f"Station {i}" in text for i in range(1, 7))
+
+
+def test_consecutive_cues_with_one_label_print_it_once():
+    doc = _doc()
+    doc.cues = [
+        Cue(id=f"c{i}", kind="technique", text=f"t{i}", label=label, anchor=Anchor(step="squat"))
+        for i, label in enumerate(["Lowering", "Lowering", "Lifting"])
+    ]
+    page = card.render_card(doc)
+    assert page.count("<b>Lowering</b>") == 1 and page.count("<b>Lifting</b>") == 1
+
+
+def test_a_rest_between_rounds_is_not_marked_optional():
+    doc = _doc()
+    doc.steps[1].steps.append(
+        Step(id="rest", name="Rest as needed", duration=Measure(value="0", unit="second"),
+             tags=["learner-led", "between-passes"], optional=True)
+    )
+    page = card.render_card(doc)
+    assert "<b>Rest as needed</b>" in page and "between rounds" in page
+    assert page.count("optional") == 1  # the push-up's own mark; the rest has none
+    assert "Rest as needed — as needed" not in page

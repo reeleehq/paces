@@ -45,6 +45,7 @@ DEFAULT_STRINGS = {
     "steps": "Steps",
     "start": "Start",
     "end": "End",
+    "positions": {"start": "Start", "mid": "Middle", "end": "End"},
     "optional": "optional",
     "variant_of": "variant of {step}",
     "round_count": "{n} ×",
@@ -198,7 +199,7 @@ def _poster_srcs(
             continue
         mime = artifact.mime or mimetypes.guess_type(path.name)[0] or "image/jpeg"
         data = f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
-        out.append((data, artifact.attrs.get("label")))
+        out.append((data, artifact.attrs.get("position")))
     return out
 
 
@@ -244,11 +245,15 @@ def _cue_html(cues: list, strings: dict) -> str:
     blocks = []
     for kind, group in group_cues(cues, strings):
         caution = kind in strings["caution_kinds"]
-        lines = "".join(
-            f'<p class="cue{" caution" if caution else ""}">'
-            f"{_cue_label(cue).strip()}{' ' if cue.label else ''}{html.escape(cue.text)}</p>"
-            for cue in group
-        )
+        lines, previous = [], None
+        for cue in group:
+            shown = cue.label if cue.label != previous else None  # once per run
+            previous = cue.label
+            label = f"<b>{html.escape(shown)}</b> " if shown else ""
+            lines.append(
+                f'<p class="cue{" caution" if caution else ""}">{label}{html.escape(cue.text)}</p>'
+            )
+        lines = "".join(lines)
         blocks.append(
             f'<div class="cuegroup"><span>{html.escape(_kind_label(kind, strings))}</span>{lines}</div>'
         )
@@ -256,12 +261,14 @@ def _cue_html(cues: list, strings: dict) -> str:
 
 
 def _pictures(imgs: list[tuple[str, str | None]], strings: dict) -> str:
-    """One picture, or a start and end pair, or all of them in order. An
-    artifact's own ``label`` is its caption; a bare pair is Start and End."""
+    """One picture, or a start and end pair, or all of them in order. The
+    caption is the position in the movement ("Start", "End"), or for a bare pair
+    the order; the variant is not the reader's concern, so an artifact's own
+    ``label`` is not printed on a card."""
     pair = [strings["start"], strings["end"]] if len(imgs) == 2 else [""] * len(imgs)
     figures = []
-    for (src, own), default in zip(imgs, pair):
-        label = own or default
+    for (src, position), default in zip(imgs, pair):
+        label = strings.get("positions", {}).get(str(position)) or default
         caption = f"<span>{html.escape(str(label))}</span>" if label else ""
         figures.append(
             f'<div class="fig"><img src="{html.escape(src)}" alt="">{caption}</div>'
@@ -272,8 +279,8 @@ def _pictures(imgs: list[tuple[str, str | None]], strings: dict) -> str:
 def _step_row(step: Step, *, number, nested, cues, strings, imgs, pic_width) -> str:
     pic = _pictures(imgs, strings)
     badges = []
-    if step.optional:
-        badges.append(strings["optional"])
+    if step.optional and not (_learner_led(step) or "between-passes" in step.tags):
+        badges.append(strings["optional"])  # a rest between rounds is not "optional"
     if step.variant_of:
         badges.append(strings["variant_of"].format(step=step.variant_of))
     if "between-passes" in step.tags:
