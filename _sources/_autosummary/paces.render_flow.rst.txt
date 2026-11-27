@@ -1,0 +1,19 @@
+paces.render\_flow
+==================
+
+.. automodule:: paces.render_flow
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PLAYER_FILES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      default_strings
+      render_flow
+   

@@ -1,4 +1,4 @@
-> built 2026-11-27 14:39 UTC from ad2b7b6 (main) · paces 0.0.31. Details: build_info.json
+> built 2026-11-27 15:00 UTC from 9ffd04f (main) · paces 0.0.32. Details: build_info.json
 
 # index.html.md
 
@@ -1886,6 +1886,7 @@ leaked onto the no-floats wire through an `attrs` bag or a `Lock.was`
 | [`pose`](_autosummary/paces.pose.html.md#module-paces.pose)                 | The pointable `subject_locator`: person boxes from rtmlib pose keypoints.                                                                                                                                                               |
 | [`projection`](_autosummary/paces.projection.html.md#module-paces.projection)     | The projection from analysis result to document: `to_document`.                                                                                                                                                                         |
 | [`render`](_autosummary/paces.render.html.md#module-paces.render)             | Render a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument) into learning material.                                                                                                                 |
+| [`render_flow`](_autosummary/paces.render_flow.html.md#module-paces.render_flow)   | The flow renderer: a static step-through player for any document.                                                                                                                                                                       |
 | [`schema`](_autosummary/paces.schema.html.md#module-paces.schema)             | The JSON Schema of a [`StepDocument`](_autosummary/paces.model.html.md#paces.model.StepDocument), for other languages.                                                                                                       |
 | [`segmentation`](_autosummary/paces.segmentation.html.md#module-paces.segmentation) | What a segmenter returns: [`Segmentation`](_autosummary/paces.html.md#paces.Segmentation), its [`SegStep`](_autosummary/paces.html.md#paces.SegStep) records and the `Span` they cover — the analysis-result types, with nothing else. |
 | [`segmenters`](_autosummary/paces.segmenters.html.md#module-paces.segmenters)     | Segmentation is a seam, not a stage (ADR-0003).                                                                                                                                                                                         |
@@ -2730,6 +2731,60 @@ derived clips arrive via `ArtifactRef` when the media layer exists.
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
+# _autosummary/paces.render_flow.html.md
+
+# paces.render_flow
+
+The flow renderer: a static step-through player for any document.
+
+`render_flow(doc, "out/")` writes a folder: the player (HTML, CSS and vanilla
+JS shipped as package data under `paces/data/flow/`, no build step),
+`document.json` (the document, loaded by the player at run time),
+`strings.json` (every word the player says that the document does not), a
+`data.js` copy of both for a folder opened straight from disk, and the media
+the document’s artifacts point at. A second routine is a different
+`document.json` and nothing else.
+
+Like [`paces.render`](_autosummary/paces.render.html.md#module-paces.render), this depends on the document only, never on the
+analyser, and on pydantic alone (ADR-0004): the player’s files are copied, not
+generated.
+
+### Module Attributes
+
+| [`PLAYER_FILES`](_autosummary/paces.render_flow.html.md#paces.render_flow.PLAYER_FILES)   | The player's own files, copied verbatim from package data.   |
+|-----------------------------------------------------------------|--------------------------------------------------------------|
+
+### Functions
+
+| [`default_strings`](_autosummary/paces.render_flow.html.md#paces.render_flow.default_strings)()                       | The player's one strings table, as shipped (English).              |
+|------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`render_flow`](_autosummary/paces.render_flow.html.md#paces.render_flow.render_flow)(doc, output_dir, \*[, ...]) | Write the player folder for `doc` into `output_dir` and return it. |
+
+### paces.render_flow.PLAYER_FILES *= ('index.html', 'flow.css', 'flow-core.js', 'flow.js')*
+
+The player’s own files, copied verbatim from package data.
+
+### paces.render_flow.default_strings()
+
+The player’s one strings table, as shipped (English).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+### paces.render_flow.render_flow(doc, output_dir, , media_from=None, strings=None)
+
+Write the player folder for `doc` into `output_dir` and return it.
+
+`media_from` is the folder the document’s relative artifact uris are
+relative to (usually the document’s own folder); the files are copied to the
+same relative paths in the output. `strings` overrides entries of the
+default strings table (a translation, a different word for “Start”).
+Warns, naming them, about artifacts whose files could not be found.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
 # _autosummary/paces.schema.html.md
 
 # paces.schema
@@ -3256,9 +3311,11 @@ analysis never eats a hand edit.
 
 Render a step document into learning material.
 
-`renderer='html'` (v1’s one implementation) produces the self-contained
-practice page. Returns the output path when `output=` is given,
-otherwise the rendered text itself.
+`renderer='html'` produces the self-contained practice page.
+`renderer='flow'` produces a folder: a static step-through player (manual
+and timed), `document.json` and the document’s media; it needs
+`output=` (the folder). Returns the output path when `output=` is
+given, otherwise the rendered text itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -3346,7 +3403,7 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 14:39 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/ad2b7b67f5a1bc791e79070b6e3d9add97f064c4"><code>ad2b7b6</code></a> on branch <code>main</code>, for **paces 0.0.31** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 15:00 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/9ffd04fa7057eb9dda73e7c9c37bea18212fce44"><code>9ffd04f</code></a> on branch <code>main</code>, for **paces 0.0.32** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -3355,9 +3412,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/ad2b7b67f5a1bc791e79070b6e3d9add97f064c4"><code>ad2b7b67f5a1bc791e79070b6e3d9add97f064c4</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/9ffd04fa7057eb9dda73e7c9c37bea18212fce44"><code>9ffd04fa7057eb9dda73e7c9c37bea18212fce44</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.31</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.32</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3366,9 +3423,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46017356133">46017356133</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46020528057">46020528057</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>2c2bdbbf33155adb721b222f4f28c03299f2fa89</code> (in the history of the built commit) |
+| Event commit | <code>33f83c846bdf293573d5f7e4151a3ef6d8059fef</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3393,13 +3450,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.31/">0.0.31</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/paces/0.0.32/">0.0.32</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout ad2b7b67f5a1bc791e79070b6e3d9add97f064c4
+git checkout 9ffd04fa7057eb9dda73e7c9c37bea18212fce44
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

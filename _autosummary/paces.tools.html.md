@@ -107,9 +107,11 @@ analysis never eats a hand edit.
 
 Render a step document into learning material.
 
-`renderer='html'` (v1’s one implementation) produces the self-contained
-practice page. Returns the output path when `output=` is given,
-otherwise the rendered text itself.
+`renderer='html'` produces the self-contained practice page.
+`renderer='flow'` produces a folder: a static step-through player (manual
+and timed), `document.json` and the document’s media; it needs
+`output=` (the folder). Returns the output path when `output=` is
+given, otherwise the rendered text itself.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
