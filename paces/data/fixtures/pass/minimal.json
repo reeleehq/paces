@@ -1,0 +1,7 @@
+{
+  "kind": "StepDocument",
+  "schemaVersion": "0.1.0",
+  "id": "minimal",
+  "title": "Minimal document",
+  "steps": []
+}

@@ -1,0 +1,861 @@
+{
+  "$defs": {
+    "Anchor": {
+      "additionalProperties": false,
+      "description": "Where a cue attaches: a step, plus an optional relative offset in the\ndomain unit. NEVER an absolute time.",
+      "properties": {
+        "step": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Step",
+          "type": "string"
+        },
+        "offset": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Measure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "step"
+      ],
+      "title": "Anchor",
+      "type": "object"
+    },
+    "ArtifactRef": {
+      "additionalProperties": false,
+      "description": "WHAT a derived file is, never HOW it was made — the recipe lives in the\nevidence layer (``paces.evidence``, tier ``derivation``) and in the\ncommitted span-address-keyed ``<stem>.recipes.json`` sidecar (ADR-0005 §3),\nwhich stay in step: both are keyed by the same span address.",
+      "properties": {
+        "role": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Role",
+          "type": "string"
+        },
+        "uri": {
+          "title": "Uri",
+          "type": "string"
+        },
+        "assetId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assetid"
+        },
+        "mime": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mime"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "durationS": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Durations"
+        },
+        "derivedFrom": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Derivedfrom"
+        },
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        }
+      },
+      "required": [
+        "role",
+        "uri"
+      ],
+      "title": "ArtifactRef",
+      "type": "object"
+    },
+    "Cue": {
+      "additionalProperties": false,
+      "description": "A landmark the learner can hear or watch for (a lyric, a count, ...).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "anchor": {
+          "$ref": "#/$defs/Anchor"
+        },
+        "duration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Measure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "atS": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ats"
+        },
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "text",
+        "anchor"
+      ],
+      "title": "Cue",
+      "type": "object"
+    },
+    "Lock": {
+      "additionalProperties": false,
+      "description": "A human (or approved-AI) decision that regeneration MUST NOT overwrite.",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "by": {
+          "title": "By",
+          "type": "string"
+        },
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "was": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Was"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "path",
+        "by",
+        "at"
+      ],
+      "title": "Lock",
+      "type": "object"
+    },
+    "Measure": {
+      "additionalProperties": false,
+      "description": "A duration in the DOMAIN's own unit — never seconds unless the domain's\nunit is seconds.",
+      "properties": {
+        "value": {
+          "pattern": "^-?\\d+(\\.\\d+)?$",
+          "title": "Value",
+          "type": "string"
+        },
+        "unit": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "title": "Measure",
+      "type": "object"
+    },
+    "MetricGrid": {
+      "additionalProperties": false,
+      "description": "How the domain unit relates to wall-clock time, when it does at all.\n\nOptional by design: a \"reps\" domain has no grid; a dance routine does —\nand the grid is what drives the metronome and :func:`resolve`.\n\nA non-positive tempo or subdivision count is unrepresentable, not merely\ndiscouraged: a zero tempo makes every duration infinite and every\n``seconds_per_unit`` division a crash, so \"tempo unknown\" is spelled\n``tempo_bpm=None``, never ``\"0\"``.",
+      "properties": {
+        "unit": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "subdivisions": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Subdivisions",
+          "type": "integer"
+        },
+        "tempoBpm": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tempobpm"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Origin"
+        },
+        "originSource": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Originsource"
+        }
+      },
+      "required": [
+        "unit"
+      ],
+      "title": "MetricGrid",
+      "type": "object"
+    },
+    "OpenQuestion": {
+      "additionalProperties": false,
+      "description": "The POC's ``note`` fields, promoted: uncertainty and its resolution are\nfirst-class content, not scratch.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "status": {
+          "default": "open",
+          "enum": [
+            "open",
+            "settled",
+            "dropped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "resolution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolution"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/SourceSpan"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "title": "OpenQuestion",
+      "type": "object"
+    },
+    "Origin": {
+      "additionalProperties": false,
+      "description": "Back-reference into the evidence layer: why this node says what it says,\nand what a regeneration may replace.",
+      "properties": {
+        "annotationId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Annotationid"
+        },
+        "valueDigest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valuedigest"
+        },
+        "generatedBy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generatedby"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "title": "Origin",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "One input the document's spans refer into (a video, a notes doc, ...).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "video",
+            "audio",
+            "image",
+            "document",
+            "url"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "uri": {
+          "title": "Uri",
+          "type": "string"
+        },
+        "assetId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assetid"
+        },
+        "durationS": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Durations"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "attribution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribution"
+        },
+        "rights": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rights"
+        },
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "uri"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SourceSpan": {
+      "additionalProperties": false,
+      "description": "ONE step's presence in ONE source, in ONE role. A step has a LIST of\nthese — several roles is the norm, not the exception.\n\n``end=None`` means \"starts here, extent not recorded\" (a deep link is a\npoint of entry, not an interval; recording an end it does not know would\nbe invention, not data).",
+      "properties": {
+        "source": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Source",
+          "type": "string"
+        },
+        "role": {
+          "default": "performance",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Role",
+          "type": "string"
+        },
+        "start": {
+          "pattern": "^-?\\d+(\\.\\d+)?$",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "type": "string"
+                },
+                {
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Excerpt"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "caption": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Caption"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        }
+      },
+      "required": [
+        "source",
+        "start"
+      ],
+      "title": "SourceSpan",
+      "type": "object"
+    },
+    "Step": {
+      "additionalProperties": false,
+      "description": "One named piece of the routine — the unit a learner practises.\n\nA step is a step: sub-steps are ``Step``s in ``steps``. ``repeat`` says the\nchildren cycle N times (the POC's block 9 is ``repeat=4`` over two\nsub-steps — structure, where the original hand-wrote a display override).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "duration": {
+          "$ref": "#/$defs/Measure"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "spans": {
+          "items": {
+            "$ref": "#/$defs/SourceSpan"
+          },
+          "title": "Spans",
+          "type": "array"
+        },
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "title": "Steps",
+          "type": "array"
+        },
+        "repeat": {
+          "default": 1,
+          "title": "Repeat",
+          "type": "integer"
+        },
+        "optional": {
+          "default": false,
+          "title": "Optional",
+          "type": "boolean"
+        },
+        "variantOf": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Variantof"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/OpenQuestion"
+          },
+          "title": "Questions",
+          "type": "array"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Origin"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "locks": {
+          "items": {
+            "$ref": "#/$defs/Lock"
+          },
+          "title": "Locks",
+          "type": "array"
+        },
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "duration"
+      ],
+      "title": "Step",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The committed, hand-editable, git-diffable step document — the AST.",
+  "properties": {
+    "kind": {
+      "const": "StepDocument",
+      "default": "StepDocument",
+      "title": "Kind",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": "0.1.0",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "lang": {
+      "default": "en",
+      "title": "Lang",
+      "type": "string"
+    },
+    "domain": {
+      "default": "generic",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "title": "Domain",
+      "type": "string"
+    },
+    "metric": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MetricGrid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/Source"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/Step"
+      },
+      "title": "Steps",
+      "type": "array"
+    },
+    "cues": {
+      "items": {
+        "$ref": "#/$defs/Cue"
+      },
+      "title": "Cues",
+      "type": "array"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/$defs/OpenQuestion"
+      },
+      "title": "Questions",
+      "type": "array"
+    },
+    "credits": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Credits"
+    },
+    "locks": {
+      "items": {
+        "$ref": "#/$defs/Lock"
+      },
+      "title": "Locks",
+      "type": "array"
+    },
+    "attrs": {
+      "additionalProperties": true,
+      "title": "Attrs",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "title"
+  ],
+  "title": "StepDocument",
+  "type": "object"
+}

@@ -1,0 +1,25 @@
+{
+  "kind": "StepDocument",
+  "schemaVersion": "0.1.0",
+  "id": "counted-routine",
+  "title": "Counted routine",
+  "domain": "dance",
+  "metric": { "unit": "eight", "subdivisions": 8, "tempoBpm": "120", "origin": "1.5", "originSource": "demo" },
+  "sources": [
+    { "id": "demo", "kind": "video", "uri": "https://example.com/demo.mp4", "durationS": "60" }
+  ],
+  "steps": [
+    {
+      "id": "a",
+      "name": "Step A",
+      "duration": { "value": "2", "unit": "eight" },
+      "spans": [ { "source": "demo", "role": "performance", "start": "1.5", "end": "5.5" } ]
+    },
+    {
+      "id": "b",
+      "name": "Step B",
+      "duration": { "value": "4", "unit": "eight" },
+      "spans": [ { "source": "demo", "role": "instruction", "start": "5.5" } ]
+    }
+  ]
+}
