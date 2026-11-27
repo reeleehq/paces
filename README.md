@@ -13,6 +13,16 @@ practice page with counts and deep links today, other guides later.
 pip install paces
 ```
 
+## Renderings
+
+`paces render document.json --renderer html|flow|card --output ...` (and `paces schema` writes the document's JSON Schema):
+
+- `html`: the practice page below.
+- `flow`: a folder with a static step-through player (manual or timed; nested steps and repeats shown as structure). A second routine is a different `document.json`.
+- `card`: a one- or two-sheet printable card, as HTML or, with the `pdf` extra (`paces[pdf]`), a PDF (`--output routine.pdf`, `--paper letter`).
+
+An agent skill ships in the package (`paces/data/skills/paces/`), installable with `gh skill`.
+
 ## Quick example
 
 ```python
