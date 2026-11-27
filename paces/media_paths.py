@@ -34,6 +34,11 @@ def resolve_media(
         return None
     base = Path(media_from).resolve()
     root = Path(media_root).resolve() if media_root is not None else base
+    if root != base and root not in base.parents:
+        raise ValueError(
+            f"the media root {root} must contain the media base {base} "
+            "(media_from); widen media_root to a parent folder"
+        )
     path = (base / uri).resolve()
     if path != root and root not in path.parents:
         raise ValueError(

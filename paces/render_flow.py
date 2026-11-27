@@ -16,8 +16,9 @@ generated.
 from __future__ import annotations
 
 import json
-import re
+import os
 import shutil
+from urllib.parse import quote
 from collections.abc import Iterator, Mapping
 from importlib import resources
 from pathlib import Path
@@ -67,19 +68,23 @@ def _ship_media(
     """Copy each artifact's file into the output folder and return the document
     to ship plus the uris that could not be shipped.
 
-    The shipped path is the file's path relative to the media root, so media that
-    lives beside the document (outside the output folder) lands under the output
-    folder and the shipped document points there. With the default root (the
-    base folder) a uri keeps its own path. Web uris are left alone; uris that
-    are not relative paths, or whose file is missing, are reported."""
+    A file under the base folder (``media_from``) ships at the uri's own path;
+    a file outside it but within ``media_root`` ships at its path relative to
+    the root, and the shipped document points there. Two different files may
+    not land on one path, and nothing may land on a player file. Web uris are
+    left alone; uris that are not relative paths (or carry a query or fragment),
+    or whose file is missing, are reported. Shipped paths are URL-quoted when
+    rewritten."""
     from paces.media_paths import is_relative_path, resolve_media
 
     shipped = doc.model_copy(deep=True)
     unshipped: list[str] = []
     out_root = out.resolve()
-    root = (
-        Path(media_root or media_from).resolve() if (media_root or media_from) else None
-    )
+    reserved = {*PLAYER_FILES, STRINGS_FILE, "document.json", "data.js"}
+    landed: dict[Path, Path] = {}
+    base = media_from.resolve() if media_from else None
+    root = media_root or media_from
+    root = root.resolve() if root else None
     for step in _steps(shipped.steps):
         for artifact in step.artifacts:
             uri = artifact.uri
@@ -89,21 +94,37 @@ def _ship_media(
                 unshipped.append(uri)
                 continue
             if media_from is None:
-                if not (out_root / uri).resolve().is_file():
+                target = (out_root / uri).resolve()
+                if out_root not in target.parents:
+                    raise ValueError(f"artifact uri escapes the output folder: {uri!r}")
+                if not target.is_file():
                     unshipped.append(uri)
                 continue
             source = resolve_media(uri, media_from, media_root)
             if source is None:
                 unshipped.append(uri)
                 continue
-            relative = source.relative_to(root).as_posix()
+            # the boundary was checked on the resolved path; the shipped path
+            # comes from the written one, so a symlink keeps its own name
+            written = Path(os.path.normpath(base / uri))
+            anchor = base if base in written.parents else root
+            relative = written.relative_to(anchor).as_posix()
             target = (out_root / relative).resolve()
             if out_root not in target.parents:
                 raise ValueError(f"artifact uri escapes the output folder: {uri!r}")
+            if relative in reserved:
+                raise ValueError(
+                    f"media file {uri!r} would overwrite the player's own file {relative!r}"
+                )
+            if landed.setdefault(target, source) != source:
+                raise ValueError(
+                    f"two different media files would both be shipped as {relative!r}"
+                )
             if source != target:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, target)
-            artifact.uri = relative
+            if relative != uri:
+                artifact.uri = quote(relative)
     return shipped, unshipped
 
 

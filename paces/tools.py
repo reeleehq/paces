@@ -306,6 +306,15 @@ def render(
             f"unknown renderer {renderer!r}; available: {sorted(_RENDERERS)}"
         )
     run, needs_output, accepted = _RENDERERS[renderer]
+    if (
+        media_root is not None
+        and media_from is None
+        and not (isinstance(document, str) and Path(document).is_file())
+    ):
+        raise ValueError(
+            "media_root needs media_from when the document is not a file "
+            "(there is no folder its relative uris are relative to)"
+        )
     given = {"paper": paper, "media_from": media_from, "media_root": media_root}
     for name, value in given.items():
         if value is not None and name not in accepted:
