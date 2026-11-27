@@ -1,4 +1,4 @@
-> built 2026-11-27 15:40 UTC from 36a8eaa (main) · paces 0.0.33. Details: build_info.json
+> built 2026-11-27 15:54 UTC from e5fdc24 (main) · paces 0.0.34. Details: build_info.json
 
 # index.html.md
 
@@ -18,6 +18,16 @@ practice page with counts and deep links today, other guides later.
 ```bash
 pip install paces
 ```
+
+## Renderings
+
+`paces render document.json --renderer html|flow|card --output ...` (and `paces schema` writes the document’s JSON Schema):
+
+- `html`: the practice page below.
+- `flow`: a folder with a static step-through player (manual or timed; nested steps and repeats shown as structure). A second routine is a different `document.json`.
+- `card`: a one- or two-sheet printable card, as HTML or, with the `pdf` extra (`paces[pdf]`), a PDF (`--output routine.pdf`, `--paper letter`).
+
+An agent skill ships in the package (`paces/data/skills/paces/`), installable with `gh skill`.
 
 ## Quick example
 
@@ -3468,20 +3478,20 @@ Schema + semantic check of a step document; returns `{"issues": [...]}`.
 
 # About this build
 
-This documentation was built on **2026-11-27 15:40 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d"><code>36a8eaa</code></a> on branch <code>main</code>, for **paces 0.0.33** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-11-27 15:54 UTC** from commit <a href="https://github.com/reeleehq/paces/commit/e5fdc24681b0737324e9070c049ecadd082b1a01"><code>e5fdc24</code></a> on branch <code>main</code>, for **paces 0.0.34** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.33) is ahead of the latest release on PyPI (0.0.32): these docs describe unreleased code.
+- The documented version (0.0.34) is ahead of the latest release on PyPI (0.0.33): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                       |
 |---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d"><code>36a8eaa0c72345f667a38d254b95f38fac908e0d</code></a> |
+| Commit              | <a href="https://github.com/reeleehq/paces/commit/e5fdc24681b0737324e9070c049ecadd082b1a01"><code>e5fdc24681b0737324e9070c049ecadd082b1a01</code></a> |
 | Branch              | <code>main</code>                                                                                                                                     |
-| Tags at this commit | <code>0.0.33</code>                                                                                                                                   |
+| Tags at this commit | <code>0.0.34</code>                                                                                                                                   |
 | Working tree        | clean                                                                                                                                                 |
 | Remote              | <code>https://github.com/reeleehq/paces</code>                                                                                                        |
 
@@ -3490,9 +3500,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>reeleehq/paces</code>                                                                |
-| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46026571148">46026571148</a>       |
+| Run          | <a href="https://github.com/reeleehq/paces/actions/runs/46028586172">46028586172</a>       |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>697a9195e79bf51b4372619864a30ce1fc9a803a</code> (in the history of the built commit) |
+| Event commit | <code>9afe59b1ee41feef61d486e02954fd719e4c20be</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -3517,13 +3527,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/paces/0.0.32/">0.0.32</a>, older than the documented version (0.0.33).
+Latest release: <a href="https://pypi.org/project/paces/0.0.33/">0.0.33</a>, older than the documented version (0.0.34).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/reeleehq/paces && cd paces
-git checkout 36a8eaa0c72345f667a38d254b95f38fac908e0d
+git checkout e5fdc24681b0737324e9070c049ecadd082b1a01
 pip install "epythet==0.2.25"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -3540,6 +3550,22 @@ The same data, for machines: <a href="build_info.json"><code>build_info.json</co
 `paces` ships artifacts for coding agents alongside its code. This page lists
 them, says where each lives in the repository, and points at the
 machine-readable copies of this documentation.
+
+## Skills
+
+Skills are folders holding a `SKILL.md` (the [Agent Skills](https://agentskills.io) format): a description that tells an agent when to use it and a body with the procedure. Install one into your agent with `gh skill` (any host: `--agent claude-code`, `copilot`, `cursor`, `codex`, `gemini`), or use the copy bundled in the wheel.
+
+### `paces`
+
+Turn instructional media (a video of someone teaching a routine, a recipe, a workout, a kata) into a structured step document, then into learning material: a practice page, a step-through player (flow), or a printable card and PDF. Use when asked to “turn this video into steps”, “make a practice page / step-through / flow from a routine”, “make a printable card or PDF of this routine”, “segment a tutorial”, “add loop clips to the steps”, “export the step document’s JSON Schema”, or when a step document (StepDocument) already exists and needs rendering, editing or validating. Not for extracting poses or scoring movement, and not for editing video.
+
+```bash
+gh skill install thorwhalen/paces paces --agent claude-code
+```
+
+Source: [`paces/data/skills/paces`](https://github.com/thorwhalen/paces/tree/HEAD/paces/data/skills/paces) (bundled with the pip package).
+
+The bundled skills are also on disk after `pip install paces`, under the package’s `data/skills/` directory; link them into an agent without network access with `skill link-skills <that directory>`.
 
 ## Instruction files
 

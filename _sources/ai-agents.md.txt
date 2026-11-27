@@ -7,6 +7,23 @@ them, says where each lives in the repository, and points at the
 machine-readable copies of this documentation.
 
 
+## Skills
+
+Skills are folders holding a `SKILL.md` (the [Agent Skills](https://agentskills.io) format): a description that tells an agent when to use it and a body with the procedure. Install one into your agent with `gh skill` (any host: `--agent claude-code`, `copilot`, `cursor`, `codex`, `gemini`), or use the copy bundled in the wheel.
+
+### `paces`
+
+Turn instructional media (a video of someone teaching a routine, a recipe, a workout, a kata) into a structured step document, then into learning material: a practice page, a step-through player (flow), or a printable card and PDF. Use when asked to "turn this video into steps", "make a practice page / step-through / flow from a routine", "make a printable card or PDF of this routine", "segment a tutorial", "add loop clips to the steps", "export the step document's JSON Schema", or when a step document (StepDocument) already exists and needs rendering, editing or validating. Not for extracting poses or scoring movement, and not for editing video.
+
+```bash
+gh skill install thorwhalen/paces paces --agent claude-code
+```
+
+Source: [`paces/data/skills/paces`](https://github.com/thorwhalen/paces/tree/HEAD/paces/data/skills/paces) (bundled with the pip package).
+
+The bundled skills are also on disk after `pip install paces`, under the package's `data/skills/` directory; link them into an agent without network access with `skill link-skills <that directory>`.
+
+
 ## Instruction files
 
 Files agents read before working in this repository.

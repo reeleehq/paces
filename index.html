@@ -103,6 +103,7 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#renderings">Renderings</a></li>
 <li><a class="reference internal" href="#quick-example">Quick example</a></li>
 <li><a class="reference internal" href="#how-it-thinks">How it thinks</a></li>
 <li><a class="reference internal" href="#the-evidence-layer">The evidence layer</a></li>
@@ -147,6 +148,16 @@ practice page with counts and deep links today, other guides later.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">pip<span class="w"> </span>install<span class="w"> </span>paces
 </span></pre></div>
 </div>
+<section id="renderings">
+<h2>Renderings<a class="headerlink" href="#renderings" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">paces</span> <span class="pre">render</span> <span class="pre">document.json</span> <span class="pre">--renderer</span> <span class="pre">html|flow|card</span> <span class="pre">--output</span> <span class="pre">...</span></code> (and <code class="docutils literal notranslate"><span class="pre">paces</span> <span class="pre">schema</span></code> writes the document’s JSON Schema):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">html</span></code>: the practice page below.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flow</span></code>: a folder with a static step-through player (manual or timed; nested steps and repeats shown as structure). A second routine is a different <code class="docutils literal notranslate"><span class="pre">document.json</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">card</span></code>: a one- or two-sheet printable card, as HTML or, with the <code class="docutils literal notranslate"><span class="pre">pdf</span></code> extra (<code class="docutils literal notranslate"><span class="pre">paces[pdf]</span></code>), a PDF (<code class="docutils literal notranslate"><span class="pre">--output</span> <span class="pre">routine.pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">--paper</span> <span class="pre">letter</span></code>).</p></li>
+</ul>
+<p>An agent skill ships in the package (<code class="docutils literal notranslate"><span class="pre">paces/data/skills/paces/</span></code>), installable with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">skill</span></code>.</p>
+</section>
 <section id="quick-example">
 <h2>Quick example<a class="headerlink" href="#quick-example" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">paces</span><span class="w"> </span><span class="kn">import</span> <span class="n">segment</span><span class="p">,</span> <span class="n">to_document</span><span class="p">,</span> <span class="n">render_html</span>
@@ -367,7 +378,7 @@ detection) are designed (see <code class="docutils literal notranslate"><span cl
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-27 15:40 UTC from <a href="https://github.com/reeleehq/paces/commit/36a8eaa0c72345f667a38d254b95f38fac908e0d">36a8eaa</a> (main) · paces 0.0.33 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-11-27 15:54 UTC from <a href="https://github.com/reeleehq/paces/commit/e5fdc24681b0737324e9070c049ecadd082b1a01">e5fdc24</a> (main) · paces 0.0.34 · <a href="about-this-build.html">about this build</a></p>
         </article><button class="back-to-top" type="button">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
@@ -402,7 +413,7 @@ detection) are designed (see <code class="docutils literal notranslate"><span cl
     </div>
   </div>
 </footer>
-      <script src="_static/documentation_options.js?v=565bc8c8"></script>
+      <script src="_static/documentation_options.js?v=9dd25805"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>

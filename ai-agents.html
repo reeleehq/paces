@@ -103,6 +103,10 @@ data-aria-dark="Switch to auto color mode">
       <i class="i-lucide close"></i>
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#skills">Skills</a><ul>
+<li><a class="reference internal" href="#paces"><code class="docutils literal notranslate"><span class="pre">paces</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#instruction-files">Instruction files</a></li>
 <li><a class="reference internal" href="#machine-readable-documentation">Machine-readable documentation</a></li>
 </ul>
@@ -141,6 +145,19 @@ data-aria-dark="Switch to auto color mode">
 <p><code class="docutils literal notranslate"><span class="pre">paces</span></code> ships artifacts for coding agents alongside its code. This page lists
 them, says where each lives in the repository, and points at the
 machine-readable copies of this documentation.</p>
+<section id="skills">
+<h2>Skills<a class="headerlink" href="#skills" title="Link to this heading">#</a></h2>
+<p>Skills are folders holding a <code class="docutils literal notranslate"><span class="pre">SKILL.md</span></code> (the <a class="reference external" href="https://agentskills.io">Agent Skills</a> format): a description that tells an agent when to use it and a body with the procedure. Install one into your agent with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">skill</span></code> (any host: <code class="docutils literal notranslate"><span class="pre">--agent</span> <span class="pre">claude-code</span></code>, <code class="docutils literal notranslate"><span class="pre">copilot</span></code>, <code class="docutils literal notranslate"><span class="pre">cursor</span></code>, <code class="docutils literal notranslate"><span class="pre">codex</span></code>, <code class="docutils literal notranslate"><span class="pre">gemini</span></code>), or use the copy bundled in the wheel.</p>
+<section id="paces">
+<h3><code class="docutils literal notranslate"><span class="pre">paces</span></code><a class="headerlink" href="#paces" title="Link to this heading">#</a></h3>
+<p>Turn instructional media (a video of someone teaching a routine, a recipe, a workout, a kata) into a structured step document, then into learning material: a practice page, a step-through player (flow), or a printable card and PDF. Use when asked to “turn this video into steps”, “make a practice page / step-through / flow from a routine”, “make a printable card or PDF of this routine”, “segment a tutorial”, “add loop clips to the steps”, “export the step document’s JSON Schema”, or when a step document (StepDocument) already exists and needs rendering, editing or validating. Not for extracting poses or scoring movement, and not for editing video.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">gh<span class="w"> </span>skill<span class="w"> </span>install<span class="w"> </span>thorwhalen/paces<span class="w"> </span>paces<span class="w"> </span>--agent<span class="w"> </span>claude-code
+</span></pre></div>
+</div>
+<p>Source: <a class="reference external" href="https://github.com/thorwhalen/paces/tree/HEAD/paces/data/skills/paces"><code class="docutils literal notranslate"><span class="pre">paces/data/skills/paces</span></code></a> (bundled with the pip package).</p>
+<p>The bundled skills are also on disk after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">paces</span></code>, under the package’s <code class="docutils literal notranslate"><span class="pre">data/skills/</span></code> directory; link them into an agent without network access with <code class="docutils literal notranslate"><span class="pre">skill</span> <span class="pre">link-skills</span> <span class="pre">&lt;that</span> <span class="pre">directory&gt;</span></code>.</p>
+</section>
+</section>
 <section id="instruction-files">
 <h2>Instruction files<a class="headerlink" href="#instruction-files" title="Link to this heading">#</a></h2>
 <p>Files agents read before working in this repository.</p>
@@ -192,7 +209,7 @@ machine-readable copies of this documentation.</p>
     </div>
   </div>
 </footer>
-      <script src="_static/documentation_options.js?v=565bc8c8"></script>
+      <script src="_static/documentation_options.js?v=9dd25805"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
