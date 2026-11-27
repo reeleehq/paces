@@ -13,7 +13,7 @@
   "use strict";
   var C = window.PacesFlowCore;
   var app = document.getElementById("app");
-  var RAMP_FROM = [255, 192, 46], RAMP_TO = [255, 61, 127];
+  var RAMP_FROM = [255, 138, 76], RAMP_TO = [255, 61, 127];
   var COUNT_IN_SECONDS = 5;
 
   function el(tag, attrs, children) {
@@ -101,7 +101,7 @@
     var status = el("p", { class: "sr", "aria-live": "polite" });
     var titleEl = el("h1", { text: doc.title });
     var posEl = el("span", { class: "pos" });
-    var modeBtn = el("button", { class: "chip", type: "button", onclick: function () { toggleMode(); } });
+    var modeBtn = el("button", { class: "chip modechip", type: "button", onclick: function () { toggleMode(); } });
     var paceBtn = el("button", { class: "chip", type: "button", "aria-expanded": "false", text: S.settings, onclick: function () {
       var open = pace.hasAttribute("hidden"); if (open) pace.removeAttribute("hidden"); else pace.setAttribute("hidden", "");
       paceBtn.setAttribute("aria-expanded", String(open)); } });
@@ -336,7 +336,7 @@
       var dose = C.dosage(step);
       card.appendChild(el("div", { class: "head" }, [
         el("div", { class: "namecol" }, [el("h2", { text: step.name }), dose ? el("p", { class: "dose", text: dose }) : null]),
-        el("div", { class: "bigcount" + (counting ? " getready" : "") + (big.small && !counting ? " small" : ""), "data-big": "1", "aria-hidden": counting || state.playing ? "true" : "false" }, [
+        el("div", { class: "bigcount" + (big.text.length > 2 && !big.small ? " long" : "") + (counting ? " getready" : "") + (big.small && !counting ? " small" : ""), "data-big": "1", "aria-hidden": counting || state.playing ? "true" : "false" }, [
           el("span", { class: "bignum", text: counting ? String(Math.ceil(state.countIn)) : big.text }),
           el("span", { class: "bigsub", text: counting ? S.getReady : big.sub })])]));
       card.appendChild(el("div", { class: "fillbar", "aria-hidden": "true" }, [el("i", {})]));
@@ -357,7 +357,7 @@
       (s.heads || []).forEach(function (p) { if (!options.length) { var m = C.listMedia(p)[0]; if (m) card.appendChild(mediaNode(m)); } });
 
       var badges = [];
-      if (step.optional) badges.push(S.optional);
+      if (step.optional && !C.isRest(step)) badges.push(S.optional);
       if (step.variantOf) badges.push(fmt(S.variantOf, { step: step.variantOf }));
       if (badges.length) card.appendChild(el("p", { class: "badges", text: badges.join(" · ") }));
 
@@ -369,10 +369,12 @@
       var max = wide.matches ? 5 : 3;
       var head = C.headCues(cueGroups, max);
       var cueBox = el("div", { class: "cues" });
+      lastLabel = null;
       cueGroups.forEach(function (g) {
         var inHead = g.cues.filter(function (c) { return head.shown.indexOf(c) >= 0; });
         if (!inHead.length) return;
         var block = el("div", { class: "cuegroup" }, [el("span", { class: "cuekind", text: g.label })]);
+        lastLabel = null;
         inHead.forEach(function (c) { block.appendChild(cueLine(c, g.caution)); });
         cueBox.appendChild(block);
       });
@@ -411,9 +413,12 @@
       }
     }
 
+    var lastLabel = null;      /* a label shared by consecutive cues is printed once */
     function cueLine(c, caution) {
+      var show = c.label && c.label !== lastLabel;
+      lastLabel = c.label || null;
       return el("p", { class: "cue" + (caution ? " caution" : "") }, [
-        c.label ? el("b", { class: "cuelabel", text: c.label + " " }) : null, document.createTextNode(c.text)]);
+        show ? el("b", { class: "cuelabel", text: c.label + " " }) : null, document.createTextNode(c.text)]);
     }
 
     function mediaNode(m, small) {
@@ -512,10 +517,12 @@
       var s = stops[state.i], bigNode = stage.querySelector("[data-big]");
       if (bigNode) {
         var b = state.countIn > 0 ? null : bigCount(s);
-        bigNode.querySelector(".bignum").textContent = state.countIn > 0 ? String(Math.ceil(state.countIn)) : b.text;
+        var numNode = bigNode.querySelector(".bignum");
+        numNode.textContent = state.countIn > 0 ? String(Math.ceil(state.countIn)) : b.text;
+        bigNode.classList.toggle("long", numNode.textContent.length > 2);
       }
       var fill = stage.querySelector(".fillbar i"); if (fill) fill.style.transform = "scaleX(" + state.progress + ")";
-      var cell = cells[state.i]; if (cell) cell.style.setProperty("--p", String(state.progress));
+      var cell = cells[state.i]; if (cell) cell.style.setProperty("--p", String(state.waiting ? 1 : state.progress));
     }
     function tick(now) {
       if (!state.playing) return;

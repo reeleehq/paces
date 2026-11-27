@@ -60,6 +60,7 @@ h1 { font: 400 1.25rem/1.1 var(--display); text-transform: uppercase; letter-spa
 .field input[type=number], .field select { min-height: 40px; width: 6rem; background: var(--ground); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 0 .5rem; font: inherit; }
 .field select { width: 9rem; }
 .field input:disabled { opacity: .4; }
+.pace input, .pace select { accent-color: var(--accent); }
 .field output { font: .8rem var(--mono); min-width: 5rem; text-align: right; }
 
 /* the ribbon: on a phone a display-only strip that is one button to the
@@ -93,7 +94,6 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 @media (min-width: 900px) {
   .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr); gap: 1.6rem; align-items: start; }
   body[data-view="step"] .side { display: block; position: sticky; top: 1rem; max-height: calc(100dvh - var(--bar-h) - 3rem); overflow: auto; }
-  body[data-view="done"] .layout { display: block; max-width: 40rem; margin: 0 auto; }
   body:not([data-view="step"]) .side { display: block; }
   .side { padding-bottom: var(--bar-h); }
 }
@@ -110,7 +110,7 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 .card { background: linear-gradient(180deg, var(--raised), color-mix(in srgb, var(--raised) 80%, var(--ground))); border: 1px solid var(--c); border-radius: var(--r-card);
   padding: .9rem 1rem 1.2rem; box-shadow: 0 14px 40px -18px color-mix(in srgb, var(--c) 60%, transparent); touch-action: pan-y; }
 .context { font: 600 1.25rem/1.2 var(--body); color: color-mix(in srgb, var(--c) 55%, var(--ink)); margin: 0 0 .6rem; min-height: 1.5rem; }
-.media { display: block; width: 100%; max-height: 34dvh; object-fit: contain; border-radius: 12px; background: #000; margin: 0 auto .6rem; }
+.media { display: block; width: 100%; max-height: 34dvh; object-fit: contain; border-radius: 12px; background: var(--raised); margin: 0 auto .6rem; }
 .media.small { max-height: 8rem; width: auto; margin: .4rem 0; }
 .alts { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .6rem; }
 .alt { min-height: 44px; padding: 0 .9rem; border-radius: var(--r-pill); border: 1px solid var(--line); background: transparent; font-size: .85rem; }
@@ -120,7 +120,8 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 .head h2 { font: 400 clamp(1.8rem, 8vw, 2.8rem)/1.02 var(--display); text-transform: uppercase; margin: 0; overflow-wrap: anywhere; }
 .dose { margin: .3rem 0 0; font: .95rem var(--mono); color: var(--muted); }
 .badges { color: var(--muted); font-size: .85rem; margin: .3rem 0 0; }
-.bigcount { display: flex; flex-direction: column; align-items: flex-end; flex: none; text-align: right; }
+.bigcount { display: flex; flex-direction: column; align-items: flex-end; flex: 0 1 auto; min-width: 0; text-align: right; }
+.bigcount.long .bignum { font-size: clamp(2.4rem, 12vw, 4rem); }
 .bignum { font: 500 clamp(3.2rem, 22vw, 6.4rem)/1 var(--mono); font-variant-numeric: tabular-nums; }
 .bigcount.small .bignum { font: 700 .95rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
 .bigsub { font: .9rem var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
@@ -162,7 +163,7 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 
 /* the bar: thumb reach, as wide as the layout */
 .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; height: calc(var(--bar-h) + env(safe-area-inset-bottom)); padding: .5rem 0 env(safe-area-inset-bottom);
-  background: color-mix(in srgb, var(--ground) 88%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
+  background: var(--ground); border-top: 1px solid var(--line); }
 .bar[hidden] { display: none; }
 .barin { max-width: var(--layout-w); margin: 0 auto; height: 100%; display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: 0 clamp(1rem, 3vw, 2rem); }
 .nav { display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--raised); flex: none; }
@@ -194,3 +195,5 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 body[data-view="overview"] .titles h1 { display: none; }
+
+body[data-view="overview"] .modechip { display: none; }
