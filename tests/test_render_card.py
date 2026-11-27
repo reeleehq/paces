@@ -77,10 +77,31 @@ def test_letter_paper_and_a_bad_paper():
         card.render_card(_doc(), paper="tabloid")
 
 
-def test_needs_come_from_the_render_card_attrs_and_are_omitted_without():
-    assert "What you need" not in card.render_card(_doc())
-    page = card.render_card(_doc(attrs={"render.card": {"needs": ["A mat", "<b>x</b>"]}}))
-    assert "What you need" in page and "A mat" in page and "&lt;b&gt;x" in page
+def test_resources_and_notes_are_printed_and_omitted_without():
+    from paces.model import Resource
+
+    bare = card.render_card(_doc())
+    assert "What you need" not in bare and "Notes" not in bare
+    page = card.render_card(
+        _doc(
+            resources=[
+                Resource(id="mat", name="A mat", optional=True),
+                Resource(
+                    id="w", name="<b>x</b>", quantity=Measure(value="8", unit="kg"), note="each"
+                ),
+            ],
+            notes=["Do one round first.", "Stop if it hurts."],
+        )
+    )
+    assert "What you need" in page and "A mat" in page and "(optional)" in page
+    assert "8 kg · &lt;b&gt;x&lt;/b&gt;" in page and "— each" in page
+    assert "Notes" in page and "Do one round first." in page
+
+
+def test_a_cue_label_is_printed_beside_the_cue():
+    doc = _doc()
+    doc.cues[0].label = "Lowering"
+    assert "<b>Lowering</b>" in card.render_card(doc)
 
 
 def test_posters_are_embedded_and_the_column_exists_only_with_one(tmp_path):
@@ -228,14 +249,6 @@ def test_remote_posters_are_not_fetched_at_print_time():
     doc.steps[1].steps[0].artifacts = [ArtifactRef(role="poster", uri="https://example.com/p.jpg")]
     page = card.render_card(doc)
     assert "example.com" not in page and "<img" not in page
-
-
-def test_odd_needs_values_do_not_crash():
-    for needs in ("A mat", 5, None, {"x": 1}):
-        page = card.render_card(_doc(attrs={"render.card": {"needs": needs}}))
-        assert "<html" in page
-    assert "<li>A mat</li>" in card.render_card(_doc(attrs={"render.card": {"needs": "A mat"}}))
-    card.render_card(_doc(attrs={"render.card": "nope"}))
 
 
 def test_paper_is_refused_where_it_means_nothing():

@@ -218,3 +218,34 @@ def test_one_child_in_another_unit_skips_the_check():
     from paces.model import validate_document
 
     assert validate_document(_group("rep", "99", 1, [("5", "rep"), ("30", "second")])) == []
+
+
+# ── schema 0.2.0: notes, resources, Cue.label (#75) ────────────────────────
+
+
+def test_version_is_0_2_0_and_the_id_carries_it():
+    from paces.model import SCHEMA_VERSION
+
+    assert SCHEMA_VERSION == "0.2.0"
+    assert "0.2.0" in schema_module.step_document_schema()["$id"]
+
+
+def test_a_0_1_0_document_is_still_valid_and_gets_empty_defaults():
+    doc = StepDocument.model_validate(
+        {"kind": "StepDocument", "schemaVersion": "0.1.0", "id": "old", "title": "Old", "steps": []}
+    )
+    assert doc.schema_version == "0.1.0" and doc.notes == [] and doc.resources == []
+
+
+def test_new_fields_round_trip_through_the_wire_form():
+    path = next(p for p in schema_module.fixture_paths("pass") if p.stem == "notes-and-resources")
+    doc = loads_document(path.read_text(encoding="utf-8"))
+    assert [r.name for r in doc.resources][0] == "Exercise mat"
+    assert doc.resources[1].quantity.unit == "kg" and doc.cues[0].label == "Lowering"
+    assert loads_document(dumps_document(doc)) == doc
+
+
+def test_the_schema_describes_the_new_fields():
+    schema = schema_module.step_document_schema()
+    assert {"notes", "resources"} <= set(schema["properties"])
+    assert "label" in schema["$defs"]["Cue"]["properties"]

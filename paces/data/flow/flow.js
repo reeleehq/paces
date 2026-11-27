@@ -95,10 +95,26 @@
     var beats = el("div", { class: "beats", "aria-hidden": "true" });
 
     app.textContent = "";
+    var before = null;
+    if ((doc.resources || []).length || (doc.notes || []).length) {
+      before = el("details", { class: "before" }, [el("summary", { text: S.before })]);
+      if ((doc.resources || []).length) {
+        before.appendChild(el("h2", { text: S.needs }));
+        before.appendChild(el("ul", {}, doc.resources.map(function (r) {
+          var text = (r.quantity ? C.formatMeasure(r.quantity, S) + " · " : "") + r.name +
+            (r.optional ? " (" + S.optional + ")" : "") + (r.note ? " — " + r.note : "");
+          return el("li", { text: text });
+        })));
+      }
+      if ((doc.notes || []).length) {
+        before.appendChild(el("h2", { text: S.notes }));
+        doc.notes.forEach(function (n) { before.appendChild(el("p", { text: n })); });
+      }
+    }
     app.appendChild(el("div", { class: "shell" }, [status,
       el("header", { class: "top" }, [el("div", { class: "titles" }, [title, posEl]),
         el("div", { class: "modes" }, [modeBtn, paceBtn])]),
-      pace, ribbon,
+      pace, before, ribbon,
       el("div", { class: "layout" }, [
         el("main", { class: "stage" }, [card]),
         el("aside", { class: "side" }, [el("h2", { text: S.allSteps }), outline])]),
@@ -202,7 +218,9 @@
       C.cuesFor(doc, s).forEach(function (cue) {
         var caution = (S.cueKindsCaution || []).indexOf(cue.kind) >= 0;
         card.appendChild(el("p", { class: "cue" + (caution ? " caution" : "") },
-          [el("span", { class: "cuekind", text: caution ? S.caution : S.cue }), document.createTextNode(" " + cue.text)]));
+          [el("span", { class: "cuekind", text: caution ? S.caution : S.cue })].concat(
+            cue.label ? [el("b", { class: "cuelabel", text: " " + cue.label })] : [],
+            [document.createTextNode(" " + cue.text)])));
       });
 
       (step.spans || []).forEach(function (span) { if (span.caption) card.appendChild(el("p", { class: "caption", text: (span.label ? span.label + " — " : "") + span.caption })); });

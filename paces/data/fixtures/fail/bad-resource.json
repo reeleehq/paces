@@ -1,0 +1,5 @@
+{
+  "kind": "StepDocument", "id": "x", "title": "T",
+  "resources": [ { "id": "Not A Slug", "name": "Mat" } ],
+  "steps": []
+}

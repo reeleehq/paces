@@ -33,7 +33,9 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
 
-SCHEMA_VERSION = "0.1.0"
+#: 0.2.0 (paces#75): additive — ``StepDocument.notes``, ``StepDocument.resources``
+#: and ``Cue.label``, all optional with defaults; every 0.1.0 document is valid.
+SCHEMA_VERSION = "0.2.0"
 
 #: Git-readable stable identifier — deliberately NOT a uuid4.
 Slug = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9._-]*$")]
@@ -167,7 +169,27 @@ class Cue(_Base):
     duration: Measure | None = None
     source: Slug | None = None
     at_s: Decimal | None = None  # optional resolved time in that source
+    label: str | None = None  # short readable label shown beside the cue ("Lowering")
     attrs: dict[str, Any] = Field(default_factory=dict)
+
+
+# ── resources: what you need ────────────────────────────────────────────────
+
+
+class Resource(_Base):
+    """One thing the routine needs (an item, a tool, a space, an ingredient).
+
+    The document-level half of the resource track docs/09 names: the printed
+    "what you need" list. A step does not reference it yet (additive later).
+    ``quantity`` is a :class:`Measure` in the domain's own unit, so there is no
+    second number format."""
+
+    id: Slug
+    name: str
+    kind: Slug = "item"  # open vocab: item | tool | space | ingredient | ...
+    quantity: Measure | None = None
+    optional: bool = False
+    note: str | None = None
 
 
 # ── provenance & edit protection ────────────────────────────────────────────
@@ -273,6 +295,8 @@ class StepDocument(_Base):
     sources: list[Source] = Field(default_factory=list)
     steps: list[Step] = Field(default_factory=list)  # ORDER IS SEMANTIC
     cues: list[Cue] = Field(default_factory=list)
+    resources: list[Resource] = Field(default_factory=list)  # what you need
+    notes: list[str] = Field(default_factory=list)  # prose about the whole routine
     questions: list[OpenQuestion] = Field(default_factory=list)
     credits: str | None = None
     locks: list[Lock] = Field(default_factory=list)  # document-level fields

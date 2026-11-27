@@ -131,3 +131,9 @@ h1 { font: 400 1.5rem/1 var(--display); text-transform: uppercase; letter-spacin
 .beats i.on:first-child { background: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.before { margin: 0 0 .6rem; padding: .6rem 1rem; background: var(--raised); border: 1px solid var(--line); border-radius: var(--r-card); }
+.before summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
+.before h2 { font: .75rem var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: .6rem 0 .3rem; }
+.before ul { margin: 0; padding-left: 1.2rem; }
+.cuelabel { font-style: normal; }
