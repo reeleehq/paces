@@ -8,7 +8,13 @@ import pytest
 from pydantic import ValidationError
 
 from paces import schema as schema_module
-from paces.model import StepDocument, dumps_document, loads_document
+from paces.model import (
+    Measure,
+    Step,
+    StepDocument,
+    dumps_document,
+    loads_document,
+)
 from paces.tools import schema as schema_tool
 
 
@@ -169,3 +175,46 @@ def test_applying_schema_defaults_never_adds_a_null(path):
 
     doc = json.loads(path.read_text(encoding="utf-8"))
     assert nulls(walk(schema, doc)) == nulls(doc) == 0
+
+
+# ── validate_document and units (#65) ──────────────────────────────────────
+
+
+def _group(parent_unit, parent_value, repeat, children):
+    return StepDocument(
+        id="t",
+        title="T",
+        steps=[
+            Step(
+                id="r",
+                name="Group",
+                duration=Measure(value=parent_value, unit=parent_unit),
+                repeat=repeat,
+                steps=[
+                    Step(id=f"c{i}", name=f"C{i}", duration=Measure(value=v, unit=u))
+                    for i, (v, u) in enumerate(children)
+                ],
+            )
+        ],
+    )
+
+
+def test_mixed_unit_children_are_not_summed():
+    from paces.model import validate_document
+
+    doc = _group("pass", "2", 2, [("5", "rep"), ("30", "second")])
+    assert validate_document(doc) == []
+
+
+def test_same_unit_children_are_still_checked():
+    from paces.model import validate_document
+
+    assert validate_document(_group("rep", "20", 2, [("5", "rep"), ("5", "rep")])) == []
+    bad = validate_document(_group("rep", "21", 2, [("5", "rep"), ("5", "rep")]))
+    assert len(bad) == 1 and "children sum" in bad[0]
+
+
+def test_one_child_in_another_unit_skips_the_check():
+    from paces.model import validate_document
+
+    assert validate_document(_group("rep", "99", 1, [("5", "rep"), ("30", "second")])) == []

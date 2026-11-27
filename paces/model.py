@@ -445,7 +445,8 @@ def validate_document(doc: StepDocument) -> list[str]:
     """Semantic checks beyond the schema. Returns human-readable issues
     (empty list = clean); never raises.
 
-    Checks: children durations account for the parent's (``repeat`` included),
+    Checks: children durations account for the parent's (``repeat`` included;
+    only when the children count in the parent's own unit),
     span sources exist, cue anchors point at real steps, step ids are unique
     (id-addressed edits and the regeneration merge both key on them — a
     duplicate makes those silently ambiguous), and no raw ``float`` has
@@ -477,7 +478,15 @@ def validate_document(doc: StepDocument) -> list[str]:
             child_sum = sum(Fraction(c.duration.value) for c in step.steps)
             expected = Fraction(step.duration.value)
             optional_present = any(c.optional or c.variant_of for c in step.steps)
-            if step.repeat * child_sum != expected and not optional_present:
+            # Values in different units are not summable (5 reps + 30 seconds
+            # is not 35 of anything): the check only means something when
+            # every child counts in the parent's own unit.
+            same_unit = all(c.duration.unit == step.duration.unit for c in step.steps)
+            if (
+                same_unit
+                and step.repeat * child_sum != expected
+                and not optional_present
+            ):
                 issues.append(
                     f"{path}: children sum to {step.repeat} x {child_sum} "
                     f"!= duration {expected}"
