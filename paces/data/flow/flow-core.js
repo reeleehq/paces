@@ -159,10 +159,10 @@
       var p = posters.filter(function (q) { return stemOf(q.uri) === stemOf(a.uri); })[0];
       if (p) used[p.uri] = true;
       options.push({ kind: "video", src: a.uri, mime: a.mime || "video/mp4", poster: p && p.uri,
-        label: label(a), main: !!(a.attrs && a.attrs.main) });
+        label: label(a), main: !!(a.attrs && a.attrs.main), variant: a.attrs && a.attrs.variant });
     });
     arts.forEach(function (a) {
-      if (a.role === "gif") options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
+      if (a.role === "gif") options.push({ kind: "image", src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main), variant: a.attrs && a.attrs.variant });
     });
     arts.forEach(function (a) {
       if (a.role === "poster" && !used[a.uri]) options.push({ kind: "image", still: true, src: a.uri, label: label(a), main: !!(a.attrs && a.attrs.main) });
@@ -176,7 +176,16 @@
    * are not choices; they are shown only when there is nothing that moves. */
   function choices(options) {
     var loops = options.filter(function (o) { return !o.still; });
-    return loops.length ? loops : options.slice(0, 1);
+    if (!loops.length) return options.slice(0, 1);
+    /* one choice per variant: an mp4 and a gif of one variant are one choice,
+     * and the player takes the video (the first loop of the variant) */
+    var seen = {}, out = [];
+    loops.forEach(function (o, i) {
+      var key = o.variant || ("#" + i);
+      if (seen[key] === undefined) { seen[key] = out.length; out.push(o); }
+      else if (o.kind === "video" && out[seen[key]].kind !== "video") out[seen[key]] = o;
+    });
+    return out;
   }
 
   /* The dosage a step carries (attrs.load, attrs.effort), as one short line. */
@@ -196,6 +205,8 @@
    * Returns [{kind, label, caution, cues}]; an unknown kind is labelled with
    * its own name. */
   function groupCues(cues, strings) {
+    var noticeKinds = strings.noticeKinds || [];
+    cues = cues.filter(function (c) { return noticeKinds.indexOf(c.kind) < 0; });
     var kinds = [];
     cues.forEach(function (c) { if (kinds.indexOf(c.kind) < 0) kinds.push(c.kind); });
     var cautions = strings.cautionKinds || [], first = strings.kindFirst || [];
@@ -206,6 +217,29 @@
       return { kind: o.k, label: (strings.cueKinds || {})[o.k] || o.k, caution: cautions.indexOf(o.k) >= 0,
         cues: cues.filter(function (c) { return c.kind === o.k; }) };
     });
+  }
+
+  /* Notices (kinds in strings.noticeKinds) are information, not instructions:
+   * shown apart from the cues. */
+  function notices(cues, strings) {
+    var kinds = strings.noticeKinds || [];
+    return cues.filter(function (c) { return kinds.indexOf(c.kind) >= 0; });
+  }
+
+  /* What a learner counts about the routine: its rounds, its steps (rests are
+   * not steps) and, when every step counts in one unit, the total of that unit. */
+  function learnerCounts(doc, stops) {
+    var rounds = 0, perRound = 0, steps = 0, units = {}, total = 0;
+    stops.forEach(function (s) {
+      s.rounds.forEach(function (r) { rounds = Math.max(rounds, r.of); });
+      if (isRest(s.step)) return;
+      steps += 1;
+      units[s.step.duration.unit] = true; total += num(s.step.duration.value);
+      if (s.pos && s.pos.n === s.pos.of && s.rounds.length && perRound === 0) perRound = s.pos.of;
+    });
+    var unitNames = Object.keys(units);
+    return { rounds: rounds, steps: rounds > 1 && perRound ? perRound : steps,
+      total: unitNames.length === 1 ? total : null, unit: unitNames.length === 1 ? unitNames[0] : null };
   }
 
   /* At most `max` cues to show up front: every caution first, then the rest in
@@ -229,7 +263,7 @@
 
   var api = { buildStops: buildStops, stopSeconds: stopSeconds, gridApplies: gridApplies,
     formatMeasure: formatMeasure, formatCount: formatCount, isLearnerLed: isLearnerLed,
-    listMedia: listMedia, choices: choices, dosage: dosage, isRest: isRest, groupCues: groupCues, headCues: headCues, SHOWN_ROLES: SHOWN_ROLES, formatRound: formatRound, deepLink: deepLink,
+    listMedia: listMedia, notices: notices, learnerCounts: learnerCounts, choices: choices, dosage: dosage, isRest: isRest, groupCues: groupCues, headCues: headCues, SHOWN_ROLES: SHOWN_ROLES, formatRound: formatRound, deepLink: deepLink,
     cuesFor: cuesFor, beatsIn: beatsIn, pickMedia: pickMedia, groupColour: groupColour };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PacesFlowCore = api;

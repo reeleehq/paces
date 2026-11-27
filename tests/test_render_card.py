@@ -422,3 +422,14 @@ def test_a_rest_between_rounds_is_not_marked_optional():
     assert "<b>Rest as needed</b>" in page and "between rounds" in page
     assert page.count("optional") == 1  # the push-up's own mark; the rest has none
     assert "Rest as needed — as needed" not in page
+
+
+def test_a_notice_is_plain_information_not_a_cue():
+    doc = _doc()
+    doc.cues = [
+        Cue(id="n", kind="notice", text="No demonstration yet.", anchor=Anchor(step="squat")),
+        Cue(id="s", kind="setup", text="Stand tall.", anchor=Anchor(step="squat")),
+    ]
+    page = card.render_card(doc)
+    assert '<p class="notice">No demonstration yet.</p>' in page
+    assert "<span>Notice</span>" not in page and page.count('class="cuegroup"') == 1

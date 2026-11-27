@@ -548,3 +548,60 @@ def test_the_typefaces_ship_with_their_licences_and_the_page_fetches_nothing_out
         text = (out / name).read_text(encoding="utf-8")
         text = text.replace("http://www.w3.org/2000/svg", "")  # an XML namespace, not a request
         assert not re.search(r"(https?:)?//(fonts|cdn|www)\.", text), name  # no third-party host
+
+
+@needs_node
+def test_one_choice_per_variant_and_the_player_takes_the_video():
+    arts = [
+        {"role": "clip", "uri": "m/full.mp4", "attrs": {"variant": "full", "main": True}},
+        {"role": "gif", "uri": "m/full.gif", "attrs": {"variant": "full"}},
+        {"role": "clip", "uri": "m/pose.mp4", "attrs": {"variant": "pose", "label": "Pose only"}},
+        {"role": "gif", "uri": "m/pose.gif", "attrs": {"variant": "pose"}},
+        {"role": "poster", "uri": "m/x.jpg"},
+    ]
+    chosen = _js("C.choices(C.listMedia(doc))", {"artifacts": arts})
+    assert [o["src"] for o in chosen] == ["m/full.mp4", "m/pose.mp4"]  # two chips, not four
+    # a gif listed before its variant's clip loses to the video
+    arts2 = [{"role": "gif", "uri": "m/a.gif", "attrs": {"variant": "v"}}, {"role": "clip", "uri": "m/a.mp4", "attrs": {"variant": "v"}}]
+    assert [o["src"] for o in _js("C.choices(C.listMedia(doc))", {"artifacts": arts2})] == ["m/a.mp4"]
+    # files with no variant stay separate choices
+    arts3 = [{"role": "clip", "uri": "m/a.mp4"}, {"role": "clip", "uri": "m/b.mp4"}]
+    assert len(_js("C.choices(C.listMedia(doc))", {"artifacts": arts3})) == 2
+
+
+@needs_node
+def test_learner_counts_leave_rests_out_and_name_rounds_steps_and_the_total():
+    leaf = lambda i, tags=(): {"id": i, "duration": {"value": "7", "unit": "rep"}, "tags": list(tags)}
+    doc = {"steps": [{"id": "g", "repeat": 3, "duration": {"value": "126", "unit": "rep"},
+                      "steps": [leaf("a"), leaf("b"), leaf("c"), leaf("d"), leaf("e"), leaf("f"),
+                                leaf("rest", ["learner-led", "between-passes"])]}]}
+    got = _js("C.learnerCounts(doc, C.buildStops(doc))", doc)
+    assert got == {"rounds": 3, "steps": 6, "total": 126, "unit": "rep"}
+    mixed = {"steps": [{"id": "w", "duration": {"value": "30", "unit": "second"}}, leaf("a")]}
+    assert _js("C.learnerCounts(doc, C.buildStops(doc))", mixed)["total"] is None
+
+
+@needs_node
+def test_notices_are_apart_from_the_cue_groups():
+    strings = default_strings()
+    cues = [{"kind": "notice", "text": "No demonstration yet."}, {"kind": "setup", "text": "Stand."}]
+    assert [c["text"] for c in _js(f"C.notices(doc, {json.dumps(strings)})", cues)] == ["No demonstration yet."]
+    groups = _js(f"C.groupCues(doc, {json.dumps(strings)})", cues)
+    assert [g["kind"] for g in groups] == ["setup"]
+
+
+def test_strings_flag_reaches_the_flow_and_card_renderers(tmp_path):
+    import sys
+
+    from paces.model import dumps_document
+
+    path = tmp_path / "d.json"
+    path.write_text(dumps_document(_circuit()), encoding="utf-8")
+    run = lambda *extra: subprocess.run(
+        [sys.executable, "-m", "paces", "render", str(path), *extra], capture_output=True, text=True)
+    done = run("--renderer", "flow", "--output", str(tmp_path / "site"), "--strings", '{"stepsCount": "{n} stations"}')
+    assert done.returncode == 0, done.stderr
+    assert json.loads((tmp_path / "site" / "strings.json").read_text(encoding="utf-8"))["stepsCount"] == "{n} stations"
+    card = run("--renderer", "card", "--output", str(tmp_path / "c.html"), "--strings", '{"structure": "Plan"}')
+    assert card.returncode == 0, card.stderr
+    assert ">Plan<" in (tmp_path / "c.html").read_text(encoding="utf-8")

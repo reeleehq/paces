@@ -211,3 +211,8 @@ body[data-view="done"] .modechip { display: none; }
 .more summary::before { content: ""; width: .5rem; height: .5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .12s; }
 .more[open] summary::before { transform: rotate(45deg); }
 .fillbar.none { display: none; }
+
+/* a clip that fits the window: on a wide screen the card must not be cut at the fold */
+@media (min-width: 900px) { .media { max-height: max(12rem, calc(100dvh - 33rem)); } }
+.notice { margin: .6rem 0 0; padding: .5rem .8rem; border-radius: 10px; background: color-mix(in srgb, var(--muted) 16%, transparent);
+  color: var(--muted); font-size: .95rem; font-style: italic; }

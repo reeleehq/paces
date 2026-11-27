@@ -243,6 +243,7 @@ def _render_flow_folder(doc, output, media_from, options):
         output,
         media_from=options.get("media_from") or media_from,
         media_root=options.get("media_root"),
+        strings=_structured(options.get("strings"), what="strings"),
     )
 
 
@@ -254,6 +255,7 @@ def _render_card(doc, output, media_from, options):
         paper=paper,
         media_from=options.get("media_from") or media_from,
         media_root=options.get("media_root"),
+        strings=_structured(options.get("strings"), what="strings"),
     )
     if output and str(output).lower().endswith(".pdf"):
         render_card_module.write_card_pdf(page, output, paper=paper)
@@ -262,7 +264,7 @@ def _render_card(doc, output, media_from, options):
     return page
 
 
-_MEDIA_OPTIONS = frozenset({"media_from", "media_root"})
+_MEDIA_OPTIONS = frozenset({"media_from", "media_root", "strings"})
 
 #: name -> (run(doc, output, media_from, options), needs_output, accepted options). Every renderer takes the
 #: same arguments, so a new one (a card, a deck) is one more row here and no
@@ -283,6 +285,7 @@ def render(
     paper: str | None = None,
     media_from: str | None = None,
     media_root: str | None = None,
+    strings=None,
 ) -> str:
     """Render a step document into learning material.
 
@@ -294,6 +297,9 @@ def render(
     the ``paces[pdf]`` extra is installed; ``paper`` is ``'a4'`` (default) or
     ``'letter'``. Returns the output path when ``output=`` is given, otherwise
     the rendered text itself.
+
+    ``strings`` overrides entries of the renderer's strings table (a JSON object
+    or a path to one; flow and card): a translation, or "stations" for "steps".
 
     ``media_from`` is the folder the document's relative artifact uris are
     relative to (default: the document's own folder), and ``media_root`` the
@@ -315,7 +321,12 @@ def render(
             "media_root needs media_from when the document is not a file "
             "(there is no folder its relative uris are relative to)"
         )
-    given = {"paper": paper, "media_from": media_from, "media_root": media_root}
+    given = {
+        "paper": paper,
+        "media_from": media_from,
+        "media_root": media_root,
+        "strings": strings,
+    }
     for name, value in given.items():
         if value is not None and name not in accepted:
             raise ValueError(f"the {renderer!r} renderer does not take {name}=")

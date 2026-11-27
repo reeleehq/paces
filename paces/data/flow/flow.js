@@ -277,9 +277,18 @@
       try { history.replaceState(history.state, "", state.view === "step" ? "#s=" + state.i : location.pathname + location.search); } catch (e) { /* sandboxed frame */ }
     }
 
+    /* the learner's units: rounds, steps (rests are not steps), the total */
+    var learner = C.learnerCounts(doc, stops);
+    function unitText(total, unit) { return C.formatMeasure({ value: String(total), unit: unit }, S); }
+    function learnerBits() {
+      var bits = [];
+      if (learner.rounds > 1) bits.push(fmt(S.roundsCount, { n: learner.rounds }));
+      bits.push(fmt(S.stepsCount, { n: learner.steps }));
+      if (learner.total !== null) bits.push(unitText(learner.total, learner.unit));
+      return bits;
+    }
     function counts() {
-      var bits = [fmt(S.stepsCount, { n: stops.length })];
-      if (overviewCounts.rounds > 1) bits.push(fmt(S.roundsCount, { n: overviewCounts.rounds }));
+      var bits = learnerBits();
       var about = aboutText(); if (about) bits.push(about);
       return bits.join(" · ");
     }
@@ -316,8 +325,8 @@
 
     function renderDone() {
       stage.appendChild(el("article", { class: "card overview done" }, [
-        el("h2", { class: "ovtitle", text: S.done }),
-        el("p", { class: "ovcounts", text: state.totalSeconds >= 1 ? fmt(S.doneCounts, { n: stops.length, t: mmss(state.totalSeconds) }) : fmt(S.stepsCount, { n: stops.length }) }),
+        el("h2", { class: "ovtitle", text: learner.rounds > 1 ? fmt(S.doneRounds, { n: learner.rounds }) : S.done }),
+        el("p", { class: "ovcounts", text: learnerBits().concat(state.totalSeconds >= 1 ? [mmss(state.totalSeconds)] : []).join(" · ") }),
         el("button", { class: "bigbtn primary", type: "button", onclick: function () { state.finished = false; state.totalSeconds = 0; state.mode = "timed"; go(0); state.view = "step"; render(); } }, [icon(ICONS.play), document.createTextNode(S.restart)]),
         el("button", { class: "bigbtn ghost", type: "button", onclick: function () { state.mode = "manual"; go(0); state.view = "step"; render(); } }, [document.createTextNode(S.stepThrough)])]));
     }
@@ -364,8 +373,12 @@
       (s.heads || []).forEach(function (p) { if (p.description) card.appendChild(el("p", { class: "lead", text: p.description })); });
       if (step.description) card.appendChild(el("p", { class: "desc", text: step.description }));
 
+      /* notices are information, not instructions: apart from the cues */
+      var allCues = C.cuesFor(doc, s);
+      C.notices(allCues, S).forEach(function (n) { card.appendChild(el("p", { class: "notice", role: "note", text: n.text })); });
+
       /* cues: a short list up front, everything else behind one disclosure */
-      var cueGroups = C.groupCues(C.cuesFor(doc, s), S);
+      var cueGroups = C.groupCues(allCues, S);
       var max = wide.matches ? 5 : 3;
       var head = C.headCues(cueGroups, max);
       var cueBox = el("div", { class: "cues" });
