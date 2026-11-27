@@ -10,6 +10,7 @@ paces.render\_card
    
       MAX_EMBED_BYTES
       PIC_MM
+      PIC_H_MM
       MAX_PICTURES
    
    .. rubric:: Functions
