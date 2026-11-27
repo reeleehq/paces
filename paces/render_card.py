@@ -94,7 +94,7 @@ p.note { margin: 0 0 1.5mm; }
 table { width: 100%%; border-collapse: collapse; }
 td { vertical-align: top; padding: 2mm 2mm 2mm 0; }
 tr.step { page-break-inside: avoid; border-bottom: .2mm solid #e3dcee; }
-td.pic .fig { display: inline-block; vertical-align: top; width: 21mm; margin-right: 2mm; }
+td.pic .fig { display: inline-block; vertical-align: bottom; width: 21mm; margin-right: 2mm; }
 td.pic img { display: block; margin: 0 auto; border: .2mm solid #cfc6de; }
 td.pic .fig span { display: block; font-size: 7pt; text-align: center; color: #5b4a73; }
 td.num { width: 8mm; font-weight: bold; color: #5b4a73; }

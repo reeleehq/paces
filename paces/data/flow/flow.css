@@ -118,7 +118,7 @@ body[data-view="overview"] .ribwrap, body[data-view="done"] .ribwrap { display: 
 .card { background: linear-gradient(180deg, var(--raised), color-mix(in srgb, var(--raised) 80%, var(--ground))); border: 1px solid var(--c); border-radius: var(--r-card);
   padding: .9rem 1rem 1.2rem; box-shadow: 0 14px 40px -18px color-mix(in srgb, var(--c) 60%, transparent); touch-action: pan-y; }
 .context { font: 600 1.25rem/1.2 var(--body); color: color-mix(in srgb, var(--c) 55%, var(--ink)); margin: 0 0 .6rem; min-height: 1.5rem; }
-.media { display: block; width: 100%; max-height: 50dvh; object-fit: contain; border-radius: 12px; background: var(--raised); margin: 0 auto .6rem; }
+.media { display: block; width: 100%; max-height: min(50dvh, calc(100dvh - 27rem)); object-fit: contain; border-radius: 12px; background: var(--raised); margin: 0 auto .6rem; }
 .media.small { max-height: 8rem; width: auto; margin: .4rem 0; }
 .alts { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .6rem; }
 .alt { min-height: 44px; padding: 0 .9rem; border-radius: var(--r-pill); border: 1px solid var(--line); background: transparent; font-size: .85rem; }
@@ -218,7 +218,8 @@ body[data-view="done"] .modechip { display: none; }
   color: var(--muted); font-size: .95rem; font-style: italic; }
 
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .strip i, :root:not([data-theme="dark"]) .cell { background: color-mix(in srgb, var(--c) 55%, transparent); }
+  :root:not([data-theme="dark"]) .strip i:not(.on):not(.done) { background: color-mix(in srgb, var(--c) 55%, transparent); }
+  :root:not([data-theme="dark"]) .cell:not(.on):not(.done) { background: color-mix(in srgb, var(--c) 55%, transparent); }
 }
 
 /* the current step must not be faint: an outline on top of its fill */
